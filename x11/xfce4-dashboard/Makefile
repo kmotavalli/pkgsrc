@@ -1,9 +1,8 @@
-# $NetBSD: Makefile,v 1.8 2018/03/12 11:17:58 wiz Exp $
+# $NetBSD: Makefile,v 1.10 2018/05/15 21:59:15 youri Exp $
 
-PKGREVISION= 2
 .include "../../meta-pkgs/xfce4/Makefile.common"
 
-VERSION=	0.7.2
+VERSION=	0.7.4
 DISTNAME=	xfdashboard-${VERSION}
 PKGNAME=	xfce4-dashboard-${VERSION}
 CATEGORIES=	x11

@@ -1,9 +1,9 @@
-# $NetBSD: Makefile,v 1.8 2018/03/12 11:16:22 wiz Exp $
+# $NetBSD: Makefile,v 1.10 2018/04/29 05:46:36 wiz Exp $
 #
 
 DISTNAME=	codeblocks_16.01
 PKGNAME=	${DISTNAME:S/_/-/}
-PKGREVISION=	5
+PKGREVISION=	7
 CATEGORIES=	editors x11
 MASTER_SITES=	${MASTER_SITE_SOURCEFORGE:=codeblocks/}
 

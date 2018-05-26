@@ -1,6 +1,6 @@
-# $NetBSD: Makefile,v 1.7 2018/03/02 11:39:17 adam Exp $
+# $NetBSD: Makefile,v 1.10 2018/05/02 07:33:45 adam Exp $
 
-DISTNAME=	pytest-mock-1.7.1
+DISTNAME=	pytest-mock-1.10.0
 PKGNAME=	${PYPKGPREFIX}-${DISTNAME:S/py//}
 CATEGORIES=	devel python
 MASTER_SITES=	${MASTER_SITE_PYPI:=p/pytest-mock/}
@@ -19,7 +19,6 @@ BUILD_DEPENDS+=	${PYPKGPREFIX}-setuptools_scm-[0-9]*:../../devel/py-setuptools_s
 DEPENDS+=	${PYPKGPREFIX}-mock-[0-9]*:../../devel/py-mock
 .endif
 
-# needs to be installed first
 do-test:
 	cd ${WRKSRC} && py.test-${PYVERSSUFFIX}
 

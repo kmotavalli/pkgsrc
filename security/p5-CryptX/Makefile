@@ -1,6 +1,6 @@
-# $NetBSD: Makefile,v 1.8 2018/02/28 08:46:04 wiz Exp $
+# $NetBSD: Makefile,v 1.10 2018/05/02 13:27:09 wiz Exp $
 
-DISTNAME=	CryptX-0.058
+DISTNAME=	CryptX-0.060
 PKGNAME=	p5-${DISTNAME}
 CATEGORIES=	security perl5
 MASTER_SITES=	http://search.cpan.org/CPAN/authors/id/M/MI/MIK/

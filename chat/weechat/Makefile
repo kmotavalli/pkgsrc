@@ -1,12 +1,12 @@
-# $NetBSD: Makefile,v 1.81 2018/01/20 17:20:15 tonio Exp $
+# $NetBSD: Makefile,v 1.85 2018/05/25 10:16:03 maya Exp $
 
-DISTNAME=	weechat-2.0.1
+DISTNAME=	weechat-2.1
 CATEGORIES=	chat
-MASTER_SITES=	http://www.weechat.org/files/src/
+MASTER_SITES=	https://www.weechat.org/files/src/
 EXTRACT_SUFX=	.tar.bz2
 
 MAINTAINER=	tonio@NetBSD.org
-HOMEPAGE=	http://www.weechat.org/
+HOMEPAGE=	https://www.weechat.org/
 COMMENT=	Lightweight and user friendly curses based IRC client
 LICENSE=	gnu-gpl-v3
 

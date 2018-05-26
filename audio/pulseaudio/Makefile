@@ -1,7 +1,7 @@
-# $NetBSD: Makefile,v 1.125 2018/03/12 11:16:04 wiz Exp $
+# $NetBSD: Makefile,v 1.128 2018/05/20 11:42:33 maya Exp $
 
 DISTNAME=	pulseaudio-11.1
-PKGREVISION=	4
+PKGREVISION=	5
 CATEGORIES=	audio
 MASTER_SITES=	http://freedesktop.org/software/pulseaudio/releases/
 EXTRACT_SUFX=	.tar.xz
@@ -48,6 +48,12 @@ MAKE_FLAGS+=		bashcompletiondir=${PREFIX}/share/bash-completion/completions
 CONFIGURE_ARGS+=	--disable-tcpwrap
 CONFIGURE_ARGS+=	--localstatedir=${VARBASE:Q}
 CONFIGURE_ARGS+=	--sysconfdir=${PKG_SYSCONFBASEDIR:Q}
+
+# Disable NEON on NetBSD/aarch64 (does not build with pulseaudio 11.1)
+# use of q0 register in aarch64 is considered not valid
+.if !empty(PKGSRC_COMPILER:Mclang) && ${OPSYS} == "NetBSD" && ${MACHINE_CPU} == "aarch64"
+CONFIGURE_ARGS+=	--disable-neon-opt
+.endif
 
 # Use native atomic ops on NetBSD >= 5.0, otherwise
 # fallback to libatomic_ops

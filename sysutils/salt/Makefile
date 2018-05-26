@@ -1,6 +1,7 @@
-# $NetBSD: Makefile,v 1.58 2018/02/28 13:37:23 adam Exp $
+# $NetBSD: Makefile,v 1.60 2018/05/12 11:29:35 maya Exp $
 
-DISTNAME=	salt-2017.7.4
+DISTNAME=	salt-2018.3.0
+PKGREVISION=	1
 CATEGORIES=	sysutils
 MASTER_SITES=	${MASTER_SITE_PYPI:=s/salt/}
 
@@ -17,7 +18,7 @@ DEPENDS+=	${PYPKGPREFIX}-requests>=2.5.0:../../devel/py-requests
 DEPENDS+=	${PYPKGPREFIX}-tornado>=4.3:../../www/py-tornado
 # zeromq transport requirements
 DEPENDS+=	${PYPKGPREFIX}-cryptodome-[0-9]*:../../security/py-cryptodome
-DEPENDS+=	${PYPKGPREFIX}-zmq>=2.1.9:../../net/py-zmq
+DEPENDS+=	${PYPKGPREFIX}-zmq>=2.2.0:../../net/py-zmq
 
 .include "../../lang/python/pyversion.mk"
 .if "${PYPKGPREFIX}" == "py27"
@@ -35,7 +36,7 @@ PYSETUPARGS+=	--salt-logs-dir=${VARBASE}/log/salt
 PYSETUPARGS+=	--salt-pidfile-dir=${VARBASE}/run
 PYSETUPARGS+=	--salt-sock-dir=${VARBASE}/run/salt
 
-REPLACE_PYTHON=		*.py */*.py */*/*.py
+#REPLACE_PYTHON=		*.py */*.py */*/*.py
 REPLACE_SH=		salt/templates/git/ssh-id-wrapper
 
 RCD_SCRIPTS+=		salt_master salt_minion salt_syndic
@@ -72,19 +73,10 @@ SUBST_SED.fix-path+=	-e 's,/var/run,${VARBASE}/run,g'
 SUBST_SED.fix-path+=	-e 's,/var/cache,${VARBASE}/cache,g'
 SUBST_SED.fix-path+=	-e 's,/var/log,${VARBASE}/log,g'
 
-
 post-install:
 	${INSTALL_DATA} ${WRKSRC}/conf/master ${DESTDIR}${EGDIR}/
 	${INSTALL_DATA} ${WRKSRC}/conf/minion ${DESTDIR}${EGDIR}/
 
-# Dependencies are documented at
-# http://docs.saltstack.org/en/latest/topics/installation/index.html#dependencies
-# Jinja2 is documented as an optional dependency, but it's small so we
-# include it unconditionally.
-#
-# There's also an optional dependency on gcc, for Cython support, but
-# we don't bother with that here.
-#
-.include "../../lang/python/application.mk"
+#.include "../../lang/python/application.mk"
 .include "../../lang/python/distutils.mk"
 .include "../../mk/bsd.pkg.mk"

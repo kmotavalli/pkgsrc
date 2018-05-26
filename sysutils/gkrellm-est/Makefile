@@ -1,8 +1,7 @@
-# $NetBSD: Makefile,v 1.46 2018/03/12 11:17:33 wiz Exp $
-#
+# $NetBSD: Makefile,v 1.48 2018/04/30 10:41:35 wiz Exp $
 
 DISTNAME=		gkrellm-est-20040710
-PKGREVISION=		34
+PKGREVISION=		35
 CATEGORIES=		sysutils
 #MASTER_SITES=		http://cubidou.nerim.net/gkrellm-est/
 
@@ -15,7 +14,6 @@ USE_TOOLS+=		pkg-config
 
 ONLY_FOR_PLATFORM=	NetBSD-2.0[F-Z]*-i386 NetBSD-2.99.*-i386
 ONLY_FOR_PLATFORM+=	NetBSD-[3-9].*-i386
-ONLY_FOR_PLATFORM+=	DragonFly-1.[7-9].*-i386 DragonFly-[2-9].*-i386
 
 INSTALLATION_DIRS=	lib/gkrellm2/plugins
 

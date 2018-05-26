@@ -1,4 +1,4 @@
-# $NetBSD: Makefile,v 1.494 2018/04/04 15:26:16 minskim Exp $
+# $NetBSD: Makefile,v 1.498 2018/05/21 23:46:04 minskim Exp $
 #
 
 COMMENT=	Miscellaneous utilities
@@ -176,6 +176,7 @@ SUBDIR+=	lv
 SUBDIR+=	m17n-db
 SUBDIR+=	m17n-docs
 SUBDIR+=	marble
+SUBDIR+=	mate-calc
 SUBDIR+=	mate-utils
 SUBDIR+=	mbuffer
 SUBDIR+=	mdp
@@ -192,6 +193,7 @@ SUBDIR+=	multitail
 SUBDIR+=	nxtvepg
 SUBDIR+=	nyancat
 SUBDIR+=	ocaml-cudf
+SUBDIR+=	ocaml-opaline
 SUBDIR+=	ocaml-opam
 SUBDIR+=	ocaml-opam-file-format
 SUBDIR+=	ocaml-topkg
@@ -229,6 +231,7 @@ SUBDIR+=	parley
 SUBDIR+=	pciids
 SUBDIR+=	pdmenu
 SUBDIR+=	php-orangehrm
+SUBDIR+=	pick
 SUBDIR+=	pinfo
 SUBDIR+=	ppower
 SUBDIR+=	pty-redir
@@ -237,6 +240,7 @@ SUBDIR+=	py-anki2
 SUBDIR+=	py-ansi
 SUBDIR+=	py-carddav
 SUBDIR+=	py-stdnum
+SUBDIR+=	py-tqdm
 SUBDIR+=	py-trytond-carrier
 SUBDIR+=	py-trytond-carrier-percentage
 SUBDIR+=	py-trytond-carrier-weight

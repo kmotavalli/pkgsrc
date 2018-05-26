@@ -1,17 +1,19 @@
-# $NetBSD: Makefile,v 1.51 2018/03/12 11:16:53 wiz Exp $
+# $NetBSD: Makefile,v 1.56 2018/05/25 16:41:58 ryoon Exp $
 
-PKGREVISION= 3
 .include "Makefile.common"
 
 COMMENT=	Intelligent Input Bus
 
 DEPENDS+=	${PYPKGPREFIX}-gobject3-[0-9]*:../../devel/py-gobject3
-BUILD_DEPENDS+=	cldr-emoji-annotation-[0-9]*:../../textproc/cldr-emoji-annotation
+BUILD_DEPENDS+=	cldr-emoji-annotation>=33.0.0.1:../../textproc/cldr-emoji-annotation
+BUILD_DEPENDS+=	unicode-character-database-[0-9]*:../../textproc/unicode-character-database
 BUILD_DEPENDS+=	unicode-emoji-[0-9]*:../../textproc/unicode-emoji
 
 GNU_CONFIGURE=	yes
 USE_LIBTOOL=	yes
-USE_TOOLS+=	pkg-config intltool msgfmt gmake
+# XXX fails without GNU msgfmt
+_TOOLS_USE_PKGSRC.msgfmt=	yes
+USE_TOOLS+=	pkg-config intltool gmsgfmt gmake msgmerge
 USE_LANGUAGES=	c c++
 USE_PKGLOCALEDIR=	yes
 
@@ -29,6 +31,7 @@ CONFIGURE_ARGS+=	--enable-introspection=yes
 CONFIGURE_ARGS+=	--with-python=${PYTHONBIN}
 CONFIGURE_ARGS+=	--with-unicode-emoji-dir=${PREFIX}/share/unicode/emoji
 CONFIGURE_ARGS+=	--with-emoji-annotation-dir=${PREFIX}/share/unicode/cldr/common/annotations
+CONFIGURE_ARGS+=	--with-ucd-dir=${PREFIX}/share/unicode/ucd
 
 SUBST_CLASSES+=		dbus
 SUBST_STAGE.dbus=	post-configure

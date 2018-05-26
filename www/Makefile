@@ -1,4 +1,4 @@
-# $NetBSD: Makefile,v 1.1320 2018/03/21 10:08:16 taca Exp $
+# $NetBSD: Makefile,v 1.1326 2018/05/09 12:23:39 manu Exp $
 #
 
 COMMENT=	Packages related to the World Wide Web
@@ -129,6 +129,7 @@ SUBDIR+=	heel
 SUBDIR+=	hiawatha
 SUBDIR+=	horde
 SUBDIR+=	hs-HTTP
+SUBDIR+=	htdavlock
 SUBDIR+=	htdig
 SUBDIR+=	htmlcxx
 SUBDIR+=	htmldoc
@@ -619,6 +620,7 @@ SUBDIR+=	py-django-contrib-comments
 SUBDIR+=	py-django-cors-headers
 SUBDIR+=	py-django-countries
 SUBDIR+=	py-django-easy-thumbnails
+SUBDIR+=	py-django-extensions
 SUBDIR+=	py-django-filer
 SUBDIR+=	py-django-filter
 SUBDIR+=	py-django-formtools
@@ -652,6 +654,7 @@ SUBDIR+=	py-djangocms-teaser
 SUBDIR+=	py-djangocms-text-ckeditor
 SUBDIR+=	py-djangocms-video
 SUBDIR+=	py-djangorestframework
+SUBDIR+=	py-drf-nested-routers
 SUBDIR+=	py-feedgen
 SUBDIR+=	py-feedgenerator
 SUBDIR+=	py-filebrowser_safe
@@ -709,7 +712,6 @@ SUBDIR+=	py-meinheld
 SUBDIR+=	py-meld3
 SUBDIR+=	py-mezzanine
 SUBDIR+=	py-mod_wsgi
-SUBDIR+=	py-mod_wsgi-metrics
 SUBDIR+=	py-model_mommy
 SUBDIR+=	py-moin
 SUBDIR+=	py-nbconvert
@@ -761,6 +763,7 @@ SUBDIR+=	py-werkzeug
 SUBDIR+=	py-werkzeug-docs
 SUBDIR+=	py-whitenoise
 SUBDIR+=	py-wsproto
+SUBDIR+=	py-wstools
 SUBDIR+=	py-wtforms
 SUBDIR+=	py-wtforms-alchemy
 SUBDIR+=	py-wtforms-components
@@ -859,6 +862,7 @@ SUBDIR+=	ruby-rails42
 SUBDIR+=	ruby-rails51
 SUBDIR+=	ruby-raindrops
 SUBDIR+=	ruby-rest-client
+SUBDIR+=	ruby-robots
 SUBDIR+=	ruby-rouge
 SUBDIR+=	ruby-sass
 SUBDIR+=	ruby-sass-rails32

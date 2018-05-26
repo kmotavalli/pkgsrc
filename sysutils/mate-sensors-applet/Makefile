@@ -1,9 +1,8 @@
-# $NetBSD: Makefile,v 1.7 2018/03/12 11:17:36 wiz Exp $
+# $NetBSD: Makefile,v 1.9 2018/05/16 10:50:22 jperkin Exp $
 
-PKGREVISION= 2
 .include "../../meta-pkgs/mate/Makefile.common"
 
-DISTNAME=	mate-sensors-applet-${VERSION:R}.2
+DISTNAME=	mate-sensors-applet-${VERSION:R}.1
 CATEGORIES=	sysutils
 
 COMMENT=	MATE Sensors applets

@@ -1,8 +1,8 @@
-# $NetBSD: Makefile,v 1.3 2018/03/12 11:16:21 wiz Exp $
+# $NetBSD: Makefile,v 1.6 2018/04/30 09:21:09 dholland Exp $
 
 DISTNAME=	cutter-1.2
 PKGNAME=	radare2-${DISTNAME}
-PKGREVISION=	1
+PKGREVISION=	3
 CATEGORIES=	devel
 MASTER_SITES=	${MASTER_SITE_GITHUB:=radareorg/}
 GITHUB_PROJECT=	cutter
@@ -16,7 +16,7 @@ LICENSE=	gnu-gpl-v3
 USE_LANGUAGES=	c c++
 
 USE_CMAKE=	yes
-USE_TOOLS+=	gmake pax
+USE_TOOLS+=	gmake pax pkg-config
 
 WRKSRC=	${WRKDIR}/${DISTNAME}/src
 

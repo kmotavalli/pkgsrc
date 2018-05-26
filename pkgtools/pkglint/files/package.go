@@ -26,6 +26,7 @@ type Package struct {
 	EffectivePkgnameLine MkLine          // The origin of the three effective_* values
 	SeenBsdPrefsMk       bool            // Has bsd.prefs.mk already been included?
 	PlistDirs            map[string]bool // Directories mentioned in the PLIST files
+	PlistFiles           map[string]bool // Regular files mentioned in the PLIST files
 
 	vars                  Scope
 	bl3                   map[string]Line // buildlink3.mk name => line; contains only buildlink3.mk files that are directly included.
@@ -42,6 +43,7 @@ func NewPackage(pkgpath string) *Package {
 	pkg := &Package{
 		Pkgpath:               pkgpath,
 		PlistDirs:             make(map[string]bool),
+		PlistFiles:            make(map[string]bool),
 		vars:                  NewScope(),
 		bl3:                   make(map[string]Line),
 		plistSubstCond:        make(map[string]bool),
@@ -216,6 +218,14 @@ func (pkglint *Pkglint) checkdirPackage(pkgpath string) {
 		}
 	}
 
+	if G.opts.CheckAlternatives {
+		for _, fname := range files {
+			if path.Base(fname) == "ALTERNATIVES" {
+				CheckfileAlternatives(fname, pkg.PlistFiles)
+			}
+		}
+	}
+
 	if !isEmptyDir(G.CurrentDir + "/scripts") {
 		NewLineWhole(G.CurrentDir + "/scripts").Warnf("This directory and its contents are deprecated! Please call the script(s) explicitly from the corresponding target(s) in the pkg's Makefile.")
 	}
@@ -286,6 +296,28 @@ func (pkg *Package) readMakefile(fname string, mainLines *MkLines, allLines *MkL
 		allLines.mklines = append(allLines.mklines, mkline)
 		allLines.lines = append(allLines.lines, mkline.Line)
 
+		if mkline.IsCond() {
+			ind := &fileMklines.indentation
+			switch mkline.Directive() {
+			case "if", "ifdef", "ifndef", "for":
+				ind.Push(0) // Dummy indentation, only the checkedFiles are interesting
+			case "endfor", "endif":
+				if ind.Len() > 1 {
+					ind.Pop()
+				}
+			}
+
+			if mkline.Directive() == "if" {
+				args := mkline.Args()
+				if contains(args, "exists") {
+					cond := NewMkParser(mkline.Line, args, false).MkCond()
+					cond.Visit("exists", func(node *Tree) {
+						ind.AddCheckedFile(node.args[0].(string))
+					})
+				}
+			}
+		}
+
 		var includeFile, incDir, incBase string
 		if mkline.IsInclude() {
 			inc := mkline.Includefile()
@@ -334,7 +366,11 @@ func (pkg *Package) readMakefile(fname string, mainLines *MkLines, allLines *MkL
 				// current file and in the current working directory.
 				// Pkglint doesn't have an include dir list, like make(1) does.
 				if !fileExists(dirname + "/" + includeFile) {
-					if dirname != G.CurrentDir { // Prevent unnecessary syscalls
+
+					if fileMklines.indentation.IsCheckedFile(includeFile) {
+						continue // See https://github.com/rillig/pkglint/issues/1
+
+					} else if dirname != G.CurrentDir { // Prevent unnecessary syscalls
 						dirname = G.CurrentDir
 						if !fileExists(dirname + "/" + includeFile) {
 							mkline.Errorf("Cannot read %q.", dirname+"/"+includeFile)
@@ -346,8 +382,9 @@ func (pkg *Package) readMakefile(fname string, mainLines *MkLines, allLines *MkL
 				if trace.Tracing {
 					trace.Step1("Including %q.", dirname+"/"+includeFile)
 				}
-				includingFname := ifelseStr(incBase == "Makefile.common" && incDir != "", fname, "")
-				if !pkg.readMakefile(dirname+"/"+includeFile, mainLines, allLines, includingFname) {
+				absIncluding := ifelseStr(incBase == "Makefile.common" && incDir != "", fname, "")
+				absIncluded := dirname + "/" + includeFile
+				if !pkg.readMakefile(absIncluded, mainLines, allLines, absIncluding) {
 					return false
 				}
 			}
@@ -708,6 +745,9 @@ func (pkg *Package) CheckVarorder(mklines *MkLines) {
 			}
 		}
 
+		if firstRelevant == -1 {
+			return true
+		}
 		interesting := mklines.mklines[firstRelevant : lastRelevant+1]
 
 		varcanon := func() string {
@@ -904,6 +944,7 @@ func (pkg *Package) loadPlistDirs(plistFilename string) {
 
 	for _, line := range lines {
 		text := line.Text
+		pkg.PlistFiles[text] = true // XXX: ignores PLIST conditionals for now
 		// Keep in sync with PlistChecker.collectFilesAndDirs
 		if !contains(text, "$") && !contains(text, "@") {
 			for dir := path.Dir(text); dir != "."; dir = path.Dir(dir) {

@@ -1,10 +1,10 @@
-# $NetBSD: Makefile,v 1.2 2017/10/11 09:23:49 markd Exp $
+# $NetBSD: Makefile,v 1.5 2018/05/22 21:15:02 markd Exp $
 
 DISTNAME=	collection-plaingeneric
-PKGNAME=	texlive-${DISTNAME}-2017pre1
+PKGNAME=	texlive-${DISTNAME}-2018pre2
 CATEGORIES=	meta-pkgs
 MASTER_SITES=	# empty
-TEXLIVE_REV=	44986
+TEXLIVE_REV=	45805
 
 MAINTAINER=	pkgsrc-users@NetBSD.org
 HOMEPAGE=	http://www.tug.org/texlive/
@@ -55,7 +55,7 @@ DEPENDS+=	tex-iftex-[0-9]*:../../print/tex-iftex
 # depend insbox
 DEPENDS+=	tex-js-misc-[0-9]*:../../print/tex-js-misc
 DEPENDS+=	tex-kastrup>=2010:../../math/tex-kastrup
-# depend lambda-lists
+DEPENDS+=	tex-lambda-lists-[0-9]*:../../print/tex-lambda-lists
 # depend langcode
 # depend lecturer
 # depend librarian
@@ -91,13 +91,14 @@ DEPENDS+=	tex-tex4ht-[0-9]*:../../print/tex-tex4ht
 # depend texapi
 DEPENDS+=	tex-texinfo-[0-9]*:../../print/tex-texinfo
 DEPENDS+=	tex-timetable-[0-9]*:../../print/tex-timetable
-# depend tracklang
+DEPENDS+=	tex-tracklang-[0-9]*:../../print/tex-tracklang
 DEPENDS+=	tex-treetex-[0-9]*:../../print/tex-treetex
 # depend trigonometry
 DEPENDS+=	tex-ulem>=2013:../../print/tex-ulem
 # depend upca
 DEPENDS+=	tex-varisize-[0-9]*:../../print/tex-varisize
 # xii is a "fun" package and the only files are in tex-xii-doc
+# depend xii-lat
 #DEPENDS+=	tex-xii-[0-9]*:../../print/tex-xii
 # depend xlop
 # depend yax

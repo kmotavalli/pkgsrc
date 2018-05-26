@@ -1,6 +1,6 @@
-# $NetBSD: Makefile,v 1.8 2018/03/08 08:26:21 adam Exp $
+# $NetBSD: Makefile,v 1.10 2018/05/24 06:37:46 adam Exp $
 
-DISTNAME=	asgiref-2.2.0
+DISTNAME=	asgiref-2.3.2
 PKGNAME=	${PYPKGPREFIX}-${DISTNAME}
 CATEGORIES=	www python
 MASTER_SITES=	${MASTER_SITE_PYPI:=a/asgiref/}
@@ -10,7 +10,7 @@ HOMEPAGE=	https://github.com/django/asgiref
 COMMENT=	Contains various reference ASGI implementations
 LICENSE=	modified-bsd
 
-DEPENDS+=	${PYPKGPREFIX}-six-[0-9]*:../../lang/py-six
+DEPENDS+=	${PYPKGPREFIX}-async-timeout>=2.0.0:../../devel/py-async-timeout
 
 USE_LANGUAGES=	# none
 

@@ -1,6 +1,6 @@
-# $NetBSD: Makefile,v 1.36 2018/03/08 16:32:07 fhajny Exp $
+# $NetBSD: Makefile,v 1.38 2018/05/14 11:26:15 fhajny Exp $
 
-DISTNAME=		rabbitmq-server-3.7.4
+DISTNAME=		rabbitmq-server-3.7.5
 PKGNAME=		${DISTNAME:S/-server//}
 CATEGORIES=		net
 MASTER_SITES=		${MASTER_SITE_GITHUB:=rabbitmq/}
@@ -25,6 +25,9 @@ DEPENDS+=		${PYPKGPREFIX}-simplejson>=2:../../converters/py-simplejson
 BUILD_DEFS+=		VARBASE
 
 .include		"../../mk/bsd.prefs.mk"
+
+# mix[2]: Mix.start: not found [No such file or directory]
+MAKE_JOBS_SAFE=		no
 
 RMQ_USER?=		rabbitmq
 RMQ_GROUP?=		${RMQ_USER}

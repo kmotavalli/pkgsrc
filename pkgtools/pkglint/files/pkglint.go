@@ -27,7 +27,7 @@ const confVersion = "@VERSION@"
 //  tracing.traceDepth (not thread-safe)
 type Pkglint struct {
 	opts   CmdOpts  // Command line options.
-	Pkgsrc Pkgsrc   // Global data, mostly extracted from mk/*.
+	Pkgsrc *Pkgsrc  // Global data, mostly extracted from mk/*.
 	Pkg    *Package // The package that is currently checked.
 	Mk     *MkLines // The Makefile (or fragment) that is currently checked.
 
@@ -40,9 +40,6 @@ type Pkglint struct {
 	CurrentUsername string   // For checking against OWNER and MAINTAINER
 	CvsEntriesDir   string   // Cached to avoid I/O
 	CvsEntriesLines []Line
-
-	Hash         map[string]*Hash // Maps "alg:fname" => hash (inter-package check).
-	UsedLicenses map[string]bool  // Maps "license name" => true (inter-package check).
 
 	errors                int
 	warnings              int
@@ -119,8 +116,8 @@ func main() {
 }
 
 // Main runs the main program with the given arguments.
-// args[0] is the program name.
-func (pkglint *Pkglint) Main(args ...string) (exitcode int) {
+// argv[0] is the program name.
+func (pkglint *Pkglint) Main(argv ...string) (exitcode int) {
 	defer func() {
 		if r := recover(); r != nil {
 			if _, ok := r.(pkglintFatal); ok {
@@ -131,7 +128,7 @@ func (pkglint *Pkglint) Main(args ...string) (exitcode int) {
 		}
 	}()
 
-	if exitcode := pkglint.ParseCommandLine(args); exitcode != nil {
+	if exitcode := pkglint.ParseCommandLine(argv); exitcode != nil {
 		return *exitcode
 	}
 
@@ -229,7 +226,7 @@ func (pkglint *Pkglint) ParseCommandLine(args []string) *int {
 	warn.AddFlagVar("absname", &gopts.WarnAbsname, true, "warn about use of absolute file names")
 	warn.AddFlagVar("directcmd", &gopts.WarnDirectcmd, true, "warn about use of direct command names instead of Make variables")
 	warn.AddFlagVar("extra", &gopts.WarnExtra, false, "enable some extra warnings")
-	warn.AddFlagVar("order", &gopts.WarnOrder, false, "warn if Makefile entries are unordered")
+	warn.AddFlagVar("order", &gopts.WarnOrder, true, "warn if Makefile entries are unordered")
 	warn.AddFlagVar("perm", &gopts.WarnPerm, false, "warn about unforeseen variable definition and use")
 	warn.AddFlagVar("plist-depr", &gopts.WarnPlistDepr, false, "warn about deprecated paths in PLISTs")
 	warn.AddFlagVar("plist-sort", &gopts.WarnPlistSort, false, "warn about unsorted entries in PLISTs")

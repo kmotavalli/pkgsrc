@@ -1,6 +1,6 @@
-$NetBSD: distinfo,v 1.8 2018/01/19 09:55:38 adam Exp $
+$NetBSD: distinfo,v 1.14 2018/05/23 09:32:24 adam Exp $
 
-SHA1 (cheroot-6.0.0.tar.gz) = 0c26bb90153e41583bd63298a87988ca49acd888
-RMD160 (cheroot-6.0.0.tar.gz) = adc4735c81238d55879c90990687ba53eccb3538
-SHA512 (cheroot-6.0.0.tar.gz) = 0109fbf3b73ed3f12261eaa3c6d86b6c6b80a1ba3564548ba3288aa6c61a1c08db60886e677991bf7997e6a5b1ec7767a3e06098ec1748453e72c40fda7b82a7
-Size (cheroot-6.0.0.tar.gz) = 62763 bytes
+SHA1 (cheroot-6.3.1.tar.gz) = 7af530ba41021e611f9bc4c88711e277d5c17ead
+RMD160 (cheroot-6.3.1.tar.gz) = db2fd9e20d0f1da935237ea90e684b52440d0982
+SHA512 (cheroot-6.3.1.tar.gz) = 277dfe35927f5e41bd9601f89c0bca549946c21523c2e3ee5ce20c4d49bd9e006c2c4046b78289d72d09b7b5befa2de6d456c174ead9b29b42e255972e0fc604
+Size (cheroot-6.3.1.tar.gz) = 72904 bytes

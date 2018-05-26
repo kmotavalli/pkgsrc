@@ -1,4 +1,4 @@
-# $NetBSD: Makefile,v 1.984 2018/04/06 03:47:12 maya Exp $
+# $NetBSD: Makefile,v 1.989 2018/05/12 21:54:29 minskim Exp $
 #
 
 COMMENT=	Text processing utilities (does not include desktop publishing)
@@ -14,6 +14,7 @@ SUBDIR+=	OdfConverter
 SUBDIR+=	R-formatR
 SUBDIR+=	R-gsubfn
 SUBDIR+=	R-highr
+SUBDIR+=	R-htmltools
 SUBDIR+=	R-jsonlite
 SUBDIR+=	R-markdown
 SUBDIR+=	R-stringi
@@ -355,6 +356,7 @@ SUBDIR+=	libcroco
 SUBDIR+=	libcsv
 SUBDIR+=	libexttextcat
 SUBDIR+=	libfastjson
+SUBDIR+=	libhighlight
 SUBDIR+=	liblinebreak
 SUBDIR+=	liblrdf
 SUBDIR+=	libnxml
@@ -418,7 +420,6 @@ SUBDIR+=	oniguruma
 SUBDIR+=	openjade
 SUBDIR+=	opensp
 SUBDIR+=	ots
-SUBDIR+=	p5-Alien-Base
 SUBDIR+=	p5-Alien-Hunspell
 SUBDIR+=	p5-Biblio-EndnoteStyle
 SUBDIR+=	p5-CAM-PDF
@@ -846,6 +847,7 @@ SUBDIR+=	redland
 SUBDIR+=	regexx
 SUBDIR+=	regxml
 SUBDIR+=	rfcutil
+SUBDIR+=	ripgrep
 SUBDIR+=	rman
 SUBDIR+=	robodoc
 SUBDIR+=	rtf-tools
@@ -978,6 +980,7 @@ SUBDIR+=	troffcvt
 SUBDIR+=	unac
 SUBDIR+=	uncrustify
 SUBDIR+=	uni2ascii
+SUBDIR+=	unicode-character-database
 SUBDIR+=	unicode-emoji
 SUBDIR+=	unroff
 SUBDIR+=	untex

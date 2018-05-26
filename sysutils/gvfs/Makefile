@@ -1,8 +1,8 @@
-# $NetBSD: Makefile,v 1.91 2018/03/12 11:17:34 wiz Exp $
+# $NetBSD: Makefile,v 1.94 2018/05/15 15:29:44 jperkin Exp $
 #
 
 DISTNAME=	gvfs-1.6.7
-PKGREVISION=	33
+PKGREVISION=	35
 CATEGORIES=	sysutils
 MASTER_SITES=	${MASTER_SITE_GNOME:=sources/gvfs/1.6/}
 EXTRACT_SUFX=	.tar.bz2
@@ -69,6 +69,8 @@ CONFIGURE_ARGS+=	--disable-fuse
 .endif
 
 BUILDLINK_TRANSFORM+=	rm:-DG_DISABLE_DEPRECATED
+
+.include "../../mk/compiler.mk"
 
 .if !empty(PKGSRC_COMPILER:Mclang) || !empty(CC_VERSION:Mgcc-[6-9]*)
 CFLAGS.SunOS+=		-D_XOPEN_SOURCE=600 -D__EXTENSIONS__

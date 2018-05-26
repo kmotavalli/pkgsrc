@@ -1,8 +1,9 @@
-# $NetBSD: Makefile,v 1.1 2018/04/06 03:44:19 maya Exp $
+# $NetBSD: Makefile,v 1.6 2018/04/29 21:31:45 adam Exp $
 
-DISTNAME=		krita-4.0.0
+DISTNAME=		krita-4.0.1
+PKGREVISION=		4
 CATEGORIES=		misc kde
-MASTER_SITES=		${MASTER_SITE_KDE:=krita/4.0.0/}
+MASTER_SITES=		${MASTER_SITE_KDE:=krita/4.0.1/}
 
 MAINTAINER=		pkgsrc-users@NetBSD.org
 HOMEPAGE=		http://www.krita.org/

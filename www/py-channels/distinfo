@@ -1,6 +1,6 @@
-$NetBSD: distinfo,v 1.5 2018/02/14 14:22:33 adam Exp $
+$NetBSD: distinfo,v 1.7 2018/04/30 07:37:24 adam Exp $
 
-SHA1 (channels-2.0.2.tar.gz) = d286f3058a45c4526660b0022111e06c2b20d3c6
-RMD160 (channels-2.0.2.tar.gz) = cfcf2d5fb65c1a29a307546af08675136fe5bf54
-SHA512 (channels-2.0.2.tar.gz) = 07dbc471d3dd6ebee611a69e853ec2e41b87823f69f6c5b8ecf30a8ff3d67af0fa6701feb859ab4b8a1ebd170ddf6a3416cddfc857321ee5de97b64e8c7ace58
-Size (channels-2.0.2.tar.gz) = 27057 bytes
+SHA1 (channels-2.1.1.tar.gz) = 5c65c75af4730085028d4497be77cc4dee9d4f6a
+RMD160 (channels-2.1.1.tar.gz) = 51f785af3cdfaf21ca347524f48c307d30c31a4f
+SHA512 (channels-2.1.1.tar.gz) = e45b9072213e8121f79955545018e536cd845961013653a25d14660ae290226d37d424aad4e5cc6070586823c3ab676294ce233a509ac3ebd6e05a2d7f89bd41
+Size (channels-2.1.1.tar.gz) = 31853 bytes

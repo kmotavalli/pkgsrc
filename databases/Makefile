@@ -1,9 +1,10 @@
-# $NetBSD: Makefile,v 1.558 2018/03/21 10:00:38 taca Exp $
+# $NetBSD: Makefile,v 1.562 2018/05/21 08:06:39 adam Exp $
 
 COMMENT=	Databases
 
 SUBDIR+=	R-RSQLite
 SUBDIR+=	R-sqldf
+SUBDIR+=	SQLiteCpp
 SUBDIR+=	abook
 SUBDIR+=	adodb
 SUBDIR+=	apache-cassandra
@@ -56,7 +57,6 @@ SUBDIR+=	java-tokyocabinet
 SUBDIR+=	jdbc-mysql31
 SUBDIR+=	jdbc-mysql5
 SUBDIR+=	jdbc-mysql51
-SUBDIR+=	jdbc-postgresql92
 SUBDIR+=	jdbc-postgresql93
 SUBDIR+=	jdbc-postgresql94
 SUBDIR+=	kyotocabinet
@@ -75,7 +75,6 @@ SUBDIR+=	libgda-mysql
 SUBDIR+=	libgda-postgres
 SUBDIR+=	libmongo-client
 SUBDIR+=	libpqxx
-SUBDIR+=	libpqxx-doc
 SUBDIR+=	libzdb
 SUBDIR+=	liquibase
 SUBDIR+=	lmdb
@@ -87,6 +86,7 @@ SUBDIR+=	lua-sqlite
 SUBDIR+=	lua-sqlite3
 SUBDIR+=	lua-tokyocabinet
 SUBDIR+=	luma
+SUBDIR+=	mariadb-connector-c
 SUBDIR+=	mariadb55-client
 SUBDIR+=	mariadb55-server
 SUBDIR+=	metakit-lib
@@ -290,14 +290,6 @@ SUBDIR+=	postgresql10-plperl
 SUBDIR+=	postgresql10-plpython
 SUBDIR+=	postgresql10-pltcl
 SUBDIR+=	postgresql10-server
-SUBDIR+=	postgresql92
-SUBDIR+=	postgresql92-client
-SUBDIR+=	postgresql92-contrib
-SUBDIR+=	postgresql92-docs
-SUBDIR+=	postgresql92-plperl
-SUBDIR+=	postgresql92-plpython
-SUBDIR+=	postgresql92-pltcl
-SUBDIR+=	postgresql92-server
 SUBDIR+=	postgresql93
 SUBDIR+=	postgresql93-client
 SUBDIR+=	postgresql93-contrib

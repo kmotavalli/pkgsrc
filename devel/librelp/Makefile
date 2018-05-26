@@ -1,6 +1,6 @@
-# $NetBSD: Makefile,v 1.4 2018/03/23 12:24:32 fhajny Exp $
+# $NetBSD: Makefile,v 1.6 2018/05/16 11:33:14 fhajny Exp $
 
-DISTNAME=	librelp-1.2.15
+DISTNAME=	librelp-1.2.16
 CATEGORIES=	devel
 MASTER_SITES=	http://download.rsyslog.com/librelp/
 
@@ -20,6 +20,8 @@ CONFIGURE_ARGS.SunOS+=	ac_cv_header_sys_epoll_h=no
 CPPFLAGS.SunOS+=	-D__EXTENSIONS__
 
 PKGCONFIG_OVERRIDE+=	relp.pc.in
+
+TEST_TARGET=	check
 
 .include "../../security/gnutls/buildlink3.mk"
 .include "../../mk/bsd.pkg.mk"

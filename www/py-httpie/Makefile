@@ -1,24 +1,20 @@
-# $NetBSD: Makefile,v 1.3 2015/03/09 16:52:45 imil Exp $
+# $NetBSD: Makefile,v 1.5 2018/05/02 07:29:16 adam Exp $
 
-DISTNAME=	0.9.2
-EGG_NAME=	httpie-${DISTNAME}
+DISTNAME=	httpie-0.9.9
 PKGNAME=	${PYPKGPREFIX}-${EGG_NAME}
-CATEGORIES=	www
-MASTER_SITES=	https://github.com/jakubroztocil/httpie/archive/
+CATEGORIES=	www python
+MASTER_SITES=	${MASTER_SITE_PYPI:=h/httpie/}
 
 MAINTAINER=	imil@NetBSD.org
 HOMEPAGE=	https://github.com/jakubroztocil/httpie
 COMMENT=	Human-friendly command line HTTP client
 LICENSE=	original-bsd
 
-WRKSRC=		${WRKDIR}/httpie-${DISTNAME}
+DEPENDS+=	${PYPKGPREFIX}-curses>=${PY_DISTVERSION}:../../devel/py-curses
+DEPENDS+=	${PYPKGPREFIX}-pygments>=2.1.3:../../textproc/py-pygments
+DEPENDS+=	${PYPKGPREFIX}-requests>=2.11.0:../../devel/py-requests
 
 USE_LANGUAGES=	# none
 
-DEPENDS+=	${PYPKGPREFIX}-pygments>=1.6:../../textproc/py-pygments
-DEPENDS+=	${PYPKGPREFIX}-requests>=2.2.0:../../devel/py-requests
-DEPENDS+=	${PYPKGPREFIX}-curses>=${PY_DISTVERSION}:../../devel/py-curses
-
-.include "../../lang/python/application.mk"
 .include "../../lang/python/egg.mk"
 .include "../../mk/bsd.pkg.mk"

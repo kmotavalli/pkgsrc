@@ -397,7 +397,8 @@ func (s *Suite) Test_Package__varuse_at_load_time(c *check.C) {
 		"WARN: ~/category/pkgbase/Makefile:8: To use the tool \"FALSE\" at load time, bsd.prefs.mk has to be included before.",
 		"WARN: ~/category/pkgbase/Makefile:9: To use the tool \"NICE\" at load time, bsd.prefs.mk has to be included before.",
 		"WARN: ~/category/pkgbase/Makefile:10: To use the tool \"TRUE\" at load time, bsd.prefs.mk has to be included before.",
-		"WARN: ~/category/pkgbase/Makefile:16: To use the tool \"NICE\" at load time, it has to be added to USE_TOOLS before including bsd.prefs.mk.")
+		"WARN: ~/category/pkgbase/Makefile:16: To use the tool \"NICE\" at load time, it has to be added to USE_TOOLS before including bsd.prefs.mk.",
+		"WARN: ~/category/pkgbase/Makefile:3: The canonical order of the variables is CATEGORIES, empty line, COMMENT, LICENSE.")
 }
 
 func (s *Suite) Test_Package_loadPackageMakefile(c *check.C) {
@@ -461,9 +462,79 @@ func (s *Suite) Test_Package_conditionalAndUnconditionalInclude(c *check.C) {
 	G.checkdirPackage("category/package")
 
 	t.CheckOutputLines(
+		"WARN: ~/category/package/Makefile:3: The canonical order of the variables is CATEGORIES, empty line, COMMENT, LICENSE.",
 		"WARN: ~/category/package/options.mk:3: Unknown option \"zlib\".",
 		"WARN: ~/category/package/options.mk:4: \"../../devel/zlib/buildlink3.mk\" is "+
 			"included conditionally here (depending on PKG_OPTIONS) and unconditionally in Makefile:5.",
 		"WARN: ~/category/package/options.mk:6: \"../../sysutils/coreutils/buildlink3.mk\" is "+
 			"included unconditionally here and conditionally in Makefile:7 (depending on OPSYS).")
+}
+
+// See https://github.com/rillig/pkglint/issues/1
+func (s *Suite) Test_Package_includeWithoutExists(c *check.C) {
+	t := s.Init(c)
+
+	t.SetupVartypes()
+	t.CreateFileLines("mk/bsd.pkg.mk")
+	t.CreateFileLines("category/package/Makefile",
+		MkRcsID,
+		"",
+		".include \"options.mk\"",
+		"",
+		".include \"../../mk/bsd.pkg.mk\"")
+
+	G.CurrentDir = t.TempFilename("category/package")
+	G.checkdirPackage(G.CurrentDir)
+
+	t.CheckOutputLines(
+		"ERROR: ~/category/package/options.mk: Cannot be read.")
+}
+
+// See https://github.com/rillig/pkglint/issues/1
+func (s *Suite) Test_Package_includeAfterExists(c *check.C) {
+	t := s.Init(c)
+
+	t.SetupVartypes()
+	t.CreateFileLines("mk/bsd.pkg.mk")
+	t.CreateFileLines("category/package/Makefile",
+		MkRcsID,
+		"",
+		".if exists(options.mk)",
+		".  include \"options.mk\"",
+		".endif",
+		"",
+		".include \"../../mk/bsd.pkg.mk\"")
+
+	G.CurrentDir = t.TempFilename("category/package")
+	G.checkdirPackage(G.CurrentDir)
+
+	t.CheckOutputLines(
+		"WARN: ~/category/package/Makefile: Neither PLIST nor PLIST.common exist, and PLIST_SRC is unset. Are you sure PLIST handling is ok?",
+		"WARN: ~/category/package/distinfo: File not found. Please run \"@BMAKE@ makesum\" or define NO_CHECKSUM=yes in the package Makefile.",
+		"ERROR: ~/category/package/Makefile: Each package must define its LICENSE.",
+		"WARN: ~/category/package/Makefile: No COMMENT given.",
+		"ERROR: ~/category/package/Makefile:4: \"options.mk\" does not exist.",
+		"ERROR: ~/category/package/Makefile:7: \"/mk/bsd.pkg.mk\" does not exist.")
+}
+
+// See https://github.com/rillig/pkglint/issues/1
+func (s *Suite) Test_Package_includeOtherAfterExists(c *check.C) {
+	t := s.Init(c)
+
+	t.SetupVartypes()
+	t.CreateFileLines("mk/bsd.pkg.mk")
+	t.CreateFileLines("category/package/Makefile",
+		MkRcsID,
+		"",
+		".if exists(options.mk)",
+		".  include \"another.mk\"",
+		".endif",
+		"",
+		".include \"../../mk/bsd.pkg.mk\"")
+
+	G.CurrentDir = t.TempFilename("category/package")
+	G.checkdirPackage(G.CurrentDir)
+
+	t.CheckOutputLines(
+		"ERROR: ~/category/package/another.mk: Cannot be read.")
 }

@@ -1,4 +1,4 @@
-@comment $NetBSD: PLIST,v 1.10 2018/03/23 12:08:50 fhajny Exp $
+@comment $NetBSD: PLIST,v 1.12 2018/05/16 16:49:44 fhajny Exp $
 bin/rspamadm
 bin/rspamadm-${PKGVERSION}
 bin/rspamc
@@ -193,6 +193,7 @@ share/rspamd/lua/hfilter.lua
 share/rspamd/lua/history_redis.lua
 share/rspamd/lua/ip_score.lua
 share/rspamd/lua/maillist.lua
+share/rspamd/lua/maps_stats.lua
 share/rspamd/lua/metadata_exporter.lua
 share/rspamd/lua/metric_exporter.lua
 share/rspamd/lua/mid.lua
@@ -256,7 +257,7 @@ share/rspamd/www/js/lib/d3pie.min.js
 share/rspamd/www/js/lib/domReady.js
 share/rspamd/www/js/lib/footable.min.js
 share/rspamd/www/js/lib/humanize.min.js
-share/rspamd/www/js/lib/jquery-3.2.1.min.js
+share/rspamd/www/js/lib/jquery-3.3.1.min.js
 share/rspamd/www/js/lib/visibility.min.js
 share/rspamd/www/js/main.js
 share/rspamd/www/js/require.js

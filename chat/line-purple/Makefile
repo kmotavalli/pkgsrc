@@ -1,8 +1,8 @@
-# $NetBSD: Makefile,v 1.3 2018/03/16 21:06:31 scole Exp $
+# $NetBSD: Makefile,v 1.5 2018/04/29 21:31:29 adam Exp $
 
 VERSION=	0.1
 PKGNAME=	line-purple-${VERSION}
-PKGREVISION=	2
+PKGREVISION=	4
 
 CATEGORIES=	chat
 
@@ -28,6 +28,8 @@ USE_LIBTOOL=	yes
 USE_TOOLS+=	gmake pkg-config
 
 USE_LANGUAGES=	c++
+
+BUILDLINK_API_DEPENDS.libthrift+=   libthrift>=0.11.0
 
 INSTALLATION_DIRS=	lib/purple-2 \
 			share/pixmaps/pidgin/protocols/16 \

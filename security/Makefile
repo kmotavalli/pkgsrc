@@ -1,4 +1,4 @@
-# $NetBSD: Makefile,v 1.679 2018/04/05 05:20:59 jnemeth Exp $
+# $NetBSD: Makefile,v 1.681 2018/05/03 22:13:49 minskim Exp $
 #
 
 COMMENT=	Security tools
@@ -267,6 +267,7 @@ SUBDIR+=	p5-Crypt-OpenPGP
 SUBDIR+=	p5-Crypt-OpenSSL-AES
 SUBDIR+=	p5-Crypt-OpenSSL-Bignum
 SUBDIR+=	p5-Crypt-OpenSSL-DSA
+SUBDIR+=	p5-Crypt-OpenSSL-Guess
 SUBDIR+=	p5-Crypt-OpenSSL-RSA
 SUBDIR+=	p5-Crypt-OpenSSL-Random
 SUBDIR+=	p5-Crypt-PWSafe3
@@ -494,6 +495,7 @@ SUBDIR+=	ruby-net-ssh-multi
 SUBDIR+=	ruby-nexpose
 SUBDIR+=	ruby-oauth
 SUBDIR+=	ruby-openid
+SUBDIR+=	ruby-openssl-ccm
 SUBDIR+=	ruby-openvas-omp
 SUBDIR+=	ruby-password
 SUBDIR+=	ruby-rack-openid

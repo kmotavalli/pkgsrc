@@ -1,8 +1,9 @@
-# $NetBSD: Makefile,v 1.61 2018/03/07 19:23:25 minskim Exp $
+# $NetBSD: Makefile,v 1.64 2018/05/14 00:07:09 minskim Exp $
 #
 
 COMMENT=	Monetary, financial and related applications
 
+SUBDIR+=	QuantLib
 SUBDIR+=	R-TTR
 SUBDIR+=	R-fAsianOptions
 SUBDIR+=	R-fBasics
@@ -14,6 +15,7 @@ SUBDIR+=	cpuminer
 SUBDIR+=	gkrellm-stock
 SUBDIR+=	gnucash
 SUBDIR+=	gnucash-docs
+SUBDIR+=	gnucash2
 SUBDIR+=	homebank
 SUBDIR+=	ledger
 SUBDIR+=	libofx
@@ -26,6 +28,7 @@ SUBDIR+=	p5-Finance-Quote
 SUBDIR+=	p5-Locale-Currency-Format
 SUBDIR+=	py-alpha_vantage
 SUBDIR+=	py-alphalens
+SUBDIR+=	py-backtrader
 SUBDIR+=	py-braintree
 SUBDIR+=	py-empyrical
 SUBDIR+=	py-fecon235

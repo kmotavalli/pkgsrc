@@ -1,9 +1,8 @@
-# $NetBSD: Makefile,v 1.11 2018/03/12 11:17:14 wiz Exp $
+# $NetBSD: Makefile,v 1.13 2018/05/14 13:03:18 youri Exp $
 
-PKGREVISION= 4
 .include "../../meta-pkgs/mate/Makefile.common"
 
-DISTNAME=	mate-media-${VERSION:R}.1
+DISTNAME=	mate-media-${VERSION}
 CATEGORIES=	multimedia
 
 COMMENT=	MATE media tools for MATE Desktop
