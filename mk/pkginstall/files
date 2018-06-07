@@ -102,7 +102,7 @@ PKG_METADATA_DIR="${2-${CURDIR}}"
 : ${PKG_DBDIR=${PKG_METADATA_DIR%/*}}
 : ${PKG_REFCOUNT_DBDIR=${PKG_DBDIR}.refcount}
 PKG_REFCOUNT_FILES_DBDIR="${PKG_REFCOUNT_DBDIR}/files"
-
+_VCSDIR="${VCSDIR:-@VARBASE@/confrepo}"
 exitcode=0
 case $ACTION in
 ADD)
@@ -146,6 +146,22 @@ ADD)
 		else
 			case "$f_flags:$_PKG_CONFIG:$_PKG_RCD_SCRIPTS" in
 			*f*:*:*|[!r]:yes:*|[!r][!r]:yes:*|[!r][!r][!r]:yes:*|*r*:yes:yes)
+				if ${TEST} "$_PKG_RCD_SCRIPTS" = "no" -a ! -n "$NOVCS"; then
+					if ${TEST} ! -d $_VCSDIR; then
+						${RM} -f "$_VCSDIR"
+						${MKDIR} "$_VCSDIR"
+					fi
+					if ${TEST} -w $_VCSDIR; then
+						${MKDIR} -p "$_VCSDIR/$file"
+						${RMDIR} "$_VCSDIR/$file"
+						${CP} -fp "$f_eg" "$_VCSDIR/$file"
+						${TEST} ! -x ./+VERSIONING ||
+							./+VERSIONING REGISTER "$_VCSDIR/$file" 
+							${ECHO} REGISTER $_VCSDIR/$file
+					else
+						${ECHO} "$_VCSDIR is not writable!"
+					fi	
+				fi
 				if ${TEST} -f "$file"; then
 					${ECHO} "${PKGNAME}: $file already exists"
 				elif ${TEST} -f "$f_eg" -o -c "$f_eg"; then

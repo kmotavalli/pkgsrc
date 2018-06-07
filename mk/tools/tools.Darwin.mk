@@ -63,6 +63,8 @@ TOOLS_PLATFORM.head?=		/usr/bin/head
 TOOLS_PLATFORM.hostname?=	/bin/hostname
 TOOLS_PLATFORM.id?=		/usr/bin/id
 TOOLS_PLATFORM.ident?=		/usr/bin/ident
+TOOLS_PLATFORM.ci?=		/usr/bin/ci
+TOOLS_PLATFORM.rcs?=		/usr/bin/rcs
 TOOLS_PLATFORM.install?=	/usr/bin/install
 .if exists(/usr/bin/install-info)
 TOOLS_PLATFORM.install-info?=	/usr/bin/install-info

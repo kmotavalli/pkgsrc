@@ -96,6 +96,7 @@ DEINSTALL_TEMPLATES+=	${PKGDIR}/DEINSTALL
 _DEINSTALL_TMPL?=	${.CURDIR}/../../mk/pkginstall/deinstall
 _INSTALL_UNPACK_TMPL?=	# empty
 _INSTALL_TMPL?=		${.CURDIR}/../../mk/pkginstall/install
+_INSTALL_TMPL+=		${.CURDIR}/../../mk/pkginstall/versioning
 INSTALL_TEMPLATES?=	# empty
 .if exists(${PKGDIR}/INSTALL) && \
     empty(INSTALL_TEMPLATES:M${PKGDIR}/INSTALL)
@@ -493,6 +494,9 @@ _INSTALL_FILES_DATAFILE=	${_PKGINSTALL_DIR}/files-data
 _INSTALL_UNPACK_TMPL+=		${_INSTALL_FILES_FILE}
 _INSTALL_DATA_TMPL+=		${_INSTALL_FILES_DATAFILE}
 
+_INSTALL_VERSIONING_FILE=	${_PKGINSTALL_DIR}/versioning
+_INSTALL_UNPACK_TMPL+=		${_INSTALL_VERSIONING_FILE}
+
 # Only generate init scripts if we are using rc.d
 _INSTALL_RCD_SCRIPTS=	# empty
 
@@ -600,7 +604,11 @@ ${_INSTALL_FILES_FILE}: ../../mk/pkginstall/files
 		${RM} -f ${.TARGET};					\
 		${TOUCH} ${TOUCH_ARGS} ${.TARGET};			\
 	fi
-
+${_INSTALL_VERSIONING_FILE}: ../../mk/pkginstall/versioning
+	${RUN}${MKDIR} ${.TARGET:H}
+	${RUN}	\
+	${SED} ${FILES_SUBST_SED} ../../mk/pkginstall/versioning > ${.TARGET}
+	
 # OWN_DIRS contains a list of directories for this package that should be
 #       created and should attempt to be destroyed by the INSTALL/DEINSTALL
 #	scripts.  MAKE_DIRS is used the same way, but the package admin
@@ -1125,6 +1133,9 @@ FILES_SUBST+=		TR=${TR:Q}
 FILES_SUBST+=		TRUE=${TRUE:Q}
 FILES_SUBST+=		USERADD=${USERADD:Q}
 FILES_SUBST+=		XARGS=${XARGS:Q}
+FILES_SUBST+=           DIFF=${DIFF:Q}
+FILES_SUBST+=		RCS=${RCS:Q}
+FILES_SUBST+=		CI=${CI:Q}
 
 FILES_SUBST_SED=	${FILES_SUBST:S/=/@!/:S/$/!g/:S/^/ -e s!@/}
 

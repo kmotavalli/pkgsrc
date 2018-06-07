@@ -72,6 +72,11 @@ TOOLS_PLATFORM.id?=		/bin/id
 .if exists(/bin/ident)
 TOOLS_PLATFORM.ident?=		/bin/ident
 .endif
+.if exists(/bin/ci)
+TOOLS_PLATFORM.ci?=		/bin/ci
+.endif
+.if exists(/bin/rcs)
+TOOLS_PLATFORM.rcs?=		/bin/rcs
 TOOLS_PLATFORM.install?=	/bin/install
 TOOLS_PLATFORM.install-info?=	/bin/install-info
 .if exists(/bin/flex)

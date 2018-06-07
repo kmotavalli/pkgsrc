@@ -1,0 +1,59 @@
+case "${STAGE},$1" in
+UNPACK,|UNPACK,+VERSIONING)
+	${CAT} > ./+VERSIONING << 'EOF'
+#!@SH@
+#
+# +VERSIONING - interact with version control systems
+#
+# Usage: ./+VERSIONING REGISTER|OTHEROPTIONS [file]
+#
+AWK="@AWK@"
+CAT="@CAT@"
+CHGRP="@CHGRP@"
+CHMOD="@CHMOD@"
+CHOWN="@CHOWN@"
+ECHO="@ECHO@"
+GREP="@GREP@"
+LS="@LS@"
+MKDIR="@MKDIR@"
+MV="@MV@"
+PWD_CMD="@PWD_CMD@"
+RM="@RM@"
+RMDIR="@RMDIR@"
+SED="@SED@"
+SORT="@SORT@"
+TEST="@TEST@"
+TRUE="@TRUE@"
+RCS="@RCS@"
+CI="@CI@"
+SELF=$0
+ACTION=$1
+CFILE=$2
+_CVS="${CVS:-rcs}"
+
+CURDIR=`${PWD_CMD}`
+
+case $ACTION in
+REGISTER)
+	case $_CVS in
+	"rcs")
+		${CI} "$CFILE"
+		;;
+	*)
+		${ECHO} "$_CVS: unsupported versioning system"
+		;;
+	esac
+	;;
+
+*)
+	${ECHO} "Usage: ./+VERSIONING REGISTER|OTHEROPTIONS [file]"
+	;;
+esac
+exit $exitcode
+
+EOF
+	${SED} -n "/^\# VERSIONING: /p" ${SELF} >> ./+VERSIONING
+	${CHMOD} +x ./+VERSIONING
+	;;
+esac
+

@@ -164,6 +164,12 @@ TOOLS_PLATFORM.id?=		/usr/bin/id
 .if exists(/usr/bin/ident)
 TOOLS_PLATFORM.ident?=		/usr/bin/ident
 .endif
+.if exists(/usr/bin/ci)
+TOOLS_PLATFORM.ci?=		/usr/bin/ci
+.endif
+.if exists(/usr/bin/rcs)
+TOOLS_PLATFORM.rcs?=		/usr/bin/rcs
+.endif
 .if exists(/bin/install)
 TOOLS_PLATFORM.install?=	/bin/install
 .else

@@ -502,6 +502,28 @@ TOOLS_PATH.ident=		${LOCALBASE}/bin/ident
 .  endif
 .endif
 
+.if !defined(TOOLS_IGNORE.ci) && !empty(_USE_TOOLS:Mci)
+.  if !empty(PKGPATH:Mdevel/rcs)
+MAKEFLAGS+=                     TOOLS_IGNORE.ci=
+.  elif !empty(_TOOLS_USE_PKGSRC.ci:M[yY][eE][sS])
+TOOLS_DEPENDS.ci?=           rcs-[0-9]*:../../devel/rcs
+TOOLS_CREATE+=                  ci 
+TOOLS_PATH.ci=               ${LOCALBASE}/bin/ci
+.  endif
+.endif 
+
+
+.if !defined(TOOLS_IGNORE.rcs) && !empty(_USE_TOOLS:Mrcs)
+.  if !empty(PKGPATH:Mdevel/rcs)
+MAKEFLAGS+=                     TOOLS_IGNORE.rcs=
+.  elif !empty(_TOOLS_USE_PKGSRC.rcs:M[yY][eE][sS])
+TOOLS_DEPENDS.rcs?=           rcs-[0-9]*:../../devel/rcs
+TOOLS_CREATE+=                 	rcs 
+TOOLS_PATH.rcs=               ${LOCALBASE}/bin/rcs
+.  endif
+.endif 
+
+
 .if !defined(TOOLS_IGNORE.install-info) && !empty(_USE_TOOLS:Minstall-info)
 .  if !empty(PKGPATH:Mpkgtools/pkg_install-info)
 MAKEFLAGS+=			TOOLS_IGNORE.install-info=

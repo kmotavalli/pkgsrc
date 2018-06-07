@@ -79,6 +79,8 @@ TOOLS_PLATFORM.head?=		/bin/head
 TOOLS_PLATFORM.hostname?=	/bin/hostname
 TOOLS_PLATFORM.id?=		/bin/id
 TOOLS_PLATFORM.ident?=		/bin/ident
+TOOLS_PLATFORM.ci?=		/bin/ci
+TOOLS_PLATFORM.rcs?=		/bin/rcs
 TOOLS_PLATFORM.install?=	/bin/install
 .if exists(/bin/install-info)
 TOOLS_PLATFORM.install-info?=	/bin/install-info

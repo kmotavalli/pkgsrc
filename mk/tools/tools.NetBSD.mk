@@ -14,6 +14,7 @@ TOOLS_PLATFORM.cat?=		/bin/cat
 TOOLS_PLATFORM.chgrp?=		/usr/bin/chgrp
 TOOLS_PLATFORM.chmod?=		/bin/chmod
 TOOLS_PLATFORM.chown?=		/usr/sbin/chown
+TOOLS_PLATFORM.ci?=		/usr/bin/ci
 TOOLS_PLATFORM.cmp?=		/usr/bin/cmp
 TOOLS_PLATFORM.cp?=		/bin/cp
 TOOLS_PLATFORM.csh?=		/bin/csh
@@ -94,6 +95,7 @@ TOOLS_PLATFORM.paxctl?=		/usr/sbin/paxctl
 .endif
 TOOLS_PLATFORM.printf?=		/usr/bin/printf
 TOOLS_PLATFORM.pwd?=		/bin/pwd
+TOOLS_PLATFORM.rcs?=		/usr/bin/rcs
 .if empty(USE_CROSS_COMPILE:M[yY][eE][sS])
 TOOLS_PLATFORM.readelf?=	/usr/bin/readelf
 .else
