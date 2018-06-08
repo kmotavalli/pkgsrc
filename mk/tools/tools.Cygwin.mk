@@ -25,6 +25,9 @@ TOOLS_PLATFORM.cat?=		/bin/cat
 TOOLS_PLATFORM.chgrp?=		/bin/chgrp
 TOOLS_PLATFORM.chmod?=		/bin/chmod
 TOOLS_PLATFORM.chown?=		/bin/chown
+.if exists(/bin/ci)
+TOOLS_PLATFORM.ci?=             /bin/ci
+.endif
 TOOLS_PLATFORM.cmp?=		/bin/cmp
 TOOLS_PLATFORM.cp?=		/bin/cp
 .if exists(/bin/tcsh)
@@ -72,11 +75,6 @@ TOOLS_PLATFORM.id?=		/bin/id
 .if exists(/bin/ident)
 TOOLS_PLATFORM.ident?=		/bin/ident
 .endif
-.if exists(/bin/ci)
-TOOLS_PLATFORM.ci?=		/bin/ci
-.endif
-.if exists(/bin/rcs)
-TOOLS_PLATFORM.rcs?=		/bin/rcs
 TOOLS_PLATFORM.install?=	/bin/install
 TOOLS_PLATFORM.install-info?=	/bin/install-info
 .if exists(/bin/flex)
@@ -124,6 +122,9 @@ TOOLS_PLATFORM.pkg-config?=	/bin/pkg-config
 .endif
 TOOLS_PLATFORM.printf?=		/bin/printf
 TOOLS_PLATFORM.pwd?=		/bin/pwd
+.if exists(/bin/rcs)
+TOOLS_PLATFORM.rcs?=            /bin/rcs
+.endif
 TOOLS_PLATFORM.readlink?=	/bin/readlink
 TOOLS_PLATFORM.rm?=		/bin/rm
 TOOLS_PLATFORM.rmdir?=		/bin/rmdir

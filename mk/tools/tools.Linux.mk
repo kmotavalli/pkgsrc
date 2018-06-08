@@ -45,6 +45,9 @@ TOOLS_PLATFORM.chown?=		/bin/chown
 .elif exists(/usr/sbin/chown)
 TOOLS_PLATFORM.chown?=		/usr/sbin/chown
 .endif
+.if exists(/usr/bin/ci)
+TOOLS_PLATFORM.ci?=             /usr/bin/ci
+.endif
 .if exists(/bin/cmp)
 TOOLS_PLATFORM.cmp?=		/bin/cmp
 .elif exists(/usr/bin/cmp)
@@ -164,12 +167,6 @@ TOOLS_PLATFORM.id?=		/usr/bin/id
 .if exists(/usr/bin/ident)
 TOOLS_PLATFORM.ident?=		/usr/bin/ident
 .endif
-.if exists(/usr/bin/ci)
-TOOLS_PLATFORM.ci?=		/usr/bin/ci
-.endif
-.if exists(/usr/bin/rcs)
-TOOLS_PLATFORM.rcs?=		/usr/bin/rcs
-.endif
 .if exists(/bin/install)
 TOOLS_PLATFORM.install?=	/bin/install
 .else
@@ -227,6 +224,9 @@ TOOLS_PLATFORM.openssl?=	/usr/bin/openssl
 TOOLS_PLATFORM.printf?=		/usr/bin/printf
 .endif
 TOOLS_PLATFORM.pwd?=		/bin/pwd
+.if exists(/usr/bin/rcs)
+TOOLS_PLATFORM.rcs?=            /usr/bin/rcs 
+.endif
 TOOLS_PLATFORM.readlink?=	/bin/readlink
 TOOLS_PLATFORM.rm?=		/bin/rm
 TOOLS_PLATFORM.rmdir?=		/bin/rmdir
