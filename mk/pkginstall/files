@@ -166,7 +166,7 @@ ADD)
 				fi
 				if ${TEST} -f "$file"; then
 					${ECHO} "${PKGNAME}: $file already exists"
-					if ${TEST} -n "$TTY" -a !-n "$NOVCS" -a ! -n "$NOVCSINTERACTION" -a -n "$EDITOR"; then
+					if ${TEST} -n "$TTY" -a ! -n "$NOVCS" -a ! -n "$NOVCSINTERACTION" -a -n "$EDITOR"; then
 						${TTY}	1>/dev/null
 						isterm=$?
 						#0 if an interactive terminal
