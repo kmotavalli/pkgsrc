@@ -65,6 +65,8 @@ SED="@SED@"
 SORT="@SORT@"
 TEST="@TEST@"
 TRUE="@TRUE@"
+DIFF="@DIFF@"
+TTY="@TTY@"
 
 SELF=$0
 ACTION=$1
@@ -164,6 +166,47 @@ ADD)
 				fi
 				if ${TEST} -f "$file"; then
 					${ECHO} "${PKGNAME}: $file already exists"
+					if ${TEST} -n "$TTY" -a !-n "$NOVCS" -a ! -n "$NOVCSINTERACTION" -a -n "$EDITOR"; then
+						${TTY}	1>/dev/null
+						isterm=$?
+						#0 if an interactive terminal
+						if ${TEST} isterm -eq 0; then
+							${ECHO} "{PKGNAME}: attempinting to merge $file"
+							${TEST} ! -x ./+VERSIONING ||
+								./+VERSIONING MERGE "_CVSDIR/$FILE" "$FILE" 	
+								mergestatus=$?
+								case $mergestatus in
+								0)
+									${ECHO} "no conflict. do you want to review the changes? y/n"
+									read mergechoice	
+									if ${TEST} "$mergechoice" = "y"; then
+										${EDITOR} "_CVSDIR/$FILE".automerge
+										${ECHO} "install the resulting file to $FILE? y/n"
+										read mergechoice
+										if ${TEST} "$mergechoice" = "y"; then
+											${CP} -fp "_CVSDIR/$FILE".automerge "$FILE"
+										fi
+									fi
+									;;
+								1)
+									${ECHO} "some conflicts merging. do you want to review the changes? y/n"
+									read mergechoice
+									if ${TEST} "$mergechoice" = "y"; then
+										${EDITOR} "_CVSDIR/$FILE".automerge
+										${ECHO} "install the resulting file to $FILE? y/n"
+										read mergechoice
+										if ${TEST} "$mergechoice" = "y"; then
+											${CP} -fp "_CVSDIR/$FILE".automerge "$FILE"
+										fi
+									fi
+									;;
+								*)
+									${ECHO} "merge exited with errors. not changing anything"		
+									;;
+								esac	
+						fi
+					fi
+										
 				elif ${TEST} -f "$f_eg" -o -c "$f_eg"; then
 					${ECHO} "${PKGNAME}: copying $f_eg to $file"
 					${CP} $f_eg $file
