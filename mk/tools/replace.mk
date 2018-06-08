@@ -492,36 +492,18 @@ TOOLS_ARGS.gzip=		-nf ${GZIP}
 .  endif
 .endif
 
-.if !defined(TOOLS_IGNORE.ident) && !empty(_USE_TOOLS:Mident)
-.  if !empty(PKGPATH:Mdevel/rcs)
-MAKEFLAGS+=			TOOLS_IGNORE.ident=
-.  elif !empty(_TOOLS_USE_PKGSRC.ident:M[yY][eE][sS])
-TOOLS_DEPENDS.ident?=		rcs-[0-9]*:../../devel/rcs
-TOOLS_CREATE+=			ident
-TOOLS_PATH.ident=		${LOCALBASE}/bin/ident
-.  endif
-.endif
-
-.if !defined(TOOLS_IGNORE.ci) && !empty(_USE_TOOLS:Mci)
-.  if !empty(PKGPATH:Mdevel/rcs)
-MAKEFLAGS+=                     TOOLS_IGNORE.ci=
-.  elif !empty(_TOOLS_USE_PKGSRC.ci:M[yY][eE][sS])
-TOOLS_DEPENDS.ci?=           rcs-[0-9]*:../../devel/rcs
-TOOLS_CREATE+=                  ci 
-TOOLS_PATH.ci=               ${LOCALBASE}/bin/ci
-.  endif
-.endif 
-
-
-.if !defined(TOOLS_IGNORE.rcs) && !empty(_USE_TOOLS:Mrcs)
-.  if !empty(PKGPATH:Mdevel/rcs)
-MAKEFLAGS+=                     TOOLS_IGNORE.rcs=
-.  elif !empty(_TOOLS_USE_PKGSRC.rcs:M[yY][eE][sS])
-TOOLS_DEPENDS.rcs?=           rcs-[0-9]*:../../devel/rcs
-TOOLS_CREATE+=                 	rcs 
-TOOLS_PATH.rcs=               ${LOCALBASE}/bin/rcs
-.  endif
-.endif 
+_TOOLS.rcsutils=	ident merge ci co rcs
+.for _t_ in ${_TOOLS.rcsutils}
+.	if !defined(TOOLS_IGNORE.${_t_}) && !empty(_USE_TOOLS:M${_t_})
+.		if !empty(PKGPATH:Mdevel/rcs)
+MAKEFLAGS+=             TOOLS_IGNORE.${_t_}=
+.	elif !empty(_TOOLS_USE_PKGSRC.${_t_}:M[yY][eE][sS])
+TOOLS_DEPENDS.${_t_}?=		rcs-[0-9]*:../../devel/rcs
+TOOLS_CREATE+=			${_t_}
+TOOLS_PATH.${_t_}=		${LOCALBASE}/bin/g${_t_}
+.		endif
+.	endif
+.endfor
 
 
 .if !defined(TOOLS_IGNORE.install-info) && !empty(_USE_TOOLS:Minstall-info)
