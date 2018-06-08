@@ -500,7 +500,7 @@ MAKEFLAGS+=             TOOLS_IGNORE.${_t_}=
 .	elif !empty(_TOOLS_USE_PKGSRC.${_t_}:M[yY][eE][sS])
 TOOLS_DEPENDS.${_t_}?=		rcs-[0-9]*:../../devel/rcs
 TOOLS_CREATE+=			${_t_}
-TOOLS_PATH.${_t_}=		${LOCALBASE}/bin/g${_t_}
+TOOLS_PATH.${_t_}=		${LOCALBASE}/bin/${_t_}
 .		endif
 .	endif
 .endfor
