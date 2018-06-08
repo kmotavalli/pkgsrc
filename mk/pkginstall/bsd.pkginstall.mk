@@ -1134,7 +1134,17 @@ FILES_SUBST+=		TRUE=${TRUE:Q}
 FILES_SUBST+=		USERADD=${USERADD:Q}
 FILES_SUBST+=		XARGS=${XARGS:Q}
 FILES_SUBST+=           DIFF=${DIFF:Q}
+.if defined(TOOLS_PLATFORM.rcs)
+RCS=${TOOLS_PLATFORM.rcs}
+.else
+TOOLS_CREATE+=		rcs
+.endif
 FILES_SUBST+=		RCS=${RCS:Q}
+. if defined(TOOLS_PLATFORM.ci)
+CI=${TOOLS_PLATFORM.ci}
+. else
+TOOLS_CREATE+=         	ci
+.endif 
 FILES_SUBST+=		CI=${CI:Q}
 
 FILES_SUBST_SED=	${FILES_SUBST:S/=/@!/:S/$/!g/:S/^/ -e s!@/}
