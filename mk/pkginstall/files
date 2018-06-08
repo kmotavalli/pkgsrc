@@ -170,7 +170,7 @@ ADD)
 						${TTY}	1>/dev/null
 						isterm=$?
 						#0 if an interactive terminal
-						if ${TEST} isterm -eq 0; then
+						if ${TEST} $isterm -eq 0; then
 							${ECHO} "{PKGNAME}: attempinting to merge $file"
 							${TEST} ! -x ./+VERSIONING ||
 								./+VERSIONING MERGE "_CVSDIR/$FILE" "$FILE" 	
