@@ -26,9 +26,12 @@ TOOLS_PLATFORM.chgrp?=		/bin/chgrp
 TOOLS_PLATFORM.chmod?=		/bin/chmod
 TOOLS_PLATFORM.chown?=		/bin/chown
 .if exists(/bin/ci)
-TOOLS_PLATFORM.ci?=             /bin/ci
+TOOLS_PLATFORM.ci?=		/bin/ci
 .endif
 TOOLS_PLATFORM.cmp?=		/bin/cmp
+.if exists(/bin/co)
+TOOLS_PLATFORM.co?=		/bin/co
+.endif
 TOOLS_PLATFORM.cp?=		/bin/cp
 .if exists(/bin/tcsh)
 TOOLS_PLATFORM.csh?=		/bin/tcsh
@@ -89,6 +92,9 @@ TOOLS_PLATFORM.m4?=		/bin/m4
 TOOLS_PLATFORM.gmake?=		/bin/make
 .endif
 TOOLS_PLATFORM.makeinfo?=	/bin/makeinfo
+.if exists(/bin/merge)
+TOOLS_PLATFORM.merge?=		/bin/merge
+.endif
 TOOLS_PLATFORM.mkdir?=		/bin/mkdir -p
 TOOLS_PLATFORM.mktemp?=		/bin/mktemp
 .if exists(/bin/msgconv)

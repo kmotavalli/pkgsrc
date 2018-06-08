@@ -46,12 +46,15 @@ TOOLS_PLATFORM.chown?=		/bin/chown
 TOOLS_PLATFORM.chown?=		/usr/sbin/chown
 .endif
 .if exists(/usr/bin/ci)
-TOOLS_PLATFORM.ci?=             /usr/bin/ci
+TOOLS_PLATFORM.ci?=		/usr/bin/ci
 .endif
 .if exists(/bin/cmp)
 TOOLS_PLATFORM.cmp?=		/bin/cmp
 .elif exists(/usr/bin/cmp)
 TOOLS_PLATFORM.cmp?=		/usr/bin/cmp
+.endif
+.if exists(/usr/bin/co)
+TOOLS_PLATFORM.co?=		/usr/bin/co
 .endif
 TOOLS_PLATFORM.cp?=		/bin/cp
 .if exists(/bin/tcsh)
@@ -190,6 +193,9 @@ TOOLS_PLATFORM.mail?=		/usr/bin/mail	# Debian, Slackware, SuSE
 .endif
 .if exists(/usr/bin/makeinfo)
 TOOLS_PLATFORM.makeinfo?=	/usr/bin/makeinfo
+.endif
+.if exists(/usr/bin/merge)
+TOOLS_PLATFORM.merge?=		/usr/bin/merge
 .endif
 TOOLS_PLATFORM.mkdir?=		/bin/mkdir -p
 .if exists(/usr/bin/mktemp)

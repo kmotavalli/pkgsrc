@@ -16,6 +16,7 @@ TOOLS_PLATFORM.chmod?=		/bin/chmod
 TOOLS_PLATFORM.chown?=		/usr/sbin/chown
 TOOLS_PLATFORM.ci?=		/usr/bin/ci
 TOOLS_PLATFORM.cmp?=		/usr/bin/cmp
+TOOLS_PLATFORM.co?=		/usr/bin/co
 TOOLS_PLATFORM.cp?=		/bin/cp
 TOOLS_PLATFORM.csh?=		/bin/csh
 .if exists(/usr/bin/ctfconvert)
@@ -72,6 +73,7 @@ TOOLS_PLATFORM.mail?=		/usr/bin/mail
 .if exists(/usr/bin/makeinfo)
 TOOLS_PLATFORM.makeinfo?=	/usr/bin/makeinfo
 .endif
+TOOLS_PLATROFM.merge?=		/usr/bin/merge
 TOOLS_PLATFORM.mkdir?=		/bin/mkdir -p
 TOOLS_PLATFORM.mktemp?=		/usr/bin/mktemp
 .if exists(/usr/bin/msgconv)

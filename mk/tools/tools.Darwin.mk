@@ -25,8 +25,9 @@ TOOLS_PLATFORM.cat?=		/bin/cat
 TOOLS_PLATFORM.chgrp?=		/usr/bin/chgrp
 TOOLS_PLATFORM.chmod?=		/bin/chmod
 TOOLS_PLATFORM.chown?=		/usr/sbin/chown
-TOOLS_PLATFORM.ci?=             /usr/bin/ci
+TOOLS_PLATFORM.ci?=		/usr/bin/ci
 TOOLS_PLATFORM.cmp?=		/usr/bin/cmp
+TOOLS_PLATFORM.co?=		/usr/bin/co
 TOOLS_PLATFORM.cp?=		/bin/cp
 TOOLS_PLATFORM.csh?=		/bin/tcsh
 .if exists(/usr/bin/curl)
@@ -78,6 +79,9 @@ TOOLS_PLATFORM.m4?=		/usr/bin/m4
 TOOLS_PLATFORM.mail?=		/usr/bin/mail
 .if exists(/usr/bin/makeinfo)
 TOOLS_PLATFORM.makeinfo?=	/usr/bin/makeinfo
+.endif
+.if exists(/usr/bin/merge)
+TOOLS_PLATFORM.merge?=		/usr/bin/merge
 .endif
 TOOLS_PLATFORM.mkdir?=		/bin/mkdir -p
 TOOLS_PLATFORM.mktemp?=		/usr/bin/mktemp
