@@ -37,7 +37,7 @@ case $ACTION in
 REGISTER)
 	case $_CVS in
 	"rcs")
-		${CI} "$CFILE"
+		${CI} -u "$CFILE"
 		;;
 	*)
 		${ECHO} "$_CVS: unsupported versioning system"
