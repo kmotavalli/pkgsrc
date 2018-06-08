@@ -155,6 +155,9 @@ TOOLS_PLATFORM.touch?=		/bin/touch
 TOOLS_PLATFORM.tr?=		/bin/tr
 TOOLS_PLATFORM.true?=		true			# shell builtin
 TOOLS_PLATFORM.tsort?=		/bin/tsort
+.if exists(/bin/tty)
+TOOLS_PLATFORM.tty?=		/bin/tty
+.endif
 TOOLS_PLATFORM.uniq?=		/bin/uniq
 TOOLS_PLATFORM.unzip?=		/bin/unzip
 TOOLS_PLATFORM.wc?=		/bin/wc
