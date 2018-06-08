@@ -129,7 +129,7 @@ TOOLS_PLATFORM.pkg-config?=	/bin/pkg-config
 TOOLS_PLATFORM.printf?=		/bin/printf
 TOOLS_PLATFORM.pwd?=		/bin/pwd
 .if exists(/bin/rcs)
-TOOLS_PLATFORM.rcs?=            /bin/rcs
+TOOLS_PLATFORM.rcs?=		/bin/rcs
 .endif
 TOOLS_PLATFORM.readlink?=	/bin/readlink
 TOOLS_PLATFORM.rm?=		/bin/rm
