@@ -1162,7 +1162,10 @@ TOOLS_CREATE+=		merge
 MERGE=${TOOLS_PATH.merge}
 .endif
 FILES_SUBST+=		MERGE=${MERGE:Q}
-
+.if defined(TOOLS_PLATFORM.tty)
+TTY=${TOOLS_PLATFORM.tty}
+FILES_SUBST+=		TTY={TTY:Q}
+.endif
 FILES_SUBST_SED=	${FILES_SUBST:S/=/@!/:S/$/!g/:S/^/ -e s!@/}
 
 PKG_REFCOUNT_DBDIR?=	${PKG_DBDIR}.refcount
