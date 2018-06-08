@@ -152,8 +152,8 @@ ADD)
 						${MKDIR} "$_VCSDIR"
 					fi
 					if ${TEST} -w $_VCSDIR; then
-						${MKDIR} -p "$_VCSDIR/$file"
-						${RMDIR} "$_VCSDIR/$file"
+						${MKDIR} -p "$_VCSDIR/$file" 2>/dev/null
+						${RMDIR} "$_VCSDIR/$file" 2>/dev/null
 						${CP} -fp "$f_eg" "$_VCSDIR/$file"
 						${TEST} ! -x ./+VERSIONING ||
 							./+VERSIONING REGISTER "$_VCSDIR/$file" 
