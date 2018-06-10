@@ -66,7 +66,6 @@ SORT="@SORT@"
 TEST="@TEST@"
 TRUE="@TRUE@"
 DIFF="@DIFF@"
-TTY="@TTY@"
 
 SELF=$0
 ACTION=$1
@@ -151,60 +150,82 @@ ADD)
 				if ${TEST} "$_PKG_RCD_SCRIPTS" = "no" -a ! -n "$NOVCS"; then
 					if ${TEST} ! -d $_VCSDIR; then
 						${RM} -f "$_VCSDIR"
-						${MKDIR} "$_VCSDIR"
+						${MKDIR} -p "$_VCSDIR"/defaults
 					fi
-					if ${TEST} -w $_VCSDIR; then
-						${MKDIR} -p "$_VCSDIR/$file" 2>/dev/null
-						${RMDIR} "$_VCSDIR/$file" 2>/dev/null
-						${CP} -fp "$f_eg" "$_VCSDIR/$file"
+					if ${TEST} -w $_VCSDIR/defaults; then
+						${MKDIR} -p "$_VCSDIR/defaults/$file" 2>/dev/null
+						${RMDIR} "$_VCSDIR/defaults/$file" 2>/dev/null
+						${CP} -fp "$f_eg" "$_VCSDIR/defaults/$file"
 						${TEST} ! -x ./+VERSIONING ||
-							./+VERSIONING REGISTER "$_VCSDIR/$file" 
-							${ECHO} REGISTER $_VCSDIR/$file
+							./+VERSIONING REGISTER "$_VCSDIR/defaults/$file" 
+							${ECHO} REGISTER $_VCSDIR/defaults/$file
 					else
 						${ECHO} "$_VCSDIR is not writable!"
 					fi	
 				fi
 				if ${TEST} -f "$file"; then
 					${ECHO} "${PKGNAME}: $file already exists"
-					if ${TEST} -n "$TTY" -a ! -n "$NOVCS" -a ! -n "$NOVCSINTERACTION" -a -n "$EDITOR"; then
-						${TTY}	1>/dev/null
-						isterm=$?
-						#0 if an interactive terminal
-						if ${TEST} $isterm -eq 0; then
-							${ECHO} "{PKGNAME}: attempinting to merge $file"
+					if ${TEST} ! -n "$NOVCS" -a "$VCSAUTOMERGE" = "yes"; then
+						${ECHO} "{PKGNAME}: attempinting to merge $file"
+						alreadyautomerged=$(${GREP} -c "$FILE" "$_VCSDIR/automergedfiles")
+						if ${TEST} "$alreadyautomerged" -gt 0; then
+							${ECHO} "saving the currently installed revision to $_VCSDIR/automerged/$FILE"
+							${MKDIR} -p "$_VCSDIR/automerged/$FILE" 2>/dev/null
+							${RMDIR} "$_VCSDIR/automerged/$FILE" 2>/dev/null
+							${CP} -fp "$FILE" "$_VCSDIR/automerged/$FILE"
 							${TEST} ! -x ./+VERSIONING ||
-								./+VERSIONING MERGE "_CVSDIR/$FILE" "$FILE" 	
+								./+VERSIONING REGISTER "$_VCSDIR/automerged/$FILE"
+							${RM} -f "$_VCSDIR/defaults/$FILE.automerge" 2>/dev/null
+							${TEST} ! -x ./+VERSIONING ||
+								./+VERSIONING MERGE "_VCSDIR/defaults/$FILE" "$FILE" 	
 								mergestatus=$?
 								case $mergestatus in
 								0)
-									${ECHO} "no conflict. do you want to review the changes? y/n"
-									read mergechoice	
-									if ${TEST} "$mergechoice" = "y"; then
-										${EDITOR} "_CVSDIR/$FILE".automerge
-										${ECHO} "install the resulting file to $FILE? y/n"
-										read mergechoice
-										if ${TEST} "$mergechoice" = "y"; then
-											${CP} -fp "_CVSDIR/$FILE".automerge "$FILE"
-										fi
-									fi
+									${ECHO} "merged with no conflict. installing it to $FILE!"
+									${DIFF} -uq "$FILE" "$_VCSDIR/defaults/$FILE.automerge"
+									${CP} -fp "$_VCSDIR/defaults/$FILE.automerge" "$FILE"
+									${ECHO} "revert from the last revision of $_VCSDIR/automerged/$FILE if needed"
 									;;
 								1)
-									${ECHO} "some conflicts merging. do you want to review the changes? y/n"
-									read mergechoice
-									if ${TEST} "$mergechoice" = "y"; then
-										${EDITOR} "_CVSDIR/$FILE".automerge
-										${ECHO} "install the resulting file to $FILE? y/n"
-										read mergechoice
-										if ${TEST} "$mergechoice" = "y"; then
-											${CP} -fp "_CVSDIR/$FILE".automerge "$FILE"
-										fi
-									fi
+									${ECHO} "some conflicts merging. manually review them in"
+									${ECHO} "$_VCSDIR/defaults/$FILE.automerge"
+									${ECHO} "then copy the result to $FILE"
 									;;
 								*)
 									${ECHO} "merge exited with errors. not changing anything"		
 									;;
 								esac	
-						fi
+						else
+							${ECHO} "saving the currently user-installed revision to $_VCSDIR/user/$FILE"
+							${MKDIR} -p "$_VCSDIR/user/$FILE" 2>/dev/null
+							${RMDIR} "$_VCSDIR/user/$FILE" 2>/dev/null
+							${CP} -fp "$FILE" "$_VCSDIR/user/$FILE"
+							${TEST} ! -x ./+VERSIONING ||
+								./+VERSIONING REGISTER "$_VCSDIR/user/$FILE"
+							${RM} -f "$_VCSDIR/defaults/$FILE.automerge" 2>/dev/null
+							${TEST} ! -x ./+VERSIONING ||
+								./+VERSIONING MERGE "_VCSDIR/defaults/$FILE" "$FILE"
+							mergestatus=$?
+							case $mergestatus in
+							0)
+								${ECHO} "merged with no conflicts. installing it to $FILE!"
+								${DIFF} -uq "$FILE" "$_VCSDIR/defaults/$FILE.automerge"
+								${CP} -fp "$_VCSDIR/defaults/$FILE.automerge" "$FILE"
+								if ${TEST} $? -eq 0; then
+									${ECHO} "$FILE" >> "$_VCSDIR/automergedfiles"
+								fi
+								${ECHO} "revert from the last revision of $_VCSDIR/user/$FILE if needed"
+								;;
+							1)
+								${ECHO} "some conflicts merging. manually review them in"
+								${ECHO} "$_VCSDIR/defaults/$FILE.automerge"
+								${ECHO} "then copy the result to $FILE"
+								;;
+							*)
+								${ECHO} "merge exited with errors. not changing anything"
+								;;
+							esac	
+						fi	
 					fi
 										
 				elif ${TEST} -f "$f_eg" -o -c "$f_eg"; then
