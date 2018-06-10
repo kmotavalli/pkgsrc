@@ -27,6 +27,7 @@ TEST="@TEST@"
 TRUE="@TRUE@"
 RCS="@RCS@"
 CI="@CI@"
+CO="@CO@"
 MERGE="@MERGE@"
 
 SELF=$0
