@@ -167,22 +167,26 @@ ADD)
 					${ECHO} "${PKGNAME}: $file already exists"
 					if ${TEST} ! -n "$NOVCS" -a "$VCSAUTOMERGE" = "yes"; then
 						${ECHO} "${PKGNAME}: attempting to merge $file with new defaults!"
-						if ${TEST} -f "$_VCSDIR/automergedfiles" -a $(${GREP} -c "$file" "$_VCSDIR/automergedfiles") -gt 0; then
+						if ${TEST} -f "$_VCSDIR/automergedfiles" && ${TEST} $(${GREP} -c "$file" "$_VCSDIR/automergedfiles") -gt 0; then
 							${ECHO} "saving the currently installed revision to $_VCSDIR/automerged/$file"
 							${MKDIR} -p "$_VCSDIR/automerged/$file" 2>/dev/null
 							${RMDIR} "$_VCSDIR/automerged/$file" 2>/dev/null
 							${CP} -fp "$FILE" "$_VCSDIR/automerged/$file"
 							${TEST} ! -x ./+VERSIONING ||
 								./+VERSIONING REGISTER "$_VCSDIR/automerged/$file"
-							${RM} -f "$_VCSDIR/defaults/$file.automerge" 2>/dev/null
 							${TEST} ! -x ./+VERSIONING ||
-								./+VERSIONING MERGE "_VCSDIR/defaults/$file" "$file" 	
+								./+VERSIONING CHECKOUT-FIRST "$_VCSDIR/defaults/$file"
+							${CP} -fp "$file" "$_VCSDIR/defaults/$file.automerge"
+							${TEST} ! -x ./+VERSIONING ||
+								./+VERSIONING MERGE "$f_eg" "$_VCSDIR/defaults/$file" 	
 							mergestatus=$?
 							case $mergestatus in
 							0)
 								${ECHO} "merged with no conflict. installing it to $file!"
 								${DIFF} -uq "$file" "$_VCSDIR/defaults/$file.automerge"
 								${CP} -fp "$_VCSDIR/defaults/$file.automerge" "$file"
+								${TEST} -x ./+VERSIONING ||
+									./+VERSIONING CHECKOUT "$_VCSDIR/defaults/$file"
 								${ECHO} "revert from the last revision of $_VCSDIR/automerged/$file if needed"
 								;;
 							1)
@@ -201,9 +205,11 @@ ADD)
 							${CP} -fp "$file" "$_VCSDIR/user/$file"
 							${TEST} ! -x ./+VERSIONING ||
 								./+VERSIONING REGISTER "$_VCSDIR/user/$file"
-							${RM} -f "$_VCSDIR/defaults/$file.automerge" 2>/dev/null
 							${TEST} ! -x ./+VERSIONING ||
-								./+VERSIONING MERGE "_VCSDIR/defaults/$file" "$file"
+								./+VERSIONING CHECKOUT-FIRST "$_VCSDIR/defaults/$file"
+							${CP} -fp "$file" "$_VCSDIR/defaults/$file.automerge"
+							${TEST} ! -x ./+VERSIONING ||
+								./+VERSIONING MERGE "$f_eg" "$_VCSDIR/defaults/$file"
 							mergestatus=$?
 							case $mergestatus in
 							0)
@@ -213,6 +219,8 @@ ADD)
 								if ${TEST} $? -eq 0; then
 									${ECHO} "$file" >> "$_VCSDIR/automergedfiles"
 								fi
+								${TEST} ! -x ./+VERSIONING ||
+									./+VERSIONING CHECKOUT "$_VCSDIR/defaults/$file"
 								${ECHO} "revert from the last revision of $_VCSDIR/user/$file if needed"
 								;;
 							1)
