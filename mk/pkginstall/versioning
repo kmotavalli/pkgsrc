@@ -5,8 +5,8 @@ UNPACK,|UNPACK,+VERSIONING)
 #
 # +VERSIONING - interact with version control systems
 #
-# Usage: ./+VERSIONING REGISTER|CHECKOUT [examplefile]
-#	 ./+VERSIONING MERGE [examplefile] [installedfile]
+# Usage: ./+VERSIONING REGISTER|CHECKOUT|CHECKOUT-FIRST [examplefile]
+#	 ./+VERSIONING MERGE [examplefile] [firstrevision]
 #
 AWK="@AWK@"
 CAT="@CAT@"
@@ -32,7 +32,7 @@ MERGE="@MERGE@"
 SELF=$0
 ACTION=$1
 CFILE=$2
-IFILE=$3
+FIRSTFILE=$3
 exitcode=0
 _CVS="${CVS:-rcs}"
 
@@ -63,13 +63,25 @@ CHECKOUT)
 		;;
 	esac
 	;;
+CHECKOUT-FIRST)
+	case $_CVS in
+	"rcs")
+		${CO} -r1 -f "$CFILE"
+		exitcode=$?
+		;;
+	*)
+		${ECHO} "$_CVS: unsupported versioning system"
+		exitcode=2
+		;;
+	esac
+	;;
 MERGE)
-	${MERGE} "$CFILE.automerge" "$IFILE" "$CFILE"
+	${MERGE} "$CFILE.automerge" "$FIRSTFILE" "$CFILE"
 	exitcode=$?
 	;;
 *)
-	${ECHO} "Usage: ./+VERSIONING REGISTER|CHECKOUT [examplefile]"
-	${ECHO} "Usage: ./+VERSIONING MERGE [examplefile] [installedfile]"
+	${ECHO} "Usage: ./+VERSIONING REGISTER|CHECKOUT|CHECKOUT-FIRST [examplefile]"
+	${ECHO} "Usage: ./+VERSIONING MERGE [examplefile] [firstrevision]"
 	exitcode=3
 	;;
 esac
