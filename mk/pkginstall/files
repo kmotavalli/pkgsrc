@@ -255,7 +255,7 @@ ADD)
 			esac
 		fi
 	done
-	if ${TEST} -n "NOVCS"; then
+	if ${TEST} ! -n "NOVCS"; then
 		${TEST} ! -x ./+VERSIONING ||
 			./+VERSIONING COMMIT	 
 	fi 
