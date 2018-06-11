@@ -52,6 +52,9 @@ REGISTER)
 		;;
 	esac
 	;;
+COMMIT)
+	${ECHO} "not yet implemented since rcs has no concept of an atomic transaction" 
+	;;
 CHECKOUT)
 	case $_CVS in
 	"rcs")
