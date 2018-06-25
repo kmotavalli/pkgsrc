@@ -86,7 +86,6 @@ REGISTER)
 		exitcode=$?
 		;;
 	"cvs")
-		cd "$_VCSDIR"
 		_PATHSPLIT=$(${ECHO} "$CFILE" | ${AWK} -F "//" '{print $2}')
 		cd $(${ECHO} "$CFILE" | ${AWK} -F "//" '{print $1}')
 		IFS="/"
@@ -117,7 +116,9 @@ CHECKOUT)
 		exitcode=$?
 		;;
 	"cvs")
-		cvs -d "$_VCSDIR/CVSROOT" co "$CFILE"
+		cd $(${ECHO} "$CFILE" | ${AWK} -F "//" '{print $1}')
+		_PATHSPLIT=$(${ECHO} "$CFILE" | ${AWK} -F "//" '{print $2}')	
+		cvs -d "$_VCSDIR/CVSROOT" co "$_PATHSPLIT"
 		;;
 	*)
 		${ECHO} "$_CVS: unsupported versioning system"
@@ -133,7 +134,9 @@ CHECKOUT-FIRST)
 		exitcode=$?
 		;;
 	"cvs")
-		cvs -d "$_VCSDIR/CVSROOT" co -r1 "$CFILE"
+		cd $(${ECHO} "$CFILE" | ${AWK} -F "//" '{print $1}')
+		_PATHSPLIT=$(${ECHO} "$CFILE" | ${AWK} -F "//" '{print $2}')
+		cvs -d "$_VCSDIR/CVSROOT" co -r1 "$_PATHSPLIT"
 		;;
 	*)
 		${ECHO} "$_CVS: unsupported versioning system"
