@@ -10,6 +10,7 @@ UNPACK,|UNPACK,+VERSIONING)
 #
 AWK="@AWK@"
 CAT="@CAT@"
+CD="@CD@"
 CHGRP="@CHGRP@"
 CHMOD="@CHMOD@"
 CHOWN="@CHOWN@"
@@ -35,9 +36,34 @@ ACTION=$1
 CFILE=$2
 FIRSTFILE=$3
 exitcode=0
+_VCSDIR="${VCSDIR:-@VARBASE@/confrepo}"
 _VCS="${VCS:-rcs}"
+_REMOTE="{REMOTEVCS:-no}"
 
-CURDIR=`${PWD_CMD}`
+${CD} "$_VCSDIR"
+if ${TEST} "$_REMOTE" = "no"; then
+	#check if a local repository exists in the VCSDIR, otherwire initialize it as needed
+	case $_VCS in
+	"cvs")
+		cvs -d "$_VCSDIR/CVSROOT" status foo 1>/dev/null
+		repostatus=$?
+		if ${TEST} ! $repostatus -eq 0; then
+			cvs -d "$_VCSDIR/CVSROOT" init
+			for module in "automerged" "defaults" "user"
+				do
+					if ${TEST} -d "$_VCSDIR/$module" -a -r "$_VCSDIR/$module"; then
+						${CD} "$_VCSDIR/$module" 	
+						cvs -d "$_VCSDIR/CVSROOT" import -m "auto import preexisting $module files" "$module" auto start					fi
+				done
+		fi
+		for module in "automerged" "defaults" "user"
+			do
+				cvs -d "$_VCSDIR/CVSROOT" checkout "$module"
+			done	
+	*)
+		;;
+	esac
+fi
 
 case $ACTION in
 REGISTER)
@@ -47,7 +73,8 @@ REGISTER)
 		exitcode=$?
 		;;
 	"cvs")
-		${CVS} commit "$CFILE"
+		cvs add "$CFILE"
+		;;
 	*)
 		${ECHO} "$_CVS: unsupported versioning system"
 		exitcode=2
@@ -55,13 +82,21 @@ REGISTER)
 	esac
 	;;
 COMMIT)
-	${ECHO} "not yet implemented since rcs has no concept of an atomic transaction" 
-	;;
+	case $_VCS in
+	"cvs")
+		cvs -d "$_VCSDIR/CVSROOT" commit -m "pkgsrc"
+		;;
+	*)
+		;;
+	esac
 CHECKOUT)
 	case $_VCS in
 	"rcs")
 		${CO} -f "$CFILE"
 		exitcode=$?
+		;;
+	"cvs")
+		cvs -d "$_VCSDIR/CVSROOT" co "$CFILE"
 		;;
 	*)
 		${ECHO} "$_CVS: unsupported versioning system"
@@ -75,6 +110,9 @@ CHECKOUT-FIRST)
 		${CO} -r1 -f "$CFILE"
 		exitcode=$?
 		;;
+	"cvs")
+		cvs -d "$_VCSDIR/CVSROOT" co -r1 "$CFILE"
+		;;
 	*)
 		${ECHO} "$_CVS: unsupported versioning system"
 		exitcode=2
@@ -84,6 +122,9 @@ CHECKOUT-FIRST)
 MERGE)
 	${MERGE} "$CFILE.automerge" "$FIRSTFILE" "$CFILE"
 	exitcode=$?
+	;;
+PULL)
+	${ECHO} "not yet implemented, to be called from +install"
 	;;
 *)
 	${ECHO} "Usage: ./+VERSIONING REGISTER|CHECKOUT|CHECKOUT-FIRST [examplefile]"
