@@ -148,10 +148,13 @@ ADD)
 			case "$f_flags:$_PKG_CONFIG:$_PKG_RCD_SCRIPTS" in
 			*f*:*:*|[!r]:yes:*|[!r][!r]:yes:*|[!r][!r][!r]:yes:*|*r*:yes:yes)
 				if ${TEST} "$_PKG_RCD_SCRIPTS" = "no" -a ! -n "$NOVCS"; then
-					if ${TEST} ! -d $_VCSDIR/defaults; then
-						${RM} -f "$_VCSDIR/defaults"
-						${MKDIR} -p "$_VCSDIR/defaults"
-					fi
+					for dir in "defaults" "automerge" "user"
+					do	
+						if ${TEST} ! -d "$_VCSDIR/$dir"; then
+							${RM} -f "$_VCSDIR/$dir"
+							${MKDIR} -p "$_VCSDIR/$dir"
+						fi
+					done
 					${TEST} ! -x ./+VERSIONING ||
 						./+VERSIONING PREPARE
 					if ${TEST} -w $_VCSDIR/defaults; then
