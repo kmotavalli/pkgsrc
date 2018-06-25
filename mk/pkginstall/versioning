@@ -65,6 +65,7 @@ if ${TEST} "$_REMOTE" = "no"; then
 					fi
 				done
 		fi
+		cd "$_VCSDIR"
 		for module in "automerged" "defaults" "user"
 			do
 				cvs -d "$_VCSDIR/CVSROOT" checkout "$module"
@@ -83,6 +84,7 @@ REGISTER)
 		exitcode=$?
 		;;
 	"cvs")
+		cd "$_VCSDIR"
 		cvs -d "$_VCSDIR/CVSROOT" add "$CFILE"
 		;;
 	*)
