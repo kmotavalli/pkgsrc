@@ -60,6 +60,7 @@ if ${TEST} "$_REMOTE" = "no"; then
 			do
 				cvs -d "$_VCSDIR/CVSROOT" checkout "$module"
 			done	
+		;;
 	*)
 		;;
 	esac
