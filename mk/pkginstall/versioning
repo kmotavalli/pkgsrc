@@ -1,3 +1,8 @@
+#
+# Generate a +VERSIONING script used by FILES and INSTALL to perform common
+# operations on version control software used to store, retrieve and merge
+# package configuration files during installations and upgrades. 
+#
 case "${STAGE},$1" in
 UNPACK,|UNPACK,+VERSIONING)
 	${CAT} > ./+VERSIONING << 'EOF'
@@ -7,10 +12,10 @@ UNPACK,|UNPACK,+VERSIONING)
 #
 # Usage: ./+VERSIONING REGISTER|CHECKOUT|CHECKOUT-FIRST [examplefile]
 #	 ./+VERSIONING MERGE [examplefile] [firstrevision]
+#	 ./+VERSIONING COMMIT
 #
 AWK="@AWK@"
 CAT="@CAT@"
-CHGRP="@CHGRP@"
 CHMOD="@CHMOD@"
 CHOWN="@CHOWN@"
 ECHO="@ECHO@"
@@ -35,8 +40,13 @@ ACTION=$1
 CFILE=$2
 FIRSTFILE=$3
 exitcode=0
+
+#VCSDIR: user set environment variable, the working directory under which a local repository may also be kept
 _VCSDIR="${VCSDIR:-@VARBASE@/confrepo}"
+#VCS: the versioning system to be used. Defaults to rcs, other solutions are searched in $PATH
 _VCS="${VCS:-rcs}"
+#REMOTEVCS: set the URI to the remote repository, leave unset or set to no in order to use a local repository 
+#the URI, while required for pull/configuration deployment mode, does not enable it. by default the remote is only used to store the system configuration 
 _REMOTE="{REMOTEVCS:-no}"
 cd "$_VCSDIR"
 if ${TEST} "$_REMOTE" = "no"; then
@@ -105,6 +115,7 @@ CHECKOUT)
 		;;
 	esac
 	;;
+#checkout the initial revision of the file, used in the 3-way merge
 CHECKOUT-FIRST)
 	case $_VCS in
 	"rcs")
@@ -130,6 +141,7 @@ PULL)
 *)
 	${ECHO} "Usage: ./+VERSIONING REGISTER|CHECKOUT|CHECKOUT-FIRST [examplefile]"
 	${ECHO} "Usage: ./+VERSIONING MERGE [examplefile] [firstrevision]"
+	${ECHO} "Usage: ./+VERSIONING COMMIT"
 	exitcode=3
 	;;
 esac
