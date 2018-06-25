@@ -84,7 +84,7 @@ REGISTER)
 COMMIT)
 	case $_VCS in
 	"cvs")
-		cvs -d "$_VCSDIR/CVSROOT" commit -m "pkgsrc"
+		cvs -d "$_VCSDIR/CVSROOT" commit -m "$PKGNAME"
 		;;
 	*)
 		;;
