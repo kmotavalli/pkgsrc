@@ -116,8 +116,8 @@ CHECKOUT)
 		exitcode=$?
 		;;
 	"cvs")
-		cd $(${ECHO} "$CFILE" | ${AWK} -F "//" '{print $1}')
-		_PATHSPLIT=$(${ECHO} "$CFILE" | ${AWK} -F "//" '{print $2}')	
+		cd "$_VCSDIR"
+		_PATHSPLIT=$(${ECHO} "$CFILE" | ${AWK} -F "$_VCSDIR" '{print $2}' | ${SED} 's@//@/@' | ${SED} 's@/@@')
 		cvs -d "$_VCSDIR/CVSROOT" co "$_PATHSPLIT"
 		;;
 	*)
@@ -134,8 +134,8 @@ CHECKOUT-FIRST)
 		exitcode=$?
 		;;
 	"cvs")
-		cd $(${ECHO} "$CFILE" | ${AWK} -F "//" '{print $1}')
-		_PATHSPLIT=$(${ECHO} "$CFILE" | ${AWK} -F "//" '{print $2}')
+		cd "$_VCSDIR"
+		_PATHSPLIT=$(${ECHO} "$CFILE" | ${AWK} -F "$_VCSDIR" '{print $2}' | ${SED} 's@//@/@' | ${SED} 's@/@@')
 		cvs -d "$_VCSDIR/CVSROOT" co -r1 "$_PATHSPLIT"
 		;;
 	*)
