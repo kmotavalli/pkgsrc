@@ -89,6 +89,7 @@ COMMIT)
 	*)
 		;;
 	esac
+	;;
 CHECKOUT)
 	case $_VCS in
 	"rcs")
