@@ -92,7 +92,7 @@ REGISTER)
 		IFS="/"
 		for curdir in $_PATHSPLIT
 			do
-				cvs -d "$_VCSDIR/CVSROOT" add "$curdir"; cd "$curdir"
+				cvs -d "$_VCSDIR/CVSROOT" add "$curdir"; cd "$curdir" 2>/dev/null
 			done
 		;;
 	*)
