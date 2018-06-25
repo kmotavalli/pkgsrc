@@ -13,6 +13,7 @@ UNPACK,|UNPACK,+VERSIONING)
 # Usage: ./+VERSIONING REGISTER|CHECKOUT|CHECKOUT-FIRST [examplefile]
 #	 ./+VERSIONING MERGE [examplefile] [firstrevision]
 #	 ./+VERSIONING COMMIT
+#	 ./+VERSIONING PRAPARE
 #
 AWK="@AWK@"
 CAT="@CAT@"
@@ -49,34 +50,36 @@ _VCS="${VCS:-rcs}"
 _REMOTE="${REMOTEVCS:-no}"
 set -x
 cd "$_VCSDIR"
-if ${TEST} "$_REMOTE" = "no"; then
-	#check if a local repository exists in the VCSDIR, otherwire initialize it as needed
-	case $_VCS in
-	"cvs")
-		cvs -d "$_VCSDIR/CVSROOT" status foo 1>/dev/null
-		repostatus=$?
-		if ${TEST} ! $repostatus -eq 0; then
-			cvs -d "$_VCSDIR/CVSROOT" init
-			for module in "automerged" "defaults" "user"
-				do
-					if ${TEST} -d "$_VCSDIR/$module" -a -r "$_VCSDIR/$module"; then
-						cd "$_VCSDIR/$module"
-						cvs -d "$_VCSDIR/CVSROOT" import -m "auto import preexisting $module files" "$module" auto start					
-					fi
-				done
-		fi
-		cd "$_VCSDIR"
-		for module in "automerged" "defaults" "user"
-			do
-				cvs -d "$_VCSDIR/CVSROOT" checkout -R "$module"
-			done	
-		;;
-	*)
-		;;
-	esac
-fi
 
 case $ACTION in
+PREPARE)
+	if ${TEST} "$_REMOTE" = "no"; then
+		#check if a local repository exists in the VCSDIR, otherwire initialize it as needed
+		case $_VCS in
+		"cvs")
+			cvs -d "$_VCSDIR/CVSROOT" status foo 1>/dev/null
+			repostatus=$?
+			if ${TEST} ! $repostatus -eq 0; then
+				cvs -d "$_VCSDIR/CVSROOT" init
+				for module in "automerged" "defaults" "user"
+					do
+						if ${TEST} -d "$_VCSDIR/$module" -a -r "$_VCSDIR/$module"; then
+							cd "$_VCSDIR/$module"
+							cvs -d "$_VCSDIR/CVSROOT" import -m "auto import preexisting $module files" "$module" auto start					
+						fi
+					done
+			fi
+			cd "$_VCSDIR"
+			for module in "automerged" "defaults" "user"
+				do
+					cvs -d "$_VCSDIR/CVSROOT" checkout -R "$module"
+				done	
+			;;
+		*)
+			;;
+		esac
+	fi
+	;;
 REGISTER)
 	case $_VCS in
 	"rcs")
@@ -85,7 +88,12 @@ REGISTER)
 		;;
 	"cvs")
 		cd "$_VCSDIR"
-		cvs -d "$_VCSDIR/CVSROOT" add "$CFILE"
+		_PATHSPLIT=$(${ECHO} $CFILE | ${AWK} -F "//" '{print $2}')
+		IFS="/"
+		for curdir in $_PATHSPLIT
+			do
+				cvs -d "$_VCSDIR/CVSROOT" add "$curdir"; cd "$curdir"
+			done
 		;;
 	*)
 		${ECHO} "$_CVS: unsupported versioning system"
@@ -144,6 +152,7 @@ PULL)
 	${ECHO} "Usage: ./+VERSIONING REGISTER|CHECKOUT|CHECKOUT-FIRST [examplefile]"
 	${ECHO} "Usage: ./+VERSIONING MERGE [examplefile] [firstrevision]"
 	${ECHO} "Usage: ./+VERSIONING COMMIT"
+	${ECHO} "Usage: ./+VERSIONING PREPARE"
 	exitcode=3
 	;;
 esac

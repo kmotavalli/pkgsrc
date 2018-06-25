@@ -152,6 +152,8 @@ ADD)
 						${RM} -f "$_VCSDIR/defaults"
 						${MKDIR} -p "$_VCSDIR/defaults"
 					fi
+					${TEST} ! -x ./+VERSIONING ||
+						./+VERSIONING PREPARE
 					if ${TEST} -w $_VCSDIR/defaults; then
 						${MKDIR} -p "$_VCSDIR/defaults/$file" 2>/dev/null
 						${RMDIR} "$_VCSDIR/defaults/$file" 2>/dev/null
