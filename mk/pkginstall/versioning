@@ -83,7 +83,7 @@ REGISTER)
 		exitcode=$?
 		;;
 	"cvs")
-		cvs add "$CFILE"
+		cvs -d "$_VCSDIR/CVSROOT" add "$CFILE"
 		;;
 	*)
 		${ECHO} "$_CVS: unsupported versioning system"
