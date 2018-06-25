@@ -35,17 +35,19 @@ ACTION=$1
 CFILE=$2
 FIRSTFILE=$3
 exitcode=0
-_CVS="${CVS:-rcs}"
+_VCS="${VCS:-rcs}"
 
 CURDIR=`${PWD_CMD}`
 
 case $ACTION in
 REGISTER)
-	case $_CVS in
+	case $_VCS in
 	"rcs")
 		${CI} -u "$CFILE"
 		exitcode=$?
 		;;
+	"cvs")
+		${CVS} commit "$CFILE"
 	*)
 		${ECHO} "$_CVS: unsupported versioning system"
 		exitcode=2
@@ -56,7 +58,7 @@ COMMIT)
 	${ECHO} "not yet implemented since rcs has no concept of an atomic transaction" 
 	;;
 CHECKOUT)
-	case $_CVS in
+	case $_VCS in
 	"rcs")
 		${CO} -f "$CFILE"
 		exitcode=$?
@@ -68,7 +70,7 @@ CHECKOUT)
 	esac
 	;;
 CHECKOUT-FIRST)
-	case $_CVS in
+	case $_VCS in
 	"rcs")
 		${CO} -r1 -f "$CFILE"
 		exitcode=$?
