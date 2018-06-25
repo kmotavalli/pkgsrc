@@ -48,7 +48,6 @@ _VCS="${VCS:-rcs}"
 #REMOTEVCS: set the URI to the remote repository, leave unset or set to no in order to use a local repository 
 #the URI, while required for pull/configuration deployment mode, does not enable it. by default the remote is only used to store the system configuration 
 _REMOTE="${REMOTEVCS:-no}"
-set -x
 cd "$_VCSDIR"
 
 case $ACTION in
