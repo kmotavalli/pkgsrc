@@ -88,7 +88,8 @@ REGISTER)
 		;;
 	"cvs")
 		cd "$_VCSDIR"
-		_PATHSPLIT=$(${ECHO} $CFILE | ${AWK} -F "//" '{print $2}')
+		_PATHSPLIT=$(${ECHO} "$CFILE" | ${AWK} -F "//" '{print $2}')
+		cd $(${ECHO} "$CFILE" | ${AWK} -F "//" '{print $1}')
 		IFS="/"
 		for curdir in $_PATHSPLIT
 			do
