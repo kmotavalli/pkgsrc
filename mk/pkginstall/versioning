@@ -51,7 +51,8 @@ if ${TEST} "$_REMOTE" = "no"; then
 				do
 					if ${TEST} -d "$_VCSDIR/$module" -a -r "$_VCSDIR/$module"; then
 						cd "$_VCSDIR/$module"
-						cvs -d "$_VCSDIR/CVSROOT" import -m "auto import preexisting $module files" "$module" auto start					fi
+						cvs -d "$_VCSDIR/CVSROOT" import -m "auto import preexisting $module files" "$module" auto start					
+					fi
 				done
 		fi
 		for module in "automerged" "defaults" "user"
