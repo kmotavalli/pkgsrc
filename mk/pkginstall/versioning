@@ -48,36 +48,41 @@ _VCS="${VCS:-rcs}"
 #REMOTEVCS: set the URI to the remote repository, leave unset or set to no in order to use a local repository 
 #the URI, while required for pull/configuration deployment mode, does not enable it. by default the remote is only used to store the system configuration 
 _REMOTE="${REMOTEVCS:-no}"
+if ${TEST} "$_VCS" = "cvs"; then
+	if ${TEST} "$_REMOTE" ! = "no"; then
+		_CVSROOT="$_REMOTE"
+	else
+		_CVSROOT="$_VCSDIR/CVSROOT"
+fi
 cd "$_VCSDIR"
 
 case $ACTION in
 PREPARE)
-	if ${TEST} "$_REMOTE" = "no"; then
-		#check if a local repository exists in the VCSDIR, otherwire initialize it as needed
 		case $_VCS in
 		"cvs")
-			cvs -d "$_VCSDIR/CVSROOT" status foo 1>/dev/null
-			repostatus=$?
-			if ${TEST} ! $repostatus -eq 0; then
-				cvs -d "$_VCSDIR/CVSROOT" init
-				for module in "automerged" "defaults" "user"
-					do
-						if ${TEST} -d "$_VCSDIR/$module" -a -r "$_VCSDIR/$module"; then
-							cd "$_VCSDIR/$module"
-							cvs -d "$_VCSDIR/CVSROOT" import -m "auto import preexisting $module files" "$module" auto start					
-						fi
-					done
+			if ${TEST} "$_REMOTE" = "no"; then
+				cvs -d "$_CVSROOT" status foo 1>/dev/null
+				repostatus=$?
+				if ${TEST} ! $repostatus -eq 0; then
+					cvs -d "$_CVSROOT" init
+					for module in "automerged" "defaults" "user"
+						do
+							if ${TEST} -d "$_VCSDIR/$module" -a -r "$_VCSDIR/$module"; then
+								cd "$_VCSDIR/$module"
+								cvs -d "$_CVSROOT" import -m "auto import preexisting $module files" "$module" auto start 1>/dev/null					
+							fi
+						done
+				fi
 			fi
 			cd "$_VCSDIR"
 			for module in "automerged" "defaults" "user"
 				do
-					cvs -d "$_VCSDIR/CVSROOT" checkout -R "$module"
-				done	
+					cvs -d "$_CVSROOT" checkout -R "$module"
+				done
 			;;
 		*)
 			;;
 		esac
-	fi
 	;;
 REGISTER)
 	case $_VCS in
@@ -91,7 +96,7 @@ REGISTER)
 		IFS="/"
 		for curdir in $_PATHSPLIT
 			do
-				cvs -d "$_VCSDIR/CVSROOT" add "$curdir"; cd "$curdir" 2>/dev/null
+				cvs -d "$_CVSROOT" add "$curdir"; cd "$curdir" 2>/dev/null
 			done
 		;;
 	*)
@@ -103,7 +108,7 @@ REGISTER)
 COMMIT)
 	case $_VCS in
 	"cvs")
-		cvs -d "$_VCSDIR/CVSROOT" commit -m "pkgsrc"
+		cvs -d "$_CVSROOT" commit -m "pkgsrc"
 		;;
 	*)
 		;;
@@ -118,7 +123,7 @@ CHECKOUT)
 	"cvs")
 		cd "$_VCSDIR"
 		_PATHSPLIT=$(${ECHO} "$CFILE" | ${AWK} -F "$_VCSDIR" '{print $2}' | ${SED} 's@//@/@' | ${SED} 's@/@@')
-		cvs -d "$_VCSDIR/CVSROOT" co "$_PATHSPLIT"
+		cvs -d "$_CVSROOT" co "$_PATHSPLIT"
 		;;
 	*)
 		${ECHO} "$_CVS: unsupported versioning system"
@@ -136,7 +141,7 @@ CHECKOUT-FIRST)
 	"cvs")
 		cd "$_VCSDIR"
 		_PATHSPLIT=$(${ECHO} "$CFILE" | ${AWK} -F "$_VCSDIR" '{print $2}' | ${SED} 's@//@/@' | ${SED} 's@/@@')
-		cvs -d "$_VCSDIR/CVSROOT" co -r1 "$_PATHSPLIT"
+		cvs -d "$_CVSROOT" co -r1 "$_PATHSPLIT"
 		;;
 	*)
 		${ECHO} "$_CVS: unsupported versioning system"
