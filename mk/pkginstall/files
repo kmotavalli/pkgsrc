@@ -180,6 +180,8 @@ ADD)
 							${TEST} ! -x ./+VERSIONING ||
 								./+VERSIONING REGISTER "$_VCSDIR/automerged/$file"
 							${TEST} ! -x ./+VERSIONING ||
+								./+VERSIONING COMMIT
+							${TEST} ! -x ./+VERSIONING ||
 								./+VERSIONING CHECKOUT-FIRST "$_VCSDIR/defaults/$file"
 							${CP} -fp "$file" "$_VCSDIR/defaults/$file.automerge"
 							${TEST} ! -x ./+VERSIONING ||
@@ -210,6 +212,8 @@ ADD)
 							${CP} -fp "$file" "$_VCSDIR/user/$file"
 							${TEST} ! -x ./+VERSIONING ||
 								./+VERSIONING REGISTER "$_VCSDIR/user/$file"
+							${TEST} ! -x ./+VERSIONING ||
+								./+VERSIONING COMMIT
 							${TEST} ! -x ./+VERSIONING ||
 								./+VERSIONING CHECKOUT-FIRST "$_VCSDIR/defaults/$file"
 							${CP} -fp "$file" "$_VCSDIR/defaults/$file.automerge"
