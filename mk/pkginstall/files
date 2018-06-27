@@ -105,6 +105,7 @@ PKG_METADATA_DIR="${2-${CURDIR}}"
 PKG_REFCOUNT_FILES_DBDIR="${PKG_REFCOUNT_DBDIR}/files"
 _VCSDIR="${VCSDIR:-@VARBASE@/confrepo}"
 exitcode=0
+
 case $ACTION in
 ADD)
 	${SED} -n "/^\# FILE: /{s/^\# FILE: //;p;}" ${SELF} | ${SORT} -u |
@@ -180,7 +181,7 @@ ADD)
 							${TEST} ! -x ./+VERSIONING ||
 								./+VERSIONING REGISTER "$_VCSDIR/automerged/$file"
 							${TEST} ! -x ./+VERSIONING ||
-								./+VERSIONING COMMIT
+								./+VERSIONING COMMIT "backup preexisting conf before attempting merge for $PKGNAME"
 							${TEST} ! -x ./+VERSIONING ||
 								./+VERSIONING CHECKOUT-FIRST "$_VCSDIR/defaults/$file"
 							${CP} -fp "$file" "$_VCSDIR/defaults/$file.automerge"
@@ -213,7 +214,7 @@ ADD)
 							${TEST} ! -x ./+VERSIONING ||
 								./+VERSIONING REGISTER "$_VCSDIR/user/$file"
 							${TEST} ! -x ./+VERSIONING ||
-								./+VERSIONING COMMIT
+								./+VERSIONING COMMIT "backup user conf before attempting merge for $PKGNAME"
 							${TEST} ! -x ./+VERSIONING ||
 								./+VERSIONING CHECKOUT-FIRST "$_VCSDIR/defaults/$file"
 							${CP} -fp "$file" "$_VCSDIR/defaults/$file.automerge"
@@ -266,7 +267,7 @@ ADD)
 	done
 	if ${TEST} ! -n "$NOVCS"; then
 		${TEST} ! -x ./+VERSIONING ||
-			./+VERSIONING COMMIT	 
+			./+VERSIONING COMMIT "add $PKGNAME"
 	fi 
 	;;
 

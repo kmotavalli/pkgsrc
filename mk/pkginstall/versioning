@@ -12,7 +12,7 @@ UNPACK,|UNPACK,+VERSIONING)
 #
 # Usage: ./+VERSIONING REGISTER|CHECKOUT|CHECKOUT-FIRST [examplefile]
 #	 ./+VERSIONING MERGE [examplefile] [firstrevision]
-#	 ./+VERSIONING COMMIT
+#	 ./+VERSIONING COMMIT [message]
 #	 ./+VERSIONING PRAPARE
 #
 AWK="@AWK@"
@@ -48,18 +48,19 @@ _VCS="${VCS:-rcs}"
 #REMOTEVCS: set the URI to the remote repository, leave unset or set to no in order to use a local repository 
 #the URI, while required for pull/configuration deployment mode, does not enable it. by default the remote is only used to store the system configuration 
 _REMOTE="${REMOTEVCS:-no}"
-if ${TEST} "$_VCS" = "cvs"; then
+if ${TEST} "$_VCS" = "cvs" -o "$_VCS" = "CVS"; then
 	if ${TEST} "$_REMOTE" ! = "no"; then
 		_CVSROOT="$_REMOTE"
 	else
 		_CVSROOT="$_VCSDIR/CVSROOT"
+	fi
 fi
 cd "$_VCSDIR"
 
 case $ACTION in
 PREPARE)
 		case $_VCS in
-		"cvs")
+		"cvs"|"CVS")
 			if ${TEST} "$_REMOTE" = "no"; then
 				cvs -d "$_CVSROOT" status foo 1>/dev/null
 				repostatus=$?
@@ -86,11 +87,11 @@ PREPARE)
 	;;
 REGISTER)
 	case $_VCS in
-	"rcs")
+	"rcs"|"RCS")
 		${CI} -u "$CFILE"
 		exitcode=$?
 		;;
-	"cvs")
+	"cvs"|"CVS")
 		_PATHSPLIT=$(${ECHO} "$CFILE" | ${AWK} -F "//" '{print $2}')
 		cd $(${ECHO} "$CFILE" | ${AWK} -F "//" '{print $1}')
 		IFS="/"
@@ -107,8 +108,8 @@ REGISTER)
 	;;
 COMMIT)
 	case $_VCS in
-	"cvs")
-		cvs -d "$_CVSROOT" commit -m "pkgsrc"
+	"cvs"|"CVS")
+		cvs -d "$_CVSROOT" commit -m "pkgsrc: $2"
 		;;
 	*)
 		;;
@@ -116,11 +117,11 @@ COMMIT)
 	;;
 CHECKOUT)
 	case $_VCS in
-	"rcs")
+	"rcs"|"RCS")
 		${CO} -f "$CFILE"
 		exitcode=$?
 		;;
-	"cvs")
+	"cvs"|"CVS")
 		cd "$_VCSDIR"
 		_PATHSPLIT=$(${ECHO} "$CFILE" | ${AWK} -F "$_VCSDIR" '{print $2}' | ${SED} 's@//@/@' | ${SED} 's@/@@')
 		cvs -d "$_CVSROOT" co "$_PATHSPLIT"
@@ -134,11 +135,11 @@ CHECKOUT)
 #checkout the initial revision of the file, used in the 3-way merge
 CHECKOUT-FIRST)
 	case $_VCS in
-	"rcs")
+	"rcs"|"RCS")
 		${CO} -r1 -f "$CFILE"
 		exitcode=$?
 		;;
-	"cvs")
+	"cvs"|"CVS")
 		cd "$_VCSDIR"
 		_PATHSPLIT=$(${ECHO} "$CFILE" | ${AWK} -F "$_VCSDIR" '{print $2}' | ${SED} 's@//@/@' | ${SED} 's@/@@')
 		cvs -d "$_CVSROOT" co -r1 "$_PATHSPLIT"
@@ -159,7 +160,7 @@ PULL)
 *)
 	${ECHO} "Usage: ./+VERSIONING REGISTER|CHECKOUT|CHECKOUT-FIRST [examplefile]"
 	${ECHO} "Usage: ./+VERSIONING MERGE [examplefile] [firstrevision]"
-	${ECHO} "Usage: ./+VERSIONING COMMIT"
+	${ECHO} "Usage: ./+VERSIONING COMMIT [message]"
 	${ECHO} "Usage: ./+VERSIONING PREPARE"
 	exitcode=3
 	;;
