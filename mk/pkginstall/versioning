@@ -88,7 +88,8 @@ PREPARE)
 REGISTER)
 	case $_VCS in
 	"rcs"|"RCS")
-		${CI} -U "$CFILE"
+		${RCS} -U "$CFILE"
+		${CI} -u "$CFILE"
 		exitcode=$?
 		;;
 	"cvs"|"CVS")
@@ -109,7 +110,13 @@ REGISTER)
 COMMIT)
 	case $_VCS in
 	"cvs"|"CVS")
-		cvs -d "$_CVSROOT" commit -m "pkgsrc: $2"
+		cvs -d "$_CVSROOT" commit -m "pkgsrc: $2" > /dev/null
+		if ${TEST} $? eq 0; then
+			${ECHO} "conf commit: pkgsrc: $2"
+		else
+			${ECHO} "failed to commit conf: $2"
+			exitcode=3
+		fi	
 		;;
 	*)
 		;;
