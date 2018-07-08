@@ -1,14 +1,46 @@
 #
 # Generate a +VERSIONING script used by FILES and INSTALL to perform common
 # operations on version control software used to store, retrieve and merge
-# package configuration files during installations and upgrades. 
+# package configuration files during installation and upgrade operations. 
 #
 case "${STAGE},$1" in
 UNPACK,|UNPACK,+VERSIONING)
 	${CAT} > ./+VERSIONING << 'EOF'
 #!@SH@
 #
-# +VERSIONING - interact with version control systems
+# +VERSIONING - operate on version control systems
+#
+# This script calls VCS software, "rcs" by default, in order to store revisions
+# of configuration files. This is done by the "REGISTER" action, which takes 
+# the path to an example configuration file as argument.
+# Said file should be placed in the VCS working directory by the "files" script
+# VERSIONING only handles the storage of revisions inside a vcs.
+# Once all configuration files for a package are registered, files should call
+# the COMMIT action, which will commit changes on backends that support
+# atomic transactions (if using rcs, commit won't execute further operations).
+# MERGE calls RCS merge to attempt a 3-way merge between the copy of an  
+# installed configuration file, its original revision and the last example file
+# as provided by the package. This is a non-interactive merge, if successful
+# "files" will install the output in place of the existing configuration.
+# CHECKOUT and CHECKOUT-FIRST exist to assist "files" in retrieving revisions
+# before attempting an automatic merge.  
+# Files only attempts to automatically merge changes if the environment
+# variable VCSAUTOMERGE is set to "yes". A backup of the installed configuration
+# is taken first, and user modified configuration files are stored separately,
+# in order to enable for a quick restoration of the last known working file.
+# PREPARE is called before registering files: under some VCSs it checks
+# that the working directory and/or the remote repository is correctly
+# initialized, and initializes it otherwise. 
+# The VCSDIR environment variable is read to set the working directory,
+# under which the repository will also reside, if a local vcs is being used.
+# It defaults to VARBASE/confrepo.
+# The VCS backend to use can be set via VCS environment variable, and defaults
+# to RCS (Revision Control System).
+# REMOTEVCS, if set, must contain a string that the chosen VCS understands as
+# an URI to a remote repository, including login credentials if not specified
+# through other means. This is non standard across different backends, and
+# additional environment variables and cryptographic material 
+# may need to be provided. 
 #
 # Usage: ./+VERSIONING REGISTER|CHECKOUT|CHECKOUT-FIRST [examplefile]
 #	 ./+VERSIONING MERGE [examplefile] [firstrevision]
