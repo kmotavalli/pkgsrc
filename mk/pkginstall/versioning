@@ -175,7 +175,7 @@ CHECKOUT)
 CHECKOUT-FIRST)
 	case $_VCS in
 	"rcs"|"RCS")
-		${CO} -r1 -f "$CFILE"
+		${CO} -f1.1 "$CFILE"
 		exitcode=$?
 		;;
 	"cvs"|"CVS")
