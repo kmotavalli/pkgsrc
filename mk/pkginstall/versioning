@@ -190,7 +190,7 @@ CHECKOUT-FIRST)
 	esac
 	;;
 MERGE)
-	${MERGE} "$CFILE.automerge" "$FIRSTFILE" "$CFILE"
+	${MERGE} "$FIRSTFILE.automerge" "$FIRSTFILE" "$CFILE"
 	exitcode=$?
 	;;
 PULL)
