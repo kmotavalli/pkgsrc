@@ -177,7 +177,7 @@ ADD)
 							${ECHO} "saving the currently installed revision to $_VCSDIR/automerged/$file"
 							${MKDIR} -p "$_VCSDIR/automerged/$file" 2>/dev/null
 							${RMDIR} "$_VCSDIR/automerged/$file" 2>/dev/null
-							${CP} -fp "$FILE" "$_VCSDIR/automerged/$file"
+							${CP} -fp "$file" "$_VCSDIR/automerged/$file"
 							${TEST} ! -x ./+VERSIONING ||
 								./+VERSIONING REGISTER "$_VCSDIR/automerged/$file"
 							${TEST} ! -x ./+VERSIONING ||
