@@ -73,7 +73,7 @@ TOOLS_PLATFORM.mail?=		/usr/bin/mail
 .if exists(/usr/bin/makeinfo)
 TOOLS_PLATFORM.makeinfo?=	/usr/bin/makeinfo
 .endif
-TOOLS_PLATROFM.merge?=		/usr/bin/merge
+TOOLS_PLATFORM.merge?=		/usr/bin/merge
 TOOLS_PLATFORM.mkdir?=		/bin/mkdir -p
 TOOLS_PLATFORM.mktemp?=		/usr/bin/mktemp
 .if exists(/usr/bin/msgconv)
