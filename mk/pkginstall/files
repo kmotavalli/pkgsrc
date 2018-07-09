@@ -191,7 +191,7 @@ ADD)
 							case $mergestatus in
 							0)
 								${ECHO} "merged with no conflict. installing it to $file!"
-								${DIFF} -uq "$file" "$_VCSDIR/defaults/$file.automerge"
+								${DIFF} -u "$file" "$_VCSDIR/defaults/$file.automerge"
 								${CP} -fp "$_VCSDIR/defaults/$file.automerge" "$file"
 								${TEST} -x ./+VERSIONING ||
 									./+VERSIONING CHECKOUT "$_VCSDIR/defaults/$file"
@@ -224,7 +224,7 @@ ADD)
 							case $mergestatus in
 							0)
 								${ECHO} "merged with no conflicts. installing it to $file!"
-								${DIFF} -uq "$file" "$_VCSDIR/defaults/$file.automerge"
+								${DIFF} -u "$file" "$_VCSDIR/defaults/$file.automerge"
 								${CP} -fp "$_VCSDIR/defaults/$file.automerge" "$file"
 								if ${TEST} $? -eq 0; then
 									${ECHO} "$file" >> "$_VCSDIR/automergedfiles"
