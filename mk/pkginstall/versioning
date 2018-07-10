@@ -179,9 +179,10 @@ CHECKOUT-FIRST)
 		exitcode=$?
 		;;
 	"cvs"|"CVS")
+		set -x
 		cd "$_VCSDIR"
 		_PATHSPLIT=$(${ECHO} "$CFILE" | ${AWK} -F "$_VCSDIR" '{print $2}' | ${SED} 's@//@/@' | ${SED} 's@/@@')
-		cvs -d "$_CVSROOT" co -r1 "$_PATHSPLIT"
+		cvs -d "$_CVSROOT" co -r1.1 "$_PATHSPLIT"
 		;;
 	*)
 		${ECHO} "$_CVS: unsupported versioning system"
