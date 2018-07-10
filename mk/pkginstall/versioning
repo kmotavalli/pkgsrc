@@ -132,6 +132,8 @@ REGISTER)
 			do
 				cvs -d "$_CVSROOT" add "$curdir"; cd "$curdir" 2>/dev/null
 			done
+		cd "$_VCSDIR"
+		cvs -d "$_CVSROOT" ci "$CFILE"
 		;;
 	*)
 		${ECHO} "$_CVS: unsupported versioning system"
