@@ -149,7 +149,7 @@ ADD)
 			case "$f_flags:$_PKG_CONFIG:$_PKG_RCD_SCRIPTS" in
 			*f*:*:*|[!r]:yes:*|[!r][!r]:yes:*|[!r][!r][!r]:yes:*|*r*:yes:yes)
 				if ${TEST} "$_PKG_RCD_SCRIPTS" = "no" -a ! -n "$NOVCS"; then
-					for dir in "defaults" "automerge" "user"
+					for dir in "defaults" "automerged" "user"
 					do	
 						if ${TEST} ! -d "$_VCSDIR/$dir"; then
 							${RM} -f "$_VCSDIR/$dir"
