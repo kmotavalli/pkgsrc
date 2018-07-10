@@ -103,10 +103,14 @@ PREPARE)
 							if ${TEST} -d "$_VCSDIR/$module" -a -r "$_VCSDIR/$module"; then
 								cd "$_VCSDIR/$module"
 								cvs -d "$_CVSROOT" import -m "auto import preexisting $module files" "$module" auto start 1>/dev/null
-							else
-								cvs -d "$_CVSROOT" checkout -R "$module"		
 							fi
+							
 						done
+					cd "$_VCSDIR"
+					for module in "automerged" "defaults" "user"
+						do
+							cvs -d "$_CVSROOT" checkout -R "$module"
+						done	
 				fi
 			fi
 			cd "$_VCSDIR"
