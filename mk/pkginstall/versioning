@@ -94,7 +94,7 @@ PREPARE)
 		case $_VCS in
 		"cvs"|"CVS")
 			if ${TEST} "$_REMOTE" = "no"; then
-				cvs -d "$_CVSROOT" status foo 1>/dev/null
+				cvs -d "$_CVSROOT" status user 1>/dev/null
 				repostatus=$?
 				if ${TEST} ! $repostatus -eq 0; then
 					cvs -d "$_CVSROOT" init
