@@ -75,6 +75,7 @@ ACTION=$1
 CFILE=$2
 FIRSTFILE=$3
 exitcode=0
+
 #VCSDIR: user set environment variable, the working directory under which a local repository may also be kept
 _VCSDIR="${VCSDIR:-@VARBASE@/confrepo}"
 #VCS: the versioning system to be used. Defaults to rcs, other solutions are searched in $PATH
@@ -89,10 +90,10 @@ if ${TEST} "$_VCS" = "cvs" -o "$_VCS" = "CVS"; then
 		_CVSROOT="$_VCSDIR/CVSROOT"
 	fi
 fi
-cd "$_VCSDIR"
 
 case $ACTION in
 PREPARE)
+		cd "$_VCSDIR"
 		case $_VCS in
 		"cvs"|"CVS")
 			cvs -d "$_CVSROOT" status defaults 1>/dev/null
@@ -123,7 +124,6 @@ PREPARE)
 				done
 			;;
 		"svn"|"SVN")
-			cd "$_VCSDIR"
 			svn info "$_VCSDIR/defaults" > /dev/null
 			if ${TEST} ! $? -eq 0; then
 				if ${TEST} "$_REMOTE" = "no"; then
@@ -152,17 +152,15 @@ PREPARE)
 				svn update "$_VCSDIR/defaults" "$_VCSDIR/user" "$_VCSDIR/automerged" > /dev/null
 			;;
 		"git"|"GIT")
-			cd "$_VCSDIR"
 			git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" status > /dev/null
 			gitstatus=$?
 			#this script won't clone a remote repository if a local git repo already exists in the VCSDIR.
 			#just setting $REMOTE won't suffice, manually move over data and clone the repo first or use git remote add
 			if ${TEST} ! $gitstatus -eq 0; then 
-				if ${TEST} "$_REMOTE" = "no"; then
-					git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" init
-					exitcode=$?
-				else
-					git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" clone "$_REMOTE" .
+				git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" init
+				exitcode=$?
+				if ${TEST} "$_REMOTE" != "no" && ${TEST} $exitcode -eq 0; then
+					git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" remote add origin "$_REMOTE"
 					exitcode=$?
 				fi
 			else
@@ -186,7 +184,6 @@ PREPARE)
 			fi 
 			;;
 		"hg"|"HG"|"mercurial")
-			cd "$_VCSDIR"
 			hg --repository "$_VCSDIR" summary > /dev/null
 			if ${TEST} ! $? -eq 0; then
 				hg init "$_VCSDIR"
@@ -253,9 +250,9 @@ REGISTER)
 	esac
 	;;
 COMMIT)
+	cd "$_VCSDIR"
 	case $_VCS in
 	"cvs"|"CVS")
-		cd "$_VCSDIR"
 		cvs -Q -d "$_CVSROOT" commit -R -m "pkgsrc: $2" 
 		if ${TEST} $? -eq 0; then
 			${ECHO} "conf commit: pkgsrc: $2"
@@ -265,7 +262,6 @@ COMMIT)
 		fi	
 		;;
 	"git"|"GIT")
-		cd "$_VCSDIR"
 		git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" commit -m "pkgsrc: $2" > /dev/null
 		gitcommitstatus=$?
 		if ${TEST} $gitcommitstatus -eq 0; then
@@ -283,7 +279,6 @@ COMMIT)
 		fi
 		;;
 	"hg"|"HG"|"mercurial")
-		cd "$_VCSDIR"
 		hg --repository "$_VCSDIR" commit -m "pkgsrc: $2" --user pkgsrc > /dev/null
 		hgcommitstatus=$?
 		if ${TEST} $hgcommitstatus -eq 0; then
@@ -300,7 +295,6 @@ COMMIT)
 		fi
 		;;
 	"svn"|"SVN")
-		cd "$_VCSDIR"
 		_svnexitstatus=0
 		for dir in "defaults" "user" "automerged"
 			do
@@ -396,9 +390,28 @@ MERGE)
 	exitcode=$?
 	;;
 PULL)
-	${ECHO} "not yet implemented, to be called from +install"
-	${ECHO} "category: $2 package: $3"
-	${ECHO} "exact version: $4"
+	set -x
+	exitcode=0
+	_TEMPDIR="/tmp/pkgsrcdeploy-$RANDOM"
+	while ${TEST} -d $_TEMPDIR; do
+		#this should never happen!
+		${RM} -fr "$_TEMPDIR"
+		_TEMPDIR="/tmp/pkgsrcdeploy-$RANDOM"
+	done
+	${MKDIR} -p "$_TEMPDIR"
+	${CHMOD} 0700 "$_TEMPDIR"
+	cd "$_TEMPDIR"
+	case "$_VCS" in
+		"git"|"GIT")
+			git --git-dir="$_TEMPDIR/.git" --work-tree="$_TEMPDIR/work" clone "$_REMOTE" "$_TEMPDIR/work" 
+			git --git-dir=/tmp/pkgsrcdeploy-16363/.git --work-tree=/tmp/pkgsrcdeploy-16363/work branch -r
+			;;
+		"rcs"|"RCS"|*)
+			${ECHO} "$_VCS: unsupported versioning system"
+			exitcode=2
+			;;
+	esac
+	${RM} -fr "$_TEMPDIR"
 	;;
 *)
 	${ECHO} "Usage: ./+VERSIONING REGISTER|CHECKOUT|CHECKOUT-FIRST [examplefile]"
