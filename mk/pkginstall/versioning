@@ -142,10 +142,11 @@ PREPARE)
 							fi
 							svn co "$_REMOTE/$subdir" "$_VCSDIR/$subdir"
 						done
+				fi
+			fi	
 				svn info file://"$_VCSDIR/defaults" > /dev/null
 				exitcode=$?
 				svn update > /dev/null
-			fi
 			;;
 		"git"|"GIT")
 			cd "$_VCSDIR"
