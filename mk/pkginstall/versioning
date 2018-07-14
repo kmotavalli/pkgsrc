@@ -152,7 +152,7 @@ PREPARE)
 				 
 			fi
 			if ${TEST} $exitcode -eq 0 -a ! "$_REMOTE" = "no"; then
-				git pull
+				git pull origin master
 			fi 
 			;;
 		*)
