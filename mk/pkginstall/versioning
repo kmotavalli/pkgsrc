@@ -70,7 +70,6 @@ CO="@CO@"
 CUT="@CUT@"
 MERGE="@MERGE@"
 
-set -x
 SELF=$0
 ACTION=$1
 CFILE=$2
