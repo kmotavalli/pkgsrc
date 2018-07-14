@@ -121,6 +121,32 @@ PREPARE)
 					cvs -d "$_CVSROOT" update -A -R "$module"
 				done
 			;;
+		"svn"|"SVN")
+			cd "$_VCSDIR"
+			svn info file://"$_VCSDIR/defaults" > /dev/null
+			if ${TEST} ! $? -eq 0; then
+				if ${TEST} "$_REMOTE" = "no"; then
+					${RM} -fr "$_VCSDIR/localsvn" 2>/dev/null
+					svnadmin create "$_VCSDIR/localsvn"
+					for subdir in "automerged" "defaults" "user"
+						do
+							svn mkdir file://"$_VCSDIR/localsvn/$subdir" -m "create $subdir conf dir"
+							svn co file://"$_VCSDIR/localsvn/$subdir" "$_VCSDIR/$subdir"
+						done
+				else
+					#manually migrate to a remote repository, if needed
+					for subdir in "automerged" "defaults" "user"
+						do
+							if ${TEST} -d "$_VCSDIR/$subdir"; then
+								svn import -m "initial import" "$_VCSDIR/$subdir" "$_REMOTE/$subdir"
+							fi
+							svn co "$_REMOTE/$subdir" "$_VCSDIR/$subdir"
+						done
+				svn info file://"$_VCSDIR/defaults" > /dev/null
+				exitcode=$?
+				svn update > /dev/null
+			fi
+			;;
 		"git"|"GIT")
 			cd "$_VCSDIR"
 			git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" status > /dev/null
@@ -179,6 +205,10 @@ REGISTER)
 		cd "$_VCSDIR"
 		git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" add -f "$CFILE"
 		;;
+	"svn"|"SVN")
+		cd "$_VCSDIR"
+		svn add "$CFILE"
+		;;
 	*)
 		${ECHO} "$_VCS: unsupported versioning system"
 		exitcode=2
@@ -215,6 +245,16 @@ COMMIT)
 			fi
 		fi
 		;;
+	"svn"|"SVN")
+		cd "$_VCSDIR"
+		svn commit -m "pkgsrc: $2"
+		if ${TEST} $? -eq 0; then
+			${ECHO} "conf commit: pkgsrc: $2"
+		else
+			${ECHO} "failed to commit conf: $2"
+			exitcode=3
+		fi
+		;;
 	*)
 		;;
 	esac
@@ -234,7 +274,15 @@ CHECKOUT)
 		cd "$_VCSDIR"
 		git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" checkout -- "$CFILE"
 		;;
-	
+	"svn"|"SVN")
+		cd "$_VCSDIR"
+		_PATHSPLIT=$(${ECHO} "$CFILE" | ${AWK} -F "//" '{print $2}')
+		if ${TEST} "$_REMOTE" = "no"; then
+			svn checkout file://"$_VCSDIR/localsvn/$_PATHSPLIT" "$CFILE"
+		else
+			svn checkout "$_REMOTE/$_PATHSPLIT" "$CFILE"
+		fi
+		;;
 	*)
 		${ECHO} "$_VCS: unsupported versioning system"
 		exitcode=2
@@ -256,6 +304,14 @@ CHECKOUT-FIRST)
 	"git"|"GIT")
 		cd "$_VCSDIR"
 		git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" checkout $(git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" rev-list HEAD "$CFILE" | ${TAIL} -n 1) -- "$CFILE"
+		;;
+	"svn"|"SVN")
+		cd "$_VCSDIR"
+		_PATHSPLIT=$(${ECHO} "$CFILE" | ${AWK} -F "//" '{print $2}')
+		if ${TEST} "$_REMOTE" = "no"; then
+			svn checkout --revision $(svn log --xml -r 1:HEAD --limit 1 file://"$_VCSDIR/localsvn/$_PATHSPLIT | ${AWK} -F '"' '/revision=/ {print $2}') file://"$_VCSDIR/localsvn/$_PATHSPLIT" "$CFILE"
+		else
+			svn checkout --revision $(svn log --xml -r 1:HEAD --limit 1 "$_REMOTE/$_PATHSPLIT" | ${AWK} -F '"' '/revision=/ {print $2}') "$_REMOTE/$_PATHSPLIT" "$CFILE"
 		;;
 	*)
 		${ECHO} "$_VCS: unsupported versioning system"
