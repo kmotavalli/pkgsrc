@@ -67,6 +67,7 @@ TRUE="@TRUE@"
 RCS="@RCS@"
 CI="@CI@"
 CO="@CO@"
+CUT="@CUT@"
 MERGE="@MERGE@"
 
 SELF=$0
@@ -281,7 +282,7 @@ COMMIT)
 		;;
 	"hg"|"HG"|"mercurial")
 		cd "$_VCSDIR"
-		hg --repository "$_VCSDIR" commit -m "pkgsrc: $2" > /dev/null
+		hg --repository "$_VCSDIR" commit -m "pkgsrc: $2" --user pkgsrc > /dev/null
 		hgcommitstatus=$?
 		if ${TEST} $hgcommitstatus -eq 0; then
 			${ECHO} "conf commit: pkgsrc: $2"
@@ -370,8 +371,8 @@ CHECKOUT-FIRST)
 		;;
 	"hg"|"HG"|"mercurial")
 		cd "$_VCSDIR"
-		_PATHSPLIT=$(${ECHO} "$CFILE" | ${AWK} -F "$_VCSDIR" '{print $2}')
-		hg --repository "$_VCSDIR" cat -r 'first(file("$_PATHSPLIT"),1)' "$CFILE" > "$CFILE"
+		_PATHSPLIT=$(${ECHO} "$CFILE" | ${AWK} -F "$_VCSDIR" '{print $2}' | ${CUT} -c 2-)
+		hg --repository "$_VCSDIR" cat -r "first(file("$_PATHSPLIT"),1)" "$CFILE" > "$CFILE"
 		;;
 	"svn"|"SVN")
 		cd "$_VCSDIR"
