@@ -199,7 +199,7 @@ COMMIT)
 		;;
 	"git"|"GIT")
 		cd "$_VCSDIR"
-		git commit -m "pkgsrc: $2"
+		git commit -m "pkgsrc: $2" > /dev/null
 		gitcommitstatus=$?
 		if ${TEST} $gitcommitstatus -eq 0; then
 			${ECHO} "conf commit: pkgsrc: $2"
