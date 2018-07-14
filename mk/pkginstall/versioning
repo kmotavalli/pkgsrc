@@ -185,6 +185,8 @@ PREPARE)
 			fi 
 			;;
 		*)
+			${ECHO} "$_VCS: unsupported versioning system"
+			exitcode=2
 			;;
 		esac
 	;;
@@ -218,7 +220,7 @@ REGISTER)
 		done
 		;;
 	*)
-		${ECHO} "$_VCS: unsupported versioning system"
+		${ECHO} "$_VCS: unsupported versioning system. I shouldn't be there!"
 		exitcode=2
 		;;
 	esac
