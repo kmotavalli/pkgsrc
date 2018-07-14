@@ -34,7 +34,7 @@ POST-INSTALL)
 	#
 	if ${TEST} "$VCSCONFPULL" = "yes" && ${TEST} -n "$REMOTEVCS" && ${TEST} "$REMOTEVCS" != "no"; then
 		${TEST} ! -x ./+VERSIONING ||
-			./+VERSIONING PULL ${PKGNAME}
+			./+VERSIONING PULL ${CATEGORIES} ${PKGBASE} ${PKGVERSION} 
 			#if it fails, run the normal files routine
 		${TEST} ! -x ./+FILES ||
 			./+FILES ADD ${PKG_METADATA_DIR}

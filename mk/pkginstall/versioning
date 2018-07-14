@@ -397,6 +397,8 @@ MERGE)
 	;;
 PULL)
 	${ECHO} "not yet implemented, to be called from +install"
+	${ECHO} "category: $2 package: $3"
+	${ECHO} "exact version: $4"
 	;;
 *)
 	${ECHO} "Usage: ./+VERSIONING REGISTER|CHECKOUT|CHECKOUT-FIRST [examplefile]"
