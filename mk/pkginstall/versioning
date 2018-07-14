@@ -123,36 +123,36 @@ PREPARE)
 			;;
 		"git"|"GIT")
 			cd "$_VCSDIR"
-			git --git-dir="$_VCSDIR/.git" --work-dir="$_VCSDIR" status > /dev/null
+			git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" status > /dev/null
 			gitstatus=$?
 			#this script won't clone a remote repository if a local git repo already exists in the VCSDIR.
 			#just setting $REMOTE won't suffice, manually move over data and clone the repo first or use git remote add
 			if ${TEST} ! $gitstatus -eq 0; then 
 				if ${TEST} "$_REMOTE" = "no"; then
-					git --git-dir="$_VCSDIR/.git" --work-dir="$_VCSDIR" init
+					git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" init
 					exitcode=$?
 				else
-					git --git-dir="$_VCSDIR/.git" --work-dir="$_VCSDIR" clone "$_REMOTE" .
+					git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" clone "$_REMOTE" .
 					exitcode=$?
 				fi
 			else
 				if ${TEST} ! "$_REMOTE" = "no"; then
 					if ${TEST} $(git remote | ${GREP} -c "origin") -gt 0; then
-						git --git-dir="$_VCSDIR/.git" --work-dir="$_VCSDIR" remote remove origin
-						git --git-dir="$_VCSDIR/.git" --work-dir="$_VCSDIR" remote add origin "$_REMOTE"
+						git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" remote remove origin
+						git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" remote add origin "$_REMOTE"
 						#populate the remote repo if empty
 						#prefer losing remote status over local status
-						git --git-dir="$_VCSDIR/.git" --work-dir="$_VCSDIR" push origin master
+						git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" push origin master
 						exitcode=$?
 				 	else	
-						git --git-dir="$_VCSDIR/.git" --work-dir="$_VCSDIR" remote add origin "$_REMOTE"
+						git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" remote add origin "$_REMOTE"
 						exitcode=$?
 					fi
 				fi
 				 
 			fi
 			if ${TEST} $exitcode -eq 0 -a ! "$_REMOTE" = "no"; then
-				git --git-dir="$_VCSDIR/.git" --work-dir="$_VCSDIR" pull origin master
+				git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" pull origin master
 			fi 
 			;;
 		*)
@@ -177,7 +177,7 @@ REGISTER)
 		;;
 	"git"|"GIT")
 		cd "$_VCSDIR"
-		git --git-dir="$_VCSDIR/.git" --work-dir="$_VCSDIR" add -f "$CFILE"
+		git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" add -f "$CFILE"
 		;;
 	*)
 		${ECHO} "$_VCS: unsupported versioning system"
@@ -199,7 +199,7 @@ COMMIT)
 		;;
 	"git"|"GIT")
 		cd "$_VCSDIR"
-		git --git-dir="$_VCSDIR/.git" --work-dir="$_VCSDIR" commit -m "pkgsrc: $2" > /dev/null
+		git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" commit -m "pkgsrc: $2" > /dev/null
 		gitcommitstatus=$?
 		if ${TEST} $gitcommitstatus -eq 0; then
 			${ECHO} "conf commit: pkgsrc: $2"
@@ -208,7 +208,7 @@ COMMIT)
 			exitcode=3
 		fi
 		if ${TEST} "$_REMOTE" != "no"; then
-			git --git-dir="$_VCSDIR/.git" --work-dir="$_VCSDIR" push origin master
+			git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" push origin master
 			#even if it fails, a local copy exists
 			if ${TEST} ! $? -eq 0; then
 				${ECHO} "git: failed to push changes to the remote repository $_REMOTE"
@@ -232,7 +232,7 @@ CHECKOUT)
 		;;
 	"git"|"GIT")
 		cd "$_VCSDIR"
-		git --git-dir="$_VCSDIR/.git" --work-dir="$_VCSDIR" checkout -- "$CFILE"
+		git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" checkout -- "$CFILE"
 		;;
 	
 	*)
@@ -255,7 +255,7 @@ CHECKOUT-FIRST)
 		;;
 	"git"|"GIT")
 		cd "$_VCSDIR"
-		git --git-dir="$_VCSDIR/.git" --work-dir="$_VCSDIR" checkout $(git --git-dir="$_VCSDIR/.git" --work-dir="$_VCSDIR" rev-list HEAD "$CFILE" | ${TAIL} -n 1) -- "$CFILE"
+		git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" checkout $(git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" rev-list HEAD "$CFILE" | ${TAIL} -n 1) -- "$CFILE"
 		;;
 	*)
 		${ECHO} "$_VCS: unsupported versioning system"
