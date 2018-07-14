@@ -205,7 +205,8 @@ PREPARE)
 				fi
 			fi
 			;;	
-							
+		"rcs"|"RCS")
+			;;
 		*)
 			${ECHO} "$_VCS: unsupported versioning system"
 			exitcode=2
