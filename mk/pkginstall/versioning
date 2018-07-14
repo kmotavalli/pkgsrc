@@ -250,6 +250,7 @@ CHECKOUT-FIRST)
 	"git"|"GIT")
 		cd "$_VCSDIR"
 		git checkout $(git rev-list HEAD "$CFILE" | ${TAIL} -n 1) -- "$CFILE"
+		;;
 	*)
 		${ECHO} "$_CVS: unsupported versioning system"
 		exitcode=2
