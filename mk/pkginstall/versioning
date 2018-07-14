@@ -262,7 +262,7 @@ COMMIT)
 		fi	
 		;;
 	"git"|"GIT")
-		git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" commit -m "pkgsrc: $2" > /dev/null
+		git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" commit -m "pkgsrc: $2"
 		gitcommitstatus=$?
 		if ${TEST} $gitcommitstatus -eq 0; then
 			${ECHO} "conf commit: pkgsrc: $2"
@@ -403,7 +403,7 @@ PULL)
 	cd "$_TEMPDIR"
 	case "$_VCS" in
 		"git"|"GIT")
-			git --git-dir="$_TEMPDIR/.git" --work-tree="$_TEMPDIR/work" clone "$_REMOTE" "$_TEMPDIR/work" 
+			git --git-dir="$_TEMPDIR/.git" --work-tree="$_TEMPDIR/work" clone "$_REMOTE" "$_TEMPDIR/.git" 
 			git --git-dir="$_TEMPDIR/.git" --work-tree="$_TEMPDIR/work" branch -r
 			;;
 		"rcs"|"RCS"|*)
@@ -411,7 +411,7 @@ PULL)
 			exitcode=2
 			;;
 	esac
-	${RM} -fr "$_TEMPDIR"
+	#${RM} -fr "$_TEMPDIR"
 	;;
 *)
 	${ECHO} "Usage: ./+VERSIONING REGISTER|CHECKOUT|CHECKOUT-FIRST [examplefile]"
