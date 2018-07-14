@@ -201,7 +201,8 @@ PREPARE)
 					hg --repository "$_VCSDIR" push "$_REMOTE"
 					hg --repository "$_VCSDIR" pull
 				fi
-			fi	 
+			fi
+			;;	
 							
 		*)
 			${ECHO} "$_VCS: unsupported versioning system"
