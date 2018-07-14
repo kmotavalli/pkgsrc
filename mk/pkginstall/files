@@ -158,6 +158,10 @@ ADD)
 					done
 					${TEST} ! -x ./+VERSIONING ||
 						./+VERSIONING PREPARE
+					if ${TEST} ! $? -eq 0; then
+						${ECHO} "failed to initialize the repository that should store configuration revisions at $_VCSDIR!"
+						${ECHO} "temporarily disabling configuration versioning: export NOVCS=yes"
+						export NOVCS=yes  
 					if ${TEST} -w $_VCSDIR/defaults; then
 						${MKDIR} -p "$_VCSDIR/defaults/$file" 2>/dev/null
 						${RMDIR} "$_VCSDIR/defaults/$file" 2>/dev/null
