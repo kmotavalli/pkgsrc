@@ -200,7 +200,9 @@ PREPARE)
 			else
 				if ${TEST} ! "$_REMOTE" = "no"; then
 					hg --repository "$_VCSDIR" push "$_REMOTE"
+					hg clone . "$_REMOTE"
 					hg --repository "$_VCSDIR" pull
+					exitcode=$?
 				fi
 			fi
 			;;	
