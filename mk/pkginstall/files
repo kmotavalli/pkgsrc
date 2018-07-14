@@ -149,6 +149,15 @@ ADD)
 			case "$f_flags:$_PKG_CONFIG:$_PKG_RCD_SCRIPTS" in
 			*f*:*:*|[!r]:yes:*|[!r][!r]:yes:*|[!r][!r][!r]:yes:*|*r*:yes:yes)
 				if ${TEST} "$_PKG_RCD_SCRIPTS" = "no" -a ! -n "$NOVCS"; then
+					if ${TEST} ! -d "$_VCSDIR"; then
+						${RM} -f "$_VCSDIR"
+						${MKDIR} -p "$_VCSDIR"
+						if ${TEST} ! $? -eq 0; then
+							export NOVCS=yes
+						fi
+					fi
+					#don't leak sensitive info from configuration files
+					${CHMOD} 0700 "$_VCSDIR"		
 					for dir in "defaults" "automerged" "user"
 					do	
 						if ${TEST} ! -d "$_VCSDIR/$dir"; then
