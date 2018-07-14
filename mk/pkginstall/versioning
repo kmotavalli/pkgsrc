@@ -214,7 +214,7 @@ REGISTER)
 		IFS="/"
 		for curdir in $_PATHSPLIT
 		do
-			svn add --depth=empty "$curdir"; cd "$curdir" 2>/dev/null
+			svn add --quiet --depth=empty "$curdir"; cd "$curdir" 2>/dev/null
 		done
 		;;
 	*)
