@@ -70,6 +70,7 @@ CO="@CO@"
 CUT="@CUT@"
 MERGE="@MERGE@"
 
+set -x
 SELF=$0
 ACTION=$1
 CFILE=$2
@@ -216,7 +217,7 @@ PREPARE)
 REGISTER)
 	case $_VCS in
 	"rcs"|"RCS")
-		${RCS} -U "$CFILE"
+		${RCS} -U "$CFILE" > /dev/null
 		${CI} -u "$CFILE"
 		exitcode=$?
 		;;
