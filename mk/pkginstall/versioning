@@ -123,6 +123,7 @@ PREPARE)
 			;;
 		"git"|"GIT")
 			cd "$_VCSDIR"
+			unset GIT_DIR
 			git status > /dev/null
 			gitstatus=$?
 			#this script won't clone a remote repository if a local git repo already exists in the VCSDIR.
