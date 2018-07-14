@@ -189,20 +189,19 @@ PREPARE)
 			cd "$_VCSDIR"
 			hg --repository "$_VCSDIR" summary > /dev/null
 			if ${TEST} ! $? -eq 0; then
-				if ${TEST} "$_REMOTE" = "no"; then
-					hg --repository "$_VCSDIR" init
-					exitcode=$?
-				else
-					hg --repository "$_VCSDIR" clone "$_REMOTE" .
+				hg init "$_VCSDIR"
+				exitcode=$?
+				if ${TEST} "$_REMOTE" != "no"; then
+					hg --repository "$_VCSDIR" pull "$_REMOTE" 
+					hg update -C -R "$_VCSDIR" 
 					hg --repository "$_VCSDIR" summary > /dev/null
 					exitcode=$?
 				fi
 			else
 				if ${TEST} ! "$_REMOTE" = "no"; then
-					hg --repository "$_VCSDIR" push "$_REMOTE"
 					hg clone . "$_REMOTE"
-					hg --repository "$_VCSDIR" pull
-					exitcode=$?
+					hg --repository "$_VCSDIR" push "$_REMOTE"
+					hg --repository "$_VCSDIR" pull "$_REMOTE"
 				fi
 			fi
 			;;	
