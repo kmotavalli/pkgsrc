@@ -404,7 +404,7 @@ PULL)
 	case "$_VCS" in
 		"git"|"GIT")
 			git --git-dir="$_TEMPDIR/.git" --work-tree="$_TEMPDIR/work" clone "$_REMOTE" "$_TEMPDIR/work" 
-			git --git-dir=/tmp/pkgsrcdeploy-16363/.git --work-tree=/tmp/pkgsrcdeploy-16363/work branch -r
+			git --git-dir="$_TEMPDIR/.git" --work-tree="$_TEMPDIR/work" branch -r
 			;;
 		"rcs"|"RCS"|*)
 			${ECHO} "$_VCS: unsupported versioning system"
