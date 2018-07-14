@@ -32,10 +32,20 @@ POST-INSTALL)
 	#
 	# Copy configuration/support files into place.
 	#
-        ${TEST} ! -x ./+FILES ||
-		./+FILES ADD ${PKG_METADATA_DIR}
-        ${TEST} ! -x ./+FILES ||
-		./+FILES PERMS ${PKG_METADATA_DIR}
+	if ${TEST} "$VCSCONFPULL" = "yes" && ${TEST} -n "$REMOTEVCS" && ${TEST} "$REMOTEVCS" != "no"; then
+		${TEST} ! -x ./+VERSIONING ||
+			./+VERSIONING PULL ${PKGNAME}
+			#if it fails, run the normal files routine
+		${TEST} ! -x ./+FILES ||
+			./+FILES ADD ${PKG_METADATA_DIR}
+		${TEST} ! -x ./+FILES ||
+			./+FILES PERMS ${PKG_METADATA_DIR}
+	else
+        	${TEST} ! -x ./+FILES ||
+			./+FILES ADD ${PKG_METADATA_DIR}
+        	${TEST} ! -x ./+FILES ||
+			./+FILES PERMS ${PKG_METADATA_DIR}
+	fi
 	#
 	# Set special permissions on any files/directories that need them.
 	#
