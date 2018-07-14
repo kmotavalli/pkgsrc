@@ -184,6 +184,25 @@ PREPARE)
 				git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" pull origin master
 			fi 
 			;;
+		"hg"|"HG"|"mercurial")
+			cd "$_VCSDIR"
+			hg --repository "$_VCSDIR" summary > /dev/null
+			if ${TEST} ! $? -eq 0; then
+				if ${TEST} "$_REMOTE" = "no"; then
+					hg --repository "$_VCSDIR" init
+					exitcode=$?
+				else
+					hg --repository "$_VCSDIR" clone "$_REMOTE" .
+					hg --repository "$_VCSDIR" summary > /dev/null
+					exitcode=$?
+				fi
+			else
+				if ${TEST} ! "$_REMOTE" = "no"; then
+					hg --repository "$_VCSDIR" push "$_REMOTE"
+					hg --repository "$_VCSDIR" pull
+				fi
+			fi	 
+							
 		*)
 			${ECHO} "$_VCS: unsupported versioning system"
 			exitcode=2
@@ -209,6 +228,10 @@ REGISTER)
 	"git"|"GIT")
 		cd "$_VCSDIR"
 		git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" add -f "$CFILE"
+		;;
+	"hg"|"HG"|"mercurial")
+		cd "$_VCSDIR"
+		hg --repository "$_VCSDIR" add "$CFILE"
 		;;
 	"svn"|"SVN")
 		_PATHSPLIT=$(${ECHO} "$CFILE" | ${AWK} -F "//" '{print $2}')
@@ -252,6 +275,23 @@ COMMIT)
 			#even if it fails, a local copy exists
 			if ${TEST} ! $? -eq 0; then
 				${ECHO} "git: failed to push changes to the remote repository $_REMOTE"
+			fi
+		fi
+		;;
+	"hg"|"HG"|"mercurial")
+		cd "$_VCSDIR"
+		hg --repository "$_VCSDIR" commit -m "pkgsrc: $2" > /dev/null
+		hgcommitstatus=$?
+		if ${TEST} $hgcommitstatus -eq 0; then
+			${ECHO} "conf commit: pkgsrc: $2"
+		else
+			${ECHO} "failed to commit conf: $2"
+			exitcode=3
+		fi
+		if ${TEST} "$_REMOTE" != "no"; then
+			hg --repository "$_VCSDIR" push "$_REMOTE"
+			if ${TEST} ! $? -eq 0; then
+				${ECHO} "hg: failed to push changes to the remote repository $_REMOTE"
 			fi
 		fi
 		;;
@@ -301,6 +341,10 @@ CHECKOUT)
 			svn export --force "$_REMOTE/$_PATHSPLIT" "$CFILE"
 		fi
 		;;
+	"hg"|"HG"|"mercurial")
+		cd "$_VCSDIR"
+		hg --repository "$_VCSDIR" cat -r tip "$CFILE" > $CFILE"
+		;;
 	*)
 		${ECHO} "$_VCS: unsupported versioning system"
 		exitcode=2
@@ -322,6 +366,11 @@ CHECKOUT-FIRST)
 	"git"|"GIT")
 		cd "$_VCSDIR"
 		git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" checkout $(git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" rev-list HEAD "$CFILE" | ${TAIL} -n 1) -- "$CFILE"
+		;;
+	"hg"|"HG"|"mercurial")
+		cd "$_VCSDIR"
+		_PATHSPLIT=$(${ECHO} "$CFILE" | ${AWK} -F "$_VCSDIR" '{print $2}')
+		hg --repository "$_VCSDIR" cat -r 'first(file("$_PATHSPLIT"),1)' "$CFILE" > "$CFILE"
 		;;
 	"svn"|"SVN")
 		cd "$_VCSDIR"
