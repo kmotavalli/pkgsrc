@@ -139,6 +139,8 @@ PREPARE)
 						do
 							if ${TEST} -d "$_VCSDIR/$subdir"; then
 								svn import -m "initial import" "$_VCSDIR/$subdir" "$_REMOTE/$subdir"
+							else
+								svn mkdir "$_REMOTE/$subdir"
 							fi
 							svn co "$_REMOTE/$subdir" "$_VCSDIR/$subdir"
 						done
