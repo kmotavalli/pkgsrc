@@ -123,7 +123,7 @@ PREPARE)
 			;;
 		"svn"|"SVN")
 			cd "$_VCSDIR"
-			svn info file://"$_VCSDIR/defaults" > /dev/null
+			svn info "$_VCSDIR/defaults" > /dev/null
 			if ${TEST} ! $? -eq 0; then
 				if ${TEST} "$_REMOTE" = "no"; then
 					${RM} -fr "$_VCSDIR/localsvn" 2>/dev/null
@@ -144,7 +144,7 @@ PREPARE)
 						done
 				fi
 			fi	
-				svn info file://"$_VCSDIR/defaults" > /dev/null
+				svn info "$_VCSDIR/defaults" > /dev/null
 				exitcode=$?
 				svn update > /dev/null
 			;;
