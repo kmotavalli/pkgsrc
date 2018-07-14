@@ -344,7 +344,7 @@ CHECKOUT)
 		;;
 	"hg"|"HG"|"mercurial")
 		cd "$_VCSDIR"
-		hg --repository "$_VCSDIR" cat -r tip "$CFILE" > $CFILE"
+		hg --repository "$_VCSDIR" cat -r tip "$CFILE" > "$CFILE"
 		;;
 	*)
 		${ECHO} "$_VCS: unsupported versioning system"
