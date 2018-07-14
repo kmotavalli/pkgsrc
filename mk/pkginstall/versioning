@@ -61,6 +61,7 @@ RM="@RM@"
 RMDIR="@RMDIR@"
 SED="@SED@"
 SORT="@SORT@"
+TAIL="@TAIL@"
 TEST="@TEST@"
 TRUE="@TRUE@"
 RCS="@RCS@"
@@ -98,6 +99,7 @@ PREPARE)
 			if ${TEST} ! $repostatus -eq 0; then
 				if ${TEST} "$_REMOTE" = "no"; then	
 					cvs -d "$_CVSROOT" init
+					exitcode=$?
 				fi
 				for module in "automerged" "defaults" "user"
 					do
@@ -119,6 +121,34 @@ PREPARE)
 					cvs -d "$_CVSROOT" update -A -R "$module"
 				done
 			;;
+		"git"|"GIT")
+			cd "$_VCSDIR"
+			git status > /dev/null
+			gitstatus=$?
+			#this script won't clone a remote repository if a local git repo already exists in the VCSDIR.
+			#just setting $REMOTE won't suffice, manually move over data and clone the repo first or use git remote add
+			if ${TEST} ! $gitstatus -eq 0; then 
+				if ${TEST} "$_REMOTE" = "no"; then
+					git init
+					exitcode=$?
+				else
+					git clone "$_REMOTE" .
+					exitcode=$?
+				fi
+			else
+				if ${TEST} ! "$_REMOTE" = "no"; then
+					if ${TEST} $(git remote | ${GREP} -c "origin") -gt 0; then
+						git remote remove origin
+					fi
+					git remote add origin "$_REMOTE"
+					exitcode=$?
+				fi
+				 
+			fi
+			if ${TEST} $exitcode -eq 0 -a ! "$_REMOTE" = "no"; then
+				git pull
+			fi 
+			;;
 		*)
 			;;
 		esac
@@ -139,6 +169,10 @@ REGISTER)
 				cvs -d "$_CVSROOT" add "$curdir"; cd "$curdir" 2>/dev/null
 			done
 		;;
+	"git"|"GIT")
+		cd "$_VCSDIR"
+		git add -f "$CFILE"
+		;;
 	*)
 		${ECHO} "$_CVS: unsupported versioning system"
 		exitcode=2
@@ -157,6 +191,24 @@ COMMIT)
 			exitcode=3
 		fi	
 		;;
+	"git"|"GIT")
+		cd "$_VCSDIR"
+		git commit -m "pkgsrc: $2"
+		gitcommitstatus=$?
+		if ${TEST} $gitcommitstatus -eq 0; then
+			${ECHO} "conf commit: pkgsrc: $2"
+		else
+			${ECHO} "failed to commit conf: $2"
+			exitcode=3
+		fi
+		if ${TEST} "$_REMOTE" != "no"; then
+			git push origin master
+			#even if it fails, a local copy exists
+			if ${TEST} ! $? -eq 0; then
+				${ECHO} "git: failed to push changes to the remote repository $_REMOTE"
+			fi
+		fi
+		;;
 	*)
 		;;
 	esac
@@ -172,6 +224,11 @@ CHECKOUT)
 		_PATHSPLIT=$(${ECHO} "$CFILE" | ${AWK} -F "$_VCSDIR" '{print $2}' | ${SED} 's@//@/@' | ${SED} 's@/@@')
 		cvs -d "$_CVSROOT" co "$_PATHSPLIT"
 		;;
+	"git"|"GIT")
+		cd "$_VCSDIR"
+		git checkout -- "$CFILE"
+		;;
+	
 	*)
 		${ECHO} "$_CVS: unsupported versioning system"
 		exitcode=2
@@ -190,6 +247,9 @@ CHECKOUT-FIRST)
 		_PATHSPLIT=$(${ECHO} "$CFILE" | ${AWK} -F "$_VCSDIR" '{print $2}' | ${SED} 's@//@/@' | ${SED} 's@/@@')
 		cvs -d "$_CVSROOT" co -r1.1 "$_PATHSPLIT"
 		;;
+	"git"|"GIT")
+		cd "$_VCSDIR"
+		git checkout $(git rev-list HEAD "$CFILE" | ${TAIL} -n 1) -- "$CFILE"
 	*)
 		${ECHO} "$_CVS: unsupported versioning system"
 		exitcode=2
