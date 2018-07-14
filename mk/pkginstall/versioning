@@ -146,7 +146,7 @@ PREPARE)
 			fi	
 				svn info "$_VCSDIR/defaults" > /dev/null
 				exitcode=$?
-				svn update > /dev/null
+				svn update "$_VCSDIR/defaults" "$_VCSDIR/user" "$_VCSDIR/automerged" > /dev/null
 			;;
 		"git"|"GIT")
 			cd "$_VCSDIR"
@@ -207,8 +207,13 @@ REGISTER)
 		git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" add -f "$CFILE"
 		;;
 	"svn"|"SVN")
-		cd "$_VCSDIR"
-		svn add "$CFILE"
+		_PATHSPLIT=$(${ECHO} "$CFILE" | ${AWK} -F "//" '{print $2}')
+		cd $(${ECHO} "$CFILE" | ${AWK} -F "//" '{print $1}')
+		IFS="/"
+		for curdir in $_PATHSPLIT
+		do
+			svn add --depth=empty "$curdir"; cd "$curdir" 2>/dev/null
+		done
 		;;
 	*)
 		${ECHO} "$_VCS: unsupported versioning system"
@@ -248,8 +253,16 @@ COMMIT)
 		;;
 	"svn"|"SVN")
 		cd "$_VCSDIR"
-		svn commit -m "pkgsrc: $2"
-		if ${TEST} $? -eq 0; then
+		_svnexitstatus=0
+		for dir in "defaults" "user" "automerged"
+			do
+				cd "$_VCSDIR/$dir"
+				svn commit -m "pkgsrc: $2" 2>/dev/null
+				if ${TEST} ! $? -eq 0; then
+					_svnexitstatus=1
+				fi
+			done
+		if ${TEST} $_svnexitstatus -eq 0; then
 			${ECHO} "conf commit: pkgsrc: $2"
 		else
 			${ECHO} "failed to commit conf: $2"
@@ -277,11 +290,11 @@ CHECKOUT)
 		;;
 	"svn"|"SVN")
 		cd "$_VCSDIR"
-		_PATHSPLIT=$(${ECHO} "$CFILE" | ${AWK} -F "//" '{print $2}')
+		_PATHSPLIT=$(${ECHO} "$CFILE" | ${AWK} -F "$_VCSDIR" '{print $2}')
 		if ${TEST} "$_REMOTE" = "no"; then
-			svn checkout file://"$_VCSDIR/localsvn/$_PATHSPLIT" "$CFILE"
+			svn export --force file://"$_VCSDIR/localsvn/$_PATHSPLIT" "$CFILE"
 		else
-			svn checkout "$_REMOTE/$_PATHSPLIT" "$CFILE"
+			svn export --force "$_REMOTE/$_PATHSPLIT" "$CFILE"
 		fi
 		;;
 	*)
@@ -308,11 +321,11 @@ CHECKOUT-FIRST)
 		;;
 	"svn"|"SVN")
 		cd "$_VCSDIR"
-		_PATHSPLIT=$(${ECHO} "$CFILE" | ${AWK} -F "//" '{print $2}')
+		_PATHSPLIT=$(${ECHO} "$CFILE" | ${AWK} -F "$_VCSDIR" '{print $2}')
 		if ${TEST} "$_REMOTE" = "no"; then
-			svn checkout --revision $(svn log --xml -r 1:HEAD --limit 1 file://"$_VCSDIR/localsvn/$_PATHSPLIT" | ${AWK} -F '"' '/revision=/ {print $2}') file://"$_VCSDIR/localsvn/$_PATHSPLIT" "$CFILE"
+			svn export --force --revision $(svn log --xml -r 1:HEAD --limit 1 file://"$_VCSDIR/localsvn/$_PATHSPLIT" | ${AWK} -F '"' '/revision=/ {print $2}') file://"$_VCSDIR/localsvn/$_PATHSPLIT" "$CFILE"
 		else
-			svn checkout --revision $(svn log --xml -r 1:HEAD --limit 1 "$_REMOTE/$_PATHSPLIT" | ${AWK} -F '"' '/revision=/ {print $2}') "$_REMOTE/$_PATHSPLIT" "$CFILE"
+			svn export --force --revision $(svn log --xml -r 1:HEAD --limit 1 "$_REMOTE/$_PATHSPLIT" | ${AWK} -F '"' '/revision=/ {print $2}') "$_REMOTE/$_PATHSPLIT" "$CFILE"
 		fi
 		;;
 	*)
