@@ -139,9 +139,15 @@ PREPARE)
 				if ${TEST} ! "$_REMOTE" = "no"; then
 					if ${TEST} $(git remote | ${GREP} -c "origin") -gt 0; then
 						git remote remove origin
+						git remote add origin "$_REMOTE"
+						#populate the remote repo if empty
+						#prefer losing remote status over local status
+						git push origin master
+						exitcode=$?
+				 	else	
+						git remote add origin "$_REMOTE"
+						exitcode=$?
 					fi
-					git remote add origin "$_REMOTE"
-					exitcode=$?
 				fi
 				 
 			fi
