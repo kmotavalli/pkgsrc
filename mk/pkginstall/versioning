@@ -396,7 +396,6 @@ MERGE)
 	exitcode=$?
 	;;
 PULL)
-	set -x
 	#change in spec: branch name contains package name
 	#category_baseName_pkgVersion_rangeStart_rangeEnd_role_optionalHostname
 	#remember to set the env variables $ROLE and $HOSTNAME
@@ -451,7 +450,7 @@ PULL)
 					fi
 					#compare versions
 					_rangeStartLTshortVersion=true
-					_rangeEndGTshortVersion=true
+					_rangeEndGTshortVersion=false
 					_groupCounter=1
 					for intGroup in $(${ECHO} "$shortVersion" | ${SED} 's/\./ /g')
 						do
@@ -459,9 +458,12 @@ PULL)
 							_rangeEndGroup=$(${ECHO} "$_rangeEnd" | ${AWK} -F "." -v sep="$_groupCounter" '{print $sep}')
 							if ${TEST} -n "$_rangeStartGroup" && ${TEST} $_rangeStartGroup -gt $intGroup; then
 								_rangeStartLTshortVersion=false
+								break
 							fi
-							if ${TEST} -n "$_rangeEndGroup" && ${TEST} $_rangeEndGroup -lt $intGroup; then
-								_rangeEndGTshortVersion=false
+							if ${TEST} -n "$_rangeEndGroup" && ${TEST} ! "$_rangeEndGTshortVersion" = "true" && ${TEST} $_rangeEndGroup -gt $intGroup -o $_rangeEndGroup -eq $intGroup; then
+								_rangeEndGTshortVersion=true
+							else
+								break
 							fi
 							_groupCounter=$((_groupCounter + 1))
 						done
