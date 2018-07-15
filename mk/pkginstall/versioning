@@ -448,8 +448,23 @@ PULL)
 						${ECHO} "$branch: branch naming incompatible with package version naming!"
 						continue
 					fi
-					#lexicographically compare versions
-					if ${TEST} "$_rangeStart" "<" "$shortVersion" -o "$_rangeStart" "=" "$shortVersion" && ${TEST} "$_rangeEnd" ">" "$shortVersion" -o "$_rangeEnd" "=" "$shortVersion"; then
+					#compare versions
+					_rangeStartLTshortVersion=true
+					_rangeEndGTshortVersion=true
+					_groupCounter=1
+					for intGroup in $(${ECHO} "$shortVersion" | ${AWK} -F "." '{print $0}')
+						do
+							_rangeStartGroup=$(${ECHO} "$_rangeStart" | ${AWK} -F "." -v sep="$_groupCounter" '{print $sep}')
+							_rangeEndGroup=$(${ECHO} "$_rangeEnd" | ${AWK} -F "." -v sep="$_groupCounter" '{print $sep}')
+							if ${TEST} -n "$_rangeStartGroup" && ${TEST} $_rangeStartGroup -gt $intGroup; then
+								_rangeStartLTshortVersion=false
+							fi
+							if ${TEST} -n "$_rangeEndGroup" && ${TEST} $_rangeEndGroup -lt $intGroup; then
+								_rangeEndGTshortVersion=false
+							fi
+							_groupCounter=$((_groupCounter + 1))
+						done
+					if ${TEST} "$_rangeStartLTshortVersion" = "true" -a "$_rangeEndGTshortVersion" = "true"; then
 						if ${TEST} "$_branchRole" = "any" -o "$_branchRole" = "ANY" -o "$_branchRole" = "$_ROLE" -o "$_ROLE" = "any"; then 
 							compatibleBranches="$compatibleBranches $branch"
 						fi
