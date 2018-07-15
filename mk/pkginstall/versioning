@@ -580,6 +580,7 @@ PULL)
 		fi
 	fi
 	if ${TEST} $branchFound = "yes" -a $exitcode -eq 0; then
+		branchName=$(${ECHO} $branchName | ${SED} 's/ //g')
 		${ECHO} "about to use remote branch $branchName"
 		case "$_VCS" in
 			"git"|"GIT")
