@@ -52,6 +52,7 @@ CAT="@CAT@"
 CHMOD="@CHMOD@"
 CHOWN="@CHOWN@"
 ECHO="@ECHO@"
+FIND="@FIND@"
 GREP="@GREP@"
 LS="@LS@"
 MKDIR="@MKDIR@"
@@ -68,8 +69,10 @@ TRUE="@TRUE@"
 RCS="@RCS@"
 CI="@CI@"
 CO="@CO@"
+CP="@CP@"
 CUT="@CUT@"
 MERGE="@MERGE@"
+WC="@WC@"
 
 SELF=$0
 ACTION=$1
@@ -91,6 +94,8 @@ if ${TEST} "$_VCS" = "cvs" -o "$_VCS" = "CVS"; then
 		_CVSROOT="$_VCSDIR/CVSROOT"
 	fi
 fi
+#ROLE: the system role, used in configuration deploy mode. Defaults to any if unset
+_ROLE="${ROLE:-any}"
 
 case $ACTION in
 PREPARE)
@@ -393,9 +398,10 @@ MERGE)
 PULL)
 	#change in spec: branch name contains package name
 	#category_baseName_pkgVersion_rangeStart_rangeEnd_role_optionalHostname
-	set -x
+	#remember to set the env variables $ROLE and $HOSTNAME
 	exitcode=0
 	branchFound=no
+	compatibleBranches=""
 	branchName=""
 	#can a package have multiple categories defined?
 	category=$2
@@ -414,21 +420,175 @@ PULL)
 	cd "$_TEMPDIR"
 	case "$_VCS" in
 		"git"|"GIT")
-			git ls-remote --exit-code --refs "$_REMOTE" "$category"_"$name""*"
-			echo $?
+			_output=$(git ls-remote --refs "$_REMOTE" "$category"_"$name""*")
+			exitcode=$?
+			_output=$(${ECHO} "$_output" | ${AWK} -F "refs/heads/" '{print $2}')
 			;;
 		"rcs"|"RCS"|*)
 			${ECHO} "$_VCS: unsupported or unset versioning system for configuration pulling"
 			exitcode=2
 			;;
 	esac
-	if ${TEST} branchFound = "yes" -a $exitcode -eq 0; then
+	if ${TEST} $exitcode -eq 0 -a -n "$_output"; then 
+		for branch in $_output
+			do
+				_rangeStart=$(${ECHO} "$branch" | ${AWK} -F "_" '{print $4}')
+				_rangeEnd=$(${ECHO} "$branch" | ${AWK} -F "_" '{print $5}')
+				_branchRole=$(${ECHO} "$branch" | ${AWK} -F "_" '{print $6}')
+				if ${TEST} $(${ECHO} "$branch" | ${GREP} -c '\.') -gt 0; then
+					if ${TEST} $(${ECHO} "$shortVersion" | ${GREP} -c '\.') -eq 0; then
+						${ECHO} "$branch: branch naming incompatible with package version naming!"
+						continue
+					fi
+					#lexicographically compare versions
+					if ${TEST} "$_rangeStart" "<" "$shortVersion" -o "$_rangeStart" "=" "$shortVersion" && ${TEST} "$_rangeEnd" ">" "$shortVersion" -o "$_rangeEnd" "=" "$shortVersion"; then
+						if ${TEST} "$_branchRole" = "any" -o "$_branchRole" = "ANY" -o "$_branchRole" = "$_ROLE" -o "$_ROLE" = "any"; then 
+							compatibleBranches="$compatibleBranches $branch"
+						fi
+					fi
+				else
+					if ${TEST} $(${ECHO} "$shortVersion" | ${GREP} -c '\.') -gt 0; then
+						${ECHO} "$branch: branch naming incompatible with package version naming!"
+						continue
+					fi
+					#numerically compare versions
+					if ${TEST} "$_rangeStart" -lt "$shortVersion" -o "$_rangeStart" -eq "$shortVersion" && ${TEST} "$_rangeEnd" -gt "$shortVersion" -o "$_rangeEnd" -eq "$shortVersion"; then
+						if ${TEST} "$_branchRole" = "any" -o "$_branchRole" = "ANY" -o "$_branchRole" = "$_ROLE" -o "$_ROLE" = "any"; then
+							compatibleBranches="$compatibleBranches $branch"
+						fi
+					fi
+				fi
+			done
+		if ${TEST} -z "$compatibleBranches"; then
+			${ECHO} "error deploying conf: no compatible branches found for $category/$name-$shortVersion. using package defaults"
+			${RM} -fr "$_TEMPDIR"
+			exit 6
+		fi
+		#check for hostnames, best effort
+		if ${TEST} -n "$HOSTNAME" -a ! "$HOSTNAME" = "localhost"; then
+			bestHostnameMatchChars=1
+			bestHostnameMatch=""
+			compatibleHostnames=""
+			_charCounter=1
+			for branch in $compatibleBranches
+				do
+					if ${TEST} $(${ECHO} "$branch" | ${GREP} -o "_" | ${WC} -l) -eq 6; then
+						#optional hostname exists in branch name
+						_branchHostname=$(${ECHO} "$branch" | ${AWK} -F "_" '{print $7}')
+						_charCounter=1
+						for character in $(${ECHO} "$_branchHostname" | ${GREP} -o ".") 
+							do
+								if ${TEST} ! "$character" = $(${ECHO} "$HOSTNAME" | ${CUT} -c $_charCounter); then
+									break
+								else
+									_charCounter=$((_charCounter+1))
+								fi
+							done
+					fi
+					if ${TEST} $_charCounter -gt $bestHostnameMatchChars; then
+						bestHostnameMatchChars=$_charCounter
+						bestHostnameMatch=$_branchHostname
+					fi
+				done
+			compatibleBranchesWithHostnames=""
+			if ${TEST} -n "$bestHostnameMatch"; then
+				for branch in $compatibleBranches
+					do
+						if ${TEST} $(${ECHO} "$branch" | ${GREP} -o "_" | ${WC} -l) -eq 6 && ${TEST} $(${ECHO} "$branch" | ${AWK} -F "_" '{print $7}') = "$bestHostnameMatch"; then
+							compatibleBranchesWithHostnames="$compatibleBranchesWithHostnames $branch"
+						fi
+					done
+				compatibleBranches=$compatibleBranchesWithHostnames
+				if ${TEST} $(${ECHO} "$compatibleBranches" | ${GREP} -o "$bestHostnameMatch" | ${WC} -l) -eq 1; then
+					branchFound=yes
+					branchName=$compatibleBranches
+				fi
+					
+			fi
+		fi
+		if ${TEST} ! "$branchFound" = "yes"; then
+			#then check for an exact match! first with exactVersion, else with shortVersion
+			for branch in $compatibleBranches
+				do
+					
+					if ${TEST} "$(${ECHO} "$branch" | ${AWK} -F "_" '{print $3}')" = "$exactVersion"; then
+						branchFound=yes
+						branchName=$branch
+						break	
+					elif ${TEST} "$(${ECHO} "$branch" | ${AWK} -F "_" '{print $3}')" = "$shortVersion"; then
+						branchFound=yes
+						branchName=$branch
+						break
+					fi
+				done
+			#if the branch is still not found, select the best compatible branch in range.
+			branch=$(${ECHO} "$compatibleBranches" | ${AWK} -F " " '{print $1}')
+			branchVersion=$(${ECHO} "$branch" | ${AWK} -F "_" '{print $3}'| ${TR} -dc '[0-9].') 
+			if ${TEST} $(${ECHO} "$shortVersion" | ${GREP} -c '\.') -eq 0; then
+				#compare integers
+				versionDistance=$(($shortVersion - $branchVersion))
+				versionDistance=${versionDistance#-}
+				minimumDistance=$versionDistance
+				bestBranch=$branch
+				for branch in $compatibleBranches
+					do
+						branchVersion=$(${ECHO} "$branch" | ${AWK} -F "_" '{print $3}' | ${TR} -dc '[0-9].')
+						versionDistance=$(($shortVersion - $branchVersion))
+						versionDistance=${versionDistance#-}
+						if ${TEST} $versionDistance -lt $minimumDistance; then
+							minimumDistance=$versionDistance
+							bestBranch=$branch
+						fi
+							
+					done
+				branchFound=yes
+				branchName=$bestBranch
+			else
+				#dots in version numbers!
+				bestBranch=$branch
+				_branches=$compatibleBranches
+				groupCounter=1
+				for intGroup in $(${ECHO} "$shortVersion" | ${AWK} -F "." '{print $0}')
+					do
+						bestBranchGroup="$_branches"
+						minimumDistance=$(( $(${ECHO} "$shortVersion" | ${AWK} -F "." -v sep="$groupCounter" '{print $sep}') - $($
+{ECHO} "$_branches" | ${AWK} -F " " '{print $1}' | ${AWK} -F "_" '{print $3}' | ${TR} -dc '[0-9].' | ${AWK} -F "." -v sep="$groupCounter" '{print $sep}') ))
+						miniumDistance=${minimumDistance#-}
+						branchCounter=1
+						for branch in $_branches
+							do
+								groupDistance=$(( $(${ECHO} "$shortVersion" | ${AWK} -F "." -v sep="$groupCounter" '{print $sep}') - $(${ECHO} "$_branches" | ${AWK} -F " " -v sep="$branchCounter" '{print $sep}' | ${AWK} -F "_" '{print $3}' | ${TR} -dc '[0-9].' | ${AWK} -F "." -v sep="$groupCounter" '{print $sep}') ))
+								groupDistance=${groupDistance#-}
+								if ${TEST} $groupDistance -lt $minimumDistance; then
+									minimumDistance=$groupDistance
+									bestBranchGroup=$branch	
+								elif ${TEST} $groupDistance -eq $minimumDistance; then
+									bestBranchGroup="$bestBranchGroup $branch"
+								fi
+								branchCounter=$((branchCounter + 1))
+							done
+						_branches=$bestBranchGroup
+						groupCounter=$((groupCounter + 1))
+					done
+					if ${TEST} -n "$_branches"; then
+					#I should always have one and only one branch in _branches at the end...
+						bestBranch=$(${ECHO} "$_branches" | ${AWK} -F " " '{print $1}')
+						branchFound=yes
+					fi
+				branchName=$bestBranch	
+			fi		
+		fi
+	fi
+	if ${TEST} $branchFound = "yes" -a $exitcode -eq 0; then
 		case "$_VCS" in
 			"git"|"GIT")
-				git --git-dir="$_TEMPDIR/.git" --work-tree="$_TEMPDIR/work" clone "$_REMOTE" "$_TEMPDIR/.git" 
-				git --git-dir="$_TEMPDIR/.git" --work-tree="$_TEMPDIR/work" branch -r
+				git --git-dir="$_TEMPDIR/.git" --work-tree="$_TEMPDIR/work" clone -b "$branchName" "$_REMOTE"
+				exitcode=$? 
 				;;
 		esac
+		if ${TEST} $exitcode -eq 0; then
+			${FIND} "$_TEMPDIR/work" -type f -print | while read line; do relativePath=$(${ECHO} "$line" | ${AWK} -F "$_TEMPDIR/work" '{print $2}'); ${MKDIR} -p "$relativePath" 2>/dev/null; ${RMDIR} "$relativePath" 2>/dev/null; ${CP} -v -f "$line" "$relativePath"; cpexitcode=$?; ${CHMOD} 0600 "$relativePath"; if ${TEST} ! $cpexitcode -eq 0; then exitcode=5; fi; done  
+		fi
 	fi
 	${RM} -fr "$_TEMPDIR"
 	;;
