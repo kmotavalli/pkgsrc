@@ -580,6 +580,7 @@ PULL)
 		fi
 	fi
 	if ${TEST} $branchFound = "yes" -a $exitcode -eq 0; then
+		${ECHO} "about to use remote branch $branchName"
 		case "$_VCS" in
 			"git"|"GIT")
 				git --git-dir="$_TEMPDIR/.git" --work-tree="$_TEMPDIR/work" clone -b "$branchName" "$_REMOTE"
