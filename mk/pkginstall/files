@@ -103,6 +103,7 @@ PKG_METADATA_DIR="${2-${CURDIR}}"
 : ${PKG_DBDIR=${PKG_METADATA_DIR%/*}}
 : ${PKG_REFCOUNT_DBDIR=${PKG_DBDIR}.refcount}
 PKG_REFCOUNT_FILES_DBDIR="${PKG_REFCOUNT_DBDIR}/files"
+CONFPULLFAIL=$3
 _VCSDIR="${VCSDIR:-@VARBASE@/confrepo}"
 exitcode=0
 
@@ -148,7 +149,7 @@ ADD)
 		else
 			case "$f_flags:$_PKG_CONFIG:$_PKG_RCD_SCRIPTS" in
 			*f*:*:*|[!r]:yes:*|[!r][!r]:yes:*|[!r][!r][!r]:yes:*|*r*:yes:yes)
-				if ${TEST} "$_PKG_RCD_SCRIPTS" = "no" -a ! -n "$NOVCS"; then
+				if ${TEST} "$_PKG_RCD_SCRIPTS" = "no" -a ! -n "$NOVCS" -a ! "$VCSCONFPULL" = "yes"; then
 					if ${TEST} ! -d "$_VCSDIR"; then
 						${RM} -f "$_VCSDIR"
 						${MKDIR} -p "$_VCSDIR"
@@ -185,7 +186,7 @@ ADD)
 				fi
 				if ${TEST} -f "$file"; then
 					${ECHO} "${PKGNAME}: $file already exists"
-					if ${TEST} ! -n "$NOVCS" -a "$VCSAUTOMERGE" = "yes"; then
+					if ${TEST} ! -n "$NOVCS" -a "$_PKG_RCD_SCRIPTS" = "no" -a "$VCSAUTOMERGE" = "yes" -a ! "$VCSCONFPULL" = "yes"; then
 						${ECHO} "${PKGNAME}: attempting to merge $file with new defaults!"
 						if ${TEST} -f "$_VCSDIR/automergedfiles" && ${TEST} $(${GREP} -c "$file" "$_VCSDIR/automergedfiles") -gt 0; then
 							${ECHO} "saving the currently installed revision to $_VCSDIR/automerged/$file"
@@ -259,7 +260,7 @@ ADD)
 						fi	
 					fi
 										
-				elif ${TEST} -f "$f_eg" -o -c "$f_eg"; then
+				elif ${TEST} -f "$f_eg" -o -c "$f_eg" && ${TEST} "$CONFPULLFAIL" = "yes" -o ! "$VCSCONFPULL" = "yes" -o "$_PKG_RCD_SCRIPTS" = "yes"; then
 					${ECHO} "${PKGNAME}: copying $f_eg to $file"
 					${CP} $f_eg $file
 					case $f_user in
@@ -279,7 +280,7 @@ ADD)
 			esac
 		fi
 	done
-	if ${TEST} ! -n "$NOVCS"; then
+	if ${TEST} ! -n "$NOVCS" -a ! "$VCSCONFPULL" = "yes"; then
 		${TEST} ! -x ./+VERSIONING ||
 			./+VERSIONING COMMIT "add $PKGNAME"
 	fi 

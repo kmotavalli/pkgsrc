@@ -32,22 +32,21 @@ POST-INSTALL)
 	#
 	# Copy configuration/support files into place.
 	#
+	CONFPULLFAIL=no
 	if ${TEST} "$VCSCONFPULL" = "yes" && ${TEST} -n "$REMOTEVCS" && ${TEST} "$REMOTEVCS" != "no"; then
 		${TEST} ! -x ./+VERSIONING ||
 			./+VERSIONING PULL ${CATEGORIES} ${PKGBASE} ${PKGVERSION} ${PKGNAME}
 			#if it fails, run the normal files routine
 		if ${TEST} ! $? -eq 0; then 
-			${TEST} ! -x ./+FILES ||
-				./+FILES ADD ${PKG_METADATA_DIR}
-			${TEST} ! -x ./+FILES ||
-				./+FILES PERMS ${PKG_METADATA_DIR}
+			#CONFPULLFAIL=yes makes files install example config from the package
+			#rc.d scripts are always installed
+			CONFPULLFAIL=yes
 		fi
-	else
-        	${TEST} ! -x ./+FILES ||
-			./+FILES ADD ${PKG_METADATA_DIR}
-        	${TEST} ! -x ./+FILES ||
-			./+FILES PERMS ${PKG_METADATA_DIR}
 	fi
+	${TEST} ! -x ./+FILES ||
+		./+FILES ADD ${PKG_METADATA_DIR} "$CONFPULLFAIL"
+	${TEST} ! -x ./+FILES ||
+		./+FILES PERMS ${PKG_METADATA_DIR} "$CONFPULLFAIL"
 	#
 	# Set special permissions on any files/directories that need them.
 	#
