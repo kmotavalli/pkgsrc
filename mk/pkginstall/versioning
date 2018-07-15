@@ -407,7 +407,7 @@ PULL)
 	category=$2
 	name=$3
 	exactVersion=$4
-	shortVersion=$(${ECHO} $5 | ${AWK} -F "$name" '{print $2}' | ${TR} -dc '0-9')	
+	shortVersion=$(${ECHO} $5 | ${AWK} -F "$name" '{print $2}' | ${TR} -dc '[0-9].')
 	branchesOutput=""
 	_TEMPDIR="/tmp/pkgsrcdeploy-$RANDOM"
 	while ${TEST} -d $_TEMPDIR; do
@@ -559,8 +559,7 @@ PULL)
 				for intGroup in $(${ECHO} "$shortVersion" | ${AWK} -F "." '{print $0}')
 					do
 						bestBranchGroup="$_branches"
-						minimumDistance=$(( $(${ECHO} "$shortVersion" | ${AWK} -F "." -v sep="$groupCounter" '{print $sep}') - $($
-{ECHO} "$_branches" | ${AWK} -F " " '{print $1}' | ${AWK} -F "_" '{print $3}' | ${TR} -dc '[0-9].' | ${AWK} -F "." -v sep="$groupCounter" '{print $sep}') ))
+						minimumDistance=$(( $(${ECHO} "$shortVersion" | ${AWK} -F "." -v sep="$groupCounter" '{print $sep}') - $(${ECHO} "$_branches" | ${AWK} -F " " '{print $1}' | ${AWK} -F "_" '{print $3}' | ${TR} -dc '[0-9].' | ${AWK} -F "." -v sep="$groupCounter" '{print $sep}') ))
 						miniumDistance=${minimumDistance#-}
 						branchCounter=1
 						for branch in $_branches
