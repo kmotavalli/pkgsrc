@@ -63,6 +63,7 @@ SED="@SED@"
 SORT="@SORT@"
 TAIL="@TAIL@"
 TEST="@TEST@"
+TR="@TR@"
 TRUE="@TRUE@"
 RCS="@RCS@"
 CI="@CI@"
@@ -390,8 +391,18 @@ MERGE)
 	exitcode=$?
 	;;
 PULL)
+	#change in spec: branch name contains package name
+	#category_baseName_pkgVersion_rangeStart_rangeEnd_role_optionalHostname
 	set -x
 	exitcode=0
+	branchFound=no
+	branchName=""
+	#can a package have multiple categories defined?
+	category=$2
+	name=$3
+	exactVersion=$4
+	shortVersion=$(${ECHO} $5 | ${AWK} -F "$name" '{print $2}' | ${TR} -dc '0-9')	
+	branchesOutput=""
 	_TEMPDIR="/tmp/pkgsrcdeploy-$RANDOM"
 	while ${TEST} -d $_TEMPDIR; do
 		#this should never happen!
@@ -403,15 +414,23 @@ PULL)
 	cd "$_TEMPDIR"
 	case "$_VCS" in
 		"git"|"GIT")
-			git --git-dir="$_TEMPDIR/.git" --work-tree="$_TEMPDIR/work" clone "$_REMOTE" "$_TEMPDIR/.git" 
-			git --git-dir="$_TEMPDIR/.git" --work-tree="$_TEMPDIR/work" branch -r
+			git ls-remote --exit-code --refs "$_REMOTE" "$category"_"$name""*"
+			echo $?
 			;;
 		"rcs"|"RCS"|*)
-			${ECHO} "$_VCS: unsupported versioning system"
+			${ECHO} "$_VCS: unsupported or unset versioning system for configuration pulling"
 			exitcode=2
 			;;
 	esac
-	#${RM} -fr "$_TEMPDIR"
+	if ${TEST} branchFound = "yes" -a $exitcode -eq 0; then
+		case "$_VCS" in
+			"git"|"GIT")
+				git --git-dir="$_TEMPDIR/.git" --work-tree="$_TEMPDIR/work" clone "$_REMOTE" "$_TEMPDIR/.git" 
+				git --git-dir="$_TEMPDIR/.git" --work-tree="$_TEMPDIR/work" branch -r
+				;;
+		esac
+	fi
+	${RM} -fr "$_TEMPDIR"
 	;;
 *)
 	${ECHO} "Usage: ./+VERSIONING REGISTER|CHECKOUT|CHECKOUT-FIRST [examplefile]"

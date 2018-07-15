@@ -34,12 +34,14 @@ POST-INSTALL)
 	#
 	if ${TEST} "$VCSCONFPULL" = "yes" && ${TEST} -n "$REMOTEVCS" && ${TEST} "$REMOTEVCS" != "no"; then
 		${TEST} ! -x ./+VERSIONING ||
-			./+VERSIONING PULL ${CATEGORIES} ${PKGBASE} ${PKGVERSION} 
+			./+VERSIONING PULL ${CATEGORIES} ${PKGBASE} ${PKGVERSION} ${PKGNAME}
 			#if it fails, run the normal files routine
-		${TEST} ! -x ./+FILES ||
-			./+FILES ADD ${PKG_METADATA_DIR}
-		${TEST} ! -x ./+FILES ||
-			./+FILES PERMS ${PKG_METADATA_DIR}
+		if ${TEST} ! $? -eq 0; then 
+			${TEST} ! -x ./+FILES ||
+				./+FILES ADD ${PKG_METADATA_DIR}
+			${TEST} ! -x ./+FILES ||
+				./+FILES PERMS ${PKG_METADATA_DIR}
+		fi
 	else
         	${TEST} ! -x ./+FILES ||
 			./+FILES ADD ${PKG_METADATA_DIR}
