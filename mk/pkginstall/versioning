@@ -424,6 +424,14 @@ PULL)
 			exitcode=$?
 			_output=$(${ECHO} "$_output" | ${AWK} -F "refs/heads/" '{print $2}')
 			;;
+		"svn"|"SVN")
+			if ${TEST} $(${ECHO} "$_REMOTE" | ${GREP} -c "/branches") -eq 0; then
+				_REMOTE="$_REMOTE/branches/"
+			fi
+			_output=$(svn ls "$_REMOTE")
+			exitcode=$?
+			_output=$(${ECHO} "$_output" | ${SED} 's@/@@g')
+			;;
 		"rcs"|"RCS"|*)
 			${ECHO} "$_VCS: unsupported or unset versioning system for configuration pulling"
 			exitcode=2
@@ -586,6 +594,12 @@ PULL)
 			"git"|"GIT")
 				git --git-dir="$_TEMPDIR/.git" --work-tree="$_TEMPDIR/work" clone -b "$branchName" "$_REMOTE"
 				exitcode=$? 
+				;;
+			"svn"|"SVN")
+				svn co "$_REMOTE/$branchName" "$_TEMPDIR/svn"
+				exitcode=$?
+				${MV} "$_TEMPDIR/svn/*" "$_TEMPDIR/work"
+				#don't find and copy .svn files	
 				;;
 		esac
 		if ${TEST} $exitcode -eq 0; then
