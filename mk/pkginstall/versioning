@@ -59,9 +59,11 @@ UNPACK,|UNPACK,+VERSIONING)
 # branches named according to the convention that provide configuration
 # for category/packageName are filtered from the VCS output
 # then, all branches whose ranges are compatible with the version of the
-# package being installed are selected. If system role is set through
-# the ROLE environment variable, and it's different from "any",
-# and if branches exists whose role is different from "any", then their
+# package being installed are selected. The upper bound of the range is
+# excluded if using sequence based identifiers.
+# If system role is set through the ROLE environment variable, 
+# and it's different from "any",
+# and branches exists whose role is different from "any", then their
 # role gets compared with the one defined on the system or in pkg_add config.
 # The last part of the branch name is optional and, if present, is compared
 # character by character with the system hostname, 
@@ -517,7 +519,7 @@ PULL)
 								_rangeStartLTshortVersion=false
 								break
 							fi
-							if ${TEST} -n "$_rangeEndGroup" && ${TEST} ! "$_rangeEndGTshortVersion" = "true" && ${TEST} $_rangeEndGroup -gt $intGroup -o $_rangeEndGroup -eq $intGroup; then
+							if ${TEST} -n "$_rangeEndGroup" && ${TEST} ! "$_rangeEndGTshortVersion" = "true" && ${TEST} $_rangeEndGroup -gt $intGroup; then
 								_rangeEndGTshortVersion=true
 							else
 								break
