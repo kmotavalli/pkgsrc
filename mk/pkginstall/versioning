@@ -44,6 +44,40 @@ UNPACK,|UNPACK,+VERSIONING)
 # PULL tries to deploy configuration from a remote repository. It needs
 # REMOTEVCS to be set, and gets called from +INSTALL if VCSCONFPULL=yes
 #
+# The remote configuration repository should contain branches named
+# according to the following convention:
+# category_pkgName_pkgVersion_compatRangeStart_compatRangeEnd_systemRole
+# an optional field may exist that explicitates part of the system hostname
+# category_pkgName_pkgVersion_compatRangeStart_compatRangeEnd_systemRole_hostname
+#
+# the branch should contain needed configuration files. Their path relative
+# to the repository is then prepended with a "/" and files force copied
+# to the system and chmod 0600 executed on them.
+# Permission handling and removal upon package uninstallation are not supported.
+#
+# The branch to be used, among the available ones, is chosen this way:
+# branches named according to the convention that provide configuration
+# for category/packageName are filtered from the VCS output
+# then, all branches whose ranges are compatible with the version of the
+# package being installed are selected. If system role is set through
+# the ROLE environment variable, and it's different from "any",
+# and if branches exists whose role is different from "any", then their
+# role gets compared with the one defined on the system or in pkg_add config.
+# The last part of the branch name is optional and, if present, is compared
+# character by character with the system hostname, 
+# finally selecting the branches that best match it.
+# As an example, a branch named mail_postfix_3.3.0_3.0.0_3.3.20_mailrelay_ams
+# will match with system hostname amsterdam09.
+# The checks now further refine the candidates: if a branch pkgVersion exactly
+# corresponds with the version of the package being installed,
+# that branch gets selected, otherwise the procedure uses the one
+# which is closest to the package version being installed.
+# non numerical values in package versions are accounted for
+# when checking for an exact match, and are otherwise ignored.
+# Only integer versions and dot-separated sequence based identifiers are
+# understood when checking for compatible software ranges and for the closest
+# branch, if no branch exactly matches with the package version being installed.
+# Dates are handled provided they follow the ISO 8601 scheme: YYYY-MM-DD, YYYYMMDD 
 #
 # Usage: ./+VERSIONING REGISTER|CHECKOUT|CHECKOUT-FIRST [examplefile]
 #	 ./+VERSIONING MERGE [examplefile] [firstrevision]
