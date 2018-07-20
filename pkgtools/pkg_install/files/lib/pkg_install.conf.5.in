@@ -193,6 +193,9 @@ Disable all configuration files version handling by setting NOVCS to "yes".
 .It Dv VCSDIR
 Path where the working directory for configuration files handling should be.
 It also double as a vcs repository, if REMOTEVCS is unset.
+.It Dv REMOTEVCS
+URI describing how to access a remote repository, according to the format required by the chosen VCS.
+Remote repositories are disabled if this variable is unset, or if it is set to "no"
 .It Dv VCSAUTOMERGE
 Set to "yes" in order to automatically merge and install configuration changes.
 .It Dv VCSCONFPULL
