@@ -474,6 +474,15 @@ PULL)
 			_output=$(${ECHO} "$_output" | ${SED} 's@/@@g' | ${GREP} "$category_$name_")
 			#it would be more accurate to iterate over single branch names, split them and check for category_name
 			;;
+		#Mercurial, CVS require to checkout the remote repository locally before listing branches...
+		"hg"|"HG"|"mercurial")
+			hg clone "$_REMOTE" "$_TEMPDIR/work"
+			exitcode=$?
+			if ${TEST} $exitcode -eq 0; then
+				_output=$(hg branches -R "$_TEMPDIR/work" | ${AWK} -v search="$category_$name_" '$0 ~search {print $1}')
+				exitcode=$?
+			fi	
+			;;
 		"rcs"|"RCS"|*)
 			${ECHO} "$_VCS: unsupported or unset versioning system for configuration pulling"
 			exitcode=2
@@ -678,6 +687,14 @@ PULL)
 					${RM} -fr "$_TEMPDIR/work/.svn"
 					exitcode=$?
 				fi
+				;;
+			"hg"|"HG"|"mercurial")
+					hg -R "$_TEMPDIR/work" update -C "$branchName"
+					exitcode=$?
+					if ${TEST} $exitcode -eq 0; then
+						${RM} -fr "$_TEMPDIR/work/.hg"
+						exitcode=$?
+					fi
 				;;
 		esac
 		if ${TEST} $exitcode -eq 0; then
