@@ -188,6 +188,26 @@ Currently supported are uncompressed files and files compressed by
 or
 .Xr gzip 1
 .Pq Pa .gz .
+.It Dv NOVCS
+Disable all configuration files version handling by setting NOVCS to "yes".
+.It Dv VCSDIR
+Path where the working directory for configuration files handling should be.
+It also double as a vcs repository, if REMOTEVCS is unset.
+.It Dv VCSAUTOMERGE
+Set to "yes" in order to automatically merge and install configuration changes.
+.It Dv VCSCONFPULL
+Set to "yes" to have pkgscr attempt to deploy configuration files from a remote repository.
+It works with git, svn and mercurial. The remote repository should have branches named
+"category_packageName_packageVersion_compatibilityRangeStart_compatibilityRangeEnd_systemRole"
+with an optional, additional field "_hostname" that gets best-matched with the system hostname.
+See pkgsrc/mk/pkginstall/versioning for a more detailed description.
+Configuration files in each branch are prepended "/" and copied to the system unconditionally.
+.It Dv ROLE
+The role of this system, used when deploying configuration from a remote repository via VCSCONFPULL
+.It Dv VCS
+The Version Control solution to be used. PKGSRC defaults to using rcs if this is unset.
+Other software, such as git, svn, cvs and hg, if desired, must be manually installed by the user in the system PATH.
+
 .It Dv VERBOSE_NETIO
 Log details of network IO to stderr.
 .It Dv VERIFIED_INSTALLATION
