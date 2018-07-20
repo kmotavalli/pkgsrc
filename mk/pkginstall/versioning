@@ -484,7 +484,10 @@ PULL)
 			fi	
 			;;
 		"rcs"|"RCS"|*)
-			${ECHO} "$_VCS: unsupported or unset versioning system for configuration pulling"
+			${ECHO} "configuration deploy: $_VCS is not supported"
+			if ${TEST} -z "$VCS"; then
+				${ECHO} "set VCS to use configuration deploy in pkgsrc! Supported solutions are git, svn and hg"
+			fi
 			exitcode=2
 			;;
 	esac
