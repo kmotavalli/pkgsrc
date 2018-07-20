@@ -456,7 +456,7 @@ PULL)
 		${RM} -fr "$_TEMPDIR"
 		_TEMPDIR="/tmp/pkgsrcdeploy-$RANDOM"
 	done
-	${MKDIR} -p "$_TEMPDIR/work"
+	${MKDIR} -p "$_TEMPDIR"
 	${CHMOD} 0700 "$_TEMPDIR"
 	cd "$_TEMPDIR"
 	case "$_VCS" in
