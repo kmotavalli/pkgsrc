@@ -570,9 +570,9 @@ PULL)
 			_charCounter=1
 			for branch in $compatibleBranches
 				do
-					if ${TEST} $(${ECHO} "$branch" | ${GREP} -o "_" | ${WC} -l) -eq 6; then
+					if ${TEST} $(${ECHO} "$branch" | ${GREP} -o "_" | ${WC} -l) -gt 5; then
 						#optional hostname exists in branch name
-						_branchHostname=$(${ECHO} "$branch" | ${AWK} -F "_" '{print $7}')
+						_branchHostname=$(${ECHO} "$branch" | ${AWK} -F "_" '{$1=$2=$3=$4=$5=$6=""; print $0}')
 						_charCounter=1
 						for character in $(${ECHO} "$_branchHostname" | ${GREP} -o ".") 
 							do
