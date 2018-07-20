@@ -456,7 +456,7 @@ PULL)
 		${RM} -fr "$_TEMPDIR"
 		_TEMPDIR="/tmp/pkgsrcdeploy-$RANDOM"
 	done
-	${MKDIR} -p "$_TEMPDIR"
+	${MKDIR} -p "$_TEMPDIR/work"
 	${CHMOD} 0700 "$_TEMPDIR"
 	cd "$_TEMPDIR"
 	case "$_VCS" in
@@ -545,7 +545,7 @@ PULL)
 				fi
 			done
 		if ${TEST} -z "$compatibleBranches"; then
-			${ECHO} "error deploying conf: no compatible branches found for $category/$name-$shortVersion. using package defaults"
+			${ECHO} "Error: no compatible branches found for $category/$name-$shortVersion! Using package defaults"
 			${RM} -fr "$_TEMPDIR"
 			exit 6
 		fi
@@ -672,10 +672,12 @@ PULL)
 				exitcode=$? 
 				;;
 			"svn"|"SVN")
-				svn co "$_REMOTE/$branchName" "$_TEMPDIR/svn"
+				svn co "$_REMOTE/$branchName" "$_TEMPDIR/work"
 				exitcode=$?
-				${MV} "$_TEMPDIR/svn/*" "$_TEMPDIR/work"
-				#don't find and copy .svn files	
+				if ${TEST} $exitcode -eq 0; then
+					${RM} -fr "$_TEMPDIR/work/.svn"
+					exitcode=$?
+				fi
 				;;
 		esac
 		if ${TEST} $exitcode -eq 0; then
@@ -683,6 +685,9 @@ PULL)
 		fi
 	fi
 	${RM} -fr "$_TEMPDIR"
+	if ${TEST} ! $exitcode -eq 0; then
+		${ECHO} "Error deploying configuration for $category/$name: using package defaults"
+	fi
 	;;
 *)
 	${ECHO} "Usage: ./+VERSIONING REGISTER|CHECKOUT|CHECKOUT-FIRST [examplefile]"
