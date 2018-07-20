@@ -9,6 +9,7 @@ UNPACK,|UNPACK,+VERSIONING)
 #!@SH@
 #
 # +VERSIONING - operate on version control systems
+# set NOVCS=yes in order to disable all configuration files versioning!
 #
 # This script calls VCS software, "rcs" by default, in order to store revisions
 # of configuration files. This is done by the "REGISTER" action, which takes 
