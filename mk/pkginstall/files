@@ -96,7 +96,6 @@ case "${PKG_RCD_SCRIPTS:-@PKG_RCD_SCRIPTS@}" in
 	_PKG_RCD_SCRIPTS=no
 	;;
 esac
-
 CURDIR=`${PWD_CMD}`
 PKG_METADATA_DIR="${2-${CURDIR}}"
 : ${PKGNAME=${PKG_METADATA_DIR##*/}}
@@ -149,7 +148,7 @@ ADD)
 		else
 			case "$f_flags:$_PKG_CONFIG:$_PKG_RCD_SCRIPTS" in
 			*f*:*:*|[!r]:yes:*|[!r][!r]:yes:*|[!r][!r][!r]:yes:*|*r*:yes:yes)
-				if ${TEST} "$_PKG_RCD_SCRIPTS" = "no" -a ! -n "$NOVCS" -a ! "$VCSCONFPULL" = "yes"; then
+				if ${TEST} $(${ECHO} "$f_flags" | ${GREP} -c "r") -eq 0 -a ! -n "$NOVCS" -a ! "$VCSCONFPULL" = "yes"; then
 					if ${TEST} ! -d "$_VCSDIR"; then
 						${RM} -f "$_VCSDIR"
 						${MKDIR} -p "$_VCSDIR"
@@ -288,7 +287,7 @@ ADD)
 							merge_userinstalled
 						fi
 					fi
-		elif ${TEST} -f "$f_eg" -o -c "$f_eg" && ${TEST} "$CONFPULLFAIL" = "yes" -o ! "$VCSCONFPULL" = "yes" -o "$_PKG_RCD_SCRIPTS" = "yes"; then
+		elif ${TEST} -f "$f_eg" -o -c "$f_eg" && ${TEST} "$CONFPULLFAIL" = "yes" -o ! "$VCSCONFPULL" = "yes" -o $(${ECHO} "$f_flags" | ${GREP} -c "r") -eq 1; then
 			${ECHO} "${PKGNAME}: copying $f_eg to $file"
 			${CP} $f_eg $file
 			case $f_user in
