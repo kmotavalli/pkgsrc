@@ -287,25 +287,25 @@ ADD)
 							merge_userinstalled
 						fi
 					fi
-		elif ${TEST} -f "$f_eg" -o -c "$f_eg" && ${TEST} "$CONFPULLFAIL" = "yes" -o ! "$VCSCONFPULL" = "yes" -o $(${ECHO} "$f_flags" | ${GREP} -c "r") -eq 1; then
-			${ECHO} "${PKGNAME}: copying $f_eg to $file"
-			${CP} $f_eg $file
-			case $f_user in
-			"")	;;
-			*)	${CHOWN} $f_user $file ;;
-			esac
-			case $f_group in
-			"")	;;
-			*)	${CHGRP} $f_group $file ;;
-			esac
-			case $f_mode in
-			"")	;;
-			*)	${CHMOD} $f_mode $file ;;
+				elif ${TEST} -f "$f_eg" -o -c "$f_eg" && ${TEST} "$CONFPULLFAIL" = "yes" -o ! "$VCSCONFPULL" = "yes" -o $(${ECHO} "$f_flags" | ${GREP} -c "r") -eq 1; then
+					${ECHO} "${PKGNAME}: copying $f_eg to $file"
+					${CP} $f_eg $file
+					case $f_user in
+					"")	;;
+					*)	${CHOWN} $f_user $file ;;
+					esac
+					case $f_group in
+					"")	;;
+					*)	${CHGRP} $f_group $file ;;
+					esac
+					case $f_mode in
+					"")	;;
+					*)	${CHMOD} $f_mode $file ;;
+					esac
+				fi
+				;;
 			esac
 		fi
-		;;
-	esac
-	fi
 	done
 	if ${TEST} ! -n "$NOVCS" -a ! "$VCSCONFPULL" = "yes"; then
 		${TEST} ! -x ./+VERSIONING ||
