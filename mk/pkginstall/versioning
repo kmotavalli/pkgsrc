@@ -212,7 +212,7 @@ PREPARE)
 				fi
 			else
 				if ${TEST} ! "$_REMOTE" = "no"; then
-					if ${TEST} $(git remote | ${GREP} -c "origin") -gt 0; then
+					if git remote | ${GREP} -Fq "origin"; then
 						git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" remote remove origin
 						git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" remote add origin "$_REMOTE"
 						#populate the remote repo if empty
@@ -467,7 +467,7 @@ PULL)
 			_output=$(${ECHO} "$_output" | ${AWK} -F "refs/heads/" '{print $2}')
 			;;
 		"svn"|"SVN")
-			if ${TEST} $(${ECHO} "$_REMOTE" | ${GREP} -c "/branches") -eq 0; then
+			if ! ${ECHO} "$_REMOTE" | ${GREP} -Fq "/branches"; then
 				_REMOTE="$_REMOTE/branches/"
 			fi
 			_output=$(svn ls "$_REMOTE")
@@ -515,8 +515,8 @@ PULL)
 				_rangeStart=$(${ECHO} "$branch" | ${AWK} -F "_" '{print $4}')
 				_rangeEnd=$(${ECHO} "$branch" | ${AWK} -F "_" '{print $5}')
 				_branchRole=$(${ECHO} "$branch" | ${AWK} -F "_" '{print $6}')
-				if ${TEST} $(${ECHO} "$branch" | ${GREP} -c '\.') -gt 0; then
-					if ${TEST} $(${ECHO} "$shortVersion" | ${GREP} -c '\.') -eq 0; then
+				if ${ECHO} "$branch" | ${GREP} -Fq '.'; then
+					if ! ${ECHO} "$shortVersion" | ${GREP} -Fq '.'; then
 						${ECHO} "$branch: branch naming incompatible with package version naming!"
 						continue
 					fi
@@ -545,7 +545,7 @@ PULL)
 						fi
 					fi
 				else
-					if ${TEST} $(${ECHO} "$shortVersion" | ${GREP} -c '\.') -gt 0; then
+					if ${ECHO} "$shortVersion" | ${GREP} -Fq '.'; then
 						${ECHO} "$branch: branch naming incompatible with package version naming!"
 						continue
 					fi
@@ -622,7 +622,7 @@ PULL)
 			#if the branch is still not found, select the best compatible branch in range.
 			branch=$(${ECHO} "$compatibleBranches" | ${AWK} -F " " '{print $1}')
 			branchVersion=$(${ECHO} "$branch" | ${AWK} -F "_" '{print $3}'| ${TR} -dc '[0-9].') 
-			if ${TEST} $(${ECHO} "$shortVersion" | ${GREP} -c '\.') -eq 0; then
+			if ! ${ECHO} "$shortVersion" | ${GREP} -Fq '.'; then
 				#compare integers
 				versionDistance=$(($shortVersion - $branchVersion))
 				versionDistance=${versionDistance#-}

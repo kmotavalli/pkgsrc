@@ -150,7 +150,7 @@ ADD)
 		else
 			case "$f_flags:$_PKG_CONFIG:$_PKG_RCD_SCRIPTS" in
 			*f*:*:*|[!r]:yes:*|[!r][!r]:yes:*|[!r][!r][!r]:yes:*|*r*:yes:yes)
-				if ${TEST} "$_VCS_ENABLED" = "yes" -o "$_VCS_ENABLED" = "YES" && ${TEST} $(${ECHO} "$f_flags" | ${GREP} -c "r") -eq 0 -a ! "$VCSCONFPULL" = "yes"; then
+				if ${TEST} "$_VCS_ENABLED" = "yes" -o "$_VCS_ENABLED" = "YES" && ! ${ECHO} "$f_flags" | grep -Fq "r" && ${TEST} ! "$VCSCONFPULL" = "yes"; then
 					if ${TEST} ! -d "$_VCSDIR"; then
 						${RM} -f "$_VCSDIR"
 						${MKDIR} -p "$_VCSDIR"
@@ -268,7 +268,7 @@ ADD)
 								;;
 							esac
 						}
-						if ${TEST} -f "$_VCSDIR/automergedfiles" && ${TEST} $(${GREP} -c "$file" "$_VCSDIR/automergedfiles") -gt 0; then
+						if ${TEST} -f "$_VCSDIR/automergedfiles" && ${GREP} -Fq "$file" "$_VCSDIR/automergedfiles"; then
 							#check if the automergedfile was manually edited after being automatically registered as merged
 							${TEST} ! -x ./+VERSIONING ||
 								./+VERSIONING CHECKOUT "$_VCSDIR/automerged/$file"
@@ -289,7 +289,7 @@ ADD)
 							merge_userinstalled
 						fi
 					fi
-				elif ${TEST} -f "$f_eg" -o -c "$f_eg" && ${TEST} "$CONFPULLFAIL" = "yes" -o ! "$VCSCONFPULL" = "yes" -o $(${ECHO} "$f_flags" | ${GREP} -c "r") -eq 1; then
+				elif ${TEST} -f "$f_eg" -o -c "$f_eg" && ${TEST} "$CONFPULLFAIL" = "yes" -o ! "$VCSCONFPULL" = "yes" || ${ECHO} "$f_flags" | ${GREP} -Fq "r"; then
 					${ECHO} "${PKGNAME}: copying $f_eg to $file"
 					${CP} $f_eg $file
 					case $f_user in
