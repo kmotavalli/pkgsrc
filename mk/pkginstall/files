@@ -102,7 +102,7 @@ PKG_METADATA_DIR="${2-${CURDIR}}"
 : ${PKG_DBDIR=${PKG_METADATA_DIR%/*}}
 : ${PKG_REFCOUNT_DBDIR=${PKG_DBDIR}.refcount}
 PKG_REFCOUNT_FILES_DBDIR="${PKG_REFCOUNT_DBDIR}/files"
-CONFPULLFAIL=$3
+_VCSCONFPULLFAIL=$3
 _VCSDIR="${VCSDIR:-@VARBASE@/confrepo}"
 _VCS_ENABLED="${VCS_CONF_FILES:-no}"
 
@@ -289,7 +289,7 @@ ADD)
 							merge_userinstalled
 						fi
 					fi
-				elif ${TEST} -f "$f_eg" -o -c "$f_eg" && ${TEST} "$CONFPULLFAIL" = "yes" -o ! "$VCSCONFPULL" = "yes" || ${ECHO} "$f_flags" | ${GREP} -Fq "r"; then
+				elif ${TEST} -f "$f_eg" -o -c "$f_eg" && ${TEST} "$_VCSCONFPULLFAIL" = "yes" -o ! "$VCSCONFPULL" = "yes" || ${ECHO} "$f_flags" | ${GREP} -Fq "r"; then
 					${ECHO} "${PKGNAME}: copying $f_eg to $file"
 					${CP} $f_eg $file
 					case $f_user in
