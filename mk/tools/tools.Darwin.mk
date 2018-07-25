@@ -123,7 +123,6 @@ TOOLS_PLATFORM.touch?=		/usr/bin/touch
 TOOLS_PLATFORM.tr?=		/usr/bin/tr
 TOOLS_PLATFORM.true?=		true			# shell builtin
 TOOLS_PLATFORM.tsort?=		/usr/bin/tsort
-TOOLS_PLATFORM.tty?=		/usr/bin/tty
 TOOLS_PLATFORM.uniq?=		/usr/bin/uniq
 TOOLS_PLATFORM.unzip?=		/usr/bin/unzip
 TOOLS_PLATFORM.wc?=		/usr/bin/wc

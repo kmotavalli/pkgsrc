@@ -49,7 +49,6 @@ TOOLS_PLATFORM.touch?=		/usr/bin/touch
 TOOLS_PLATFORM.tr?=		/usr/bin/tr
 TOOLS_PLATFORM.true?=		/usr/bin/true
 TOOLS_PLATFORM.tsort?=		/usr/ccs/bin/tsort
-TOOLS_PLATFORM.tty?=		/usr/bin/tty
 TOOLS_PLATFORM.uniq?=		/usr/bin/uniq
 TOOLS_PLATFORM.wc?=		/usr/bin/wc
 TOOLS_PLATFORM.xargs?=		/usr/bin/xargs

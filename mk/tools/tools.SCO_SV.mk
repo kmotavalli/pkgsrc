@@ -59,9 +59,6 @@ TOOLS_PLATFORM.touch?=		/bin/touch
 TOOLS_PLATFORM.tr?=		/usr/bin/tr
 TOOLS_PLATFORM.true?=		/bin/true
 TOOLS_PLATFORM.tsort?=		/bin/tsort
-.if exists(/bin/tty)
-TOOLS_PLATFORM.tty?=		/bin/tty
-.endif
 TOOLS_PLATFORM.wc?=		/bin/wc
 TOOLS_PLATFORM.xargs?=		/usr/bin/xargs
 TOOLS_PLATFORM.xgettext?=	/usr/gnu/bin/xgettext

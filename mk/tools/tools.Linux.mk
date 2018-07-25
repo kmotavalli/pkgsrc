@@ -272,7 +272,6 @@ TOOLS_PLATFORM.touch?=		/usr/bin/touch
 TOOLS_PLATFORM.tr?=		/usr/bin/tr
 TOOLS_PLATFORM.true?=		true			# shell builtin
 TOOLS_PLATFORM.tsort?=		/usr/bin/tsort
-TOOLS_PLATFORM.tty?=		/usr/bin/tty
 .if exists(/bin/uniq)
 TOOLS_PLATFORM.uniq?=		/bin/uniq
 .elif exists(/usr/bin/uniq)
