@@ -526,8 +526,8 @@ PULL)
 					_groupCounter=1
 					for intGroup in $(${ECHO} "$shortVersion" | ${SED} 's/\./ /g')
 						do
-							_rangeStartGroup=$(${ECHO} "$_rangeStart" | ${AWK} -F "." -v sep="$_groupCounter" '{print $sep}')
-							_rangeEndGroup=$(${ECHO} "$_rangeEnd" | ${AWK} -F "." -v sep="$_groupCounter" '{print $sep}')
+							_rangeStartGroup=$(${ECHO} "$_rangeStart" | ${AWK} -F "." -v fieldnum="$_groupCounter" '{print $fieldnum}')
+							_rangeEndGroup=$(${ECHO} "$_rangeEnd" | ${AWK} -F "." -v fieldnum="$_groupCounter" '{print $fieldnum}')
 							if ${TEST} -n "$_rangeStartGroup" && ${TEST} $_rangeStartGroup -gt $intGroup; then
 								_rangeStartLTshortVersion=false
 								break
@@ -649,12 +649,12 @@ PULL)
 				for intGroup in $(${ECHO} "$shortVersion" | ${AWK} -F "." '{print $0}')
 					do
 						bestBranchGroup="$_branches"
-						minimumDistance=$(( $(${ECHO} "$shortVersion" | ${AWK} -F "." -v sep="$groupCounter" '{print $sep}') - $(${ECHO} "$_branches" | ${AWK} -F " " '{print $1}' | ${AWK} -F "_" '{print $3}' | ${TR} -dc '[0-9].' | ${AWK} -F "." -v sep="$groupCounter" '{print $sep}') ))
+						minimumDistance=$(( $(${ECHO} "$shortVersion" | ${AWK} -F "." -v fieldnum="$groupCounter" '{print $fieldnum}') - $(${ECHO} "$_branches" | ${AWK} -F " " '{print $1}' | ${AWK} -F "_" '{print $3}' | ${TR} -dc '[0-9].' | ${AWK} -F "." -v fieldnum="$groupCounter" '{print $fieldnum}') ))
 						miniumDistance=${minimumDistance#-}
 						branchCounter=1
 						for branch in $_branches
 							do
-								groupDistance=$(( $(${ECHO} "$shortVersion" | ${AWK} -F "." -v sep="$groupCounter" '{print $sep}') - $(${ECHO} "$_branches" | ${AWK} -F " " -v sep="$branchCounter" '{print $sep}' | ${AWK} -F "_" '{print $3}' | ${TR} -dc '[0-9].' | ${AWK} -F "." -v sep="$groupCounter" '{print $sep}') ))
+								groupDistance=$(( $(${ECHO} "$shortVersion" | ${AWK} -F "." -v fieldnum="$groupCounter" '{print $fieldnum}') - $(${ECHO} "$_branches" | ${AWK} -F " " -v fieldnum="$branchCounter" '{print $fieldnum}' | ${AWK} -F "_" '{print $3}' | ${TR} -dc '[0-9].' | ${AWK} -F "." -v fieldnum="$groupCounter" '{print $fieldnum}') ))
 								groupDistance=${groupDistance#-}
 								if ${TEST} $groupDistance -lt $minimumDistance; then
 									minimumDistance=$groupDistance
