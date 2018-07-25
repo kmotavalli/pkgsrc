@@ -188,8 +188,9 @@ Currently supported are uncompressed files and files compressed by
 or
 .Xr gzip 1
 .Pq Pa .gz .
-.It Dv NOVCS
-Disable all configuration files version handling by setting NOVCS to "yes".
+.It Dv VCS_CONF_FILES 
+Enable configuration files version tracking by setting VCS_CONF_FILES to "yes".
+It defaults to being disabled ("no"). This option needs to be enabled even if attempting to deploy remote configuration to the system via VCSCONFPULL
 .It Dv VCSDIR
 Path where the working directory for configuration files handling should be.
 It also double as a vcs repository, if REMOTEVCS is unset.

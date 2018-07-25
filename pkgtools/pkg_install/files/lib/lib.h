@@ -450,7 +450,7 @@ extern const char tnf_vulnerability_base[];
 
 extern const char *acceptable_licenses;
 extern const char *default_acceptable_licenses;
-extern const char *vcs_novcs;
+extern const char *vcs_enabled;
 extern const char *vcs_vcs;
 extern const char *vcs_vcsdir;
 extern const char *vcs_vcsautomerge;

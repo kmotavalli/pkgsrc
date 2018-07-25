@@ -85,7 +85,7 @@ const char *pkg_vulnerabilities_url;
 const char *ignore_advisories = NULL;
 const char tnf_vulnerability_base[] = "http://ftp.NetBSD.org/pub/NetBSD/packages/vulns";
 const char *acceptable_licenses = NULL;
-const char *vcs_novcs;
+const char *vcs_enabled;
 const char *vcs_vcs;
 const char *vcs_vcsdir;
 const char *vcs_vcsautomerge;
@@ -123,7 +123,7 @@ static struct config_variable {
 	{ "PKGVULNURL", &pkg_vulnerabilities_url },
 	{ "VERBOSE_NETIO", &verbose_netio },
 	{ "VERIFIED_INSTALLATION", &verified_installation },
-	{ "NOVCS", &vcs_novcs },
+	{ "VCS_CONF_FILES", &vcs_enabled },
 	{ "VCS", &vcs_vcs },
 	{ "VCSDIR", &vcs_vcsdir },
 	{ "VCSAUTOMERGE", &vcs_vcsautomerge },
