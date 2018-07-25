@@ -276,7 +276,7 @@ ADD)
 								${DIFF} -q "$file" "$_VCSDIR/automerged/$file" 2>/dev/null
 								if ${TEST} ! $? -eq 0; then
 									#the installed file and the last automerged version differ! must have been manually edited after being committed
-									${GREP} -v "$file" "$_VCSDIR/automergedfiles" > "$_VCSDIR/automergedfiles.rm"
+									${GREP} -Fv "$file" "$_VCSDIR/automergedfiles" > "$_VCSDIR/automergedfiles.rm"
 									${MV} -f "$_VCSDIR/automergedfiles.rm" "$_VCSDIR/automergedfiles"
 									merge_userinstalled
 								else
