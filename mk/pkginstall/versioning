@@ -302,9 +302,9 @@ COMMIT)
 	"cvs"|"CVS")
 		cvs -Q -d "$_CVSROOT" commit -R -m "pkgsrc: $2" 
 		if ${TEST} $? -eq 0; then
-			${ECHO} "conf commit: pkgsrc: $2"
+			${ECHO} "Conf commit: pkgsrc: $2"
 		else
-			${ECHO} "failed to commit conf: $2"
+			${ECHO} "Failed to commit conf: $2"
 			exitcode=3
 		fi	
 		;;
@@ -312,9 +312,9 @@ COMMIT)
 		git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" commit -m "pkgsrc: $2"
 		gitcommitstatus=$?
 		if ${TEST} $gitcommitstatus -eq 0; then
-			${ECHO} "conf commit: pkgsrc: $2"
+			${ECHO} "Conf commit: pkgsrc: $2"
 		else
-			${ECHO} "failed to commit conf: $2"
+			${ECHO} "Failed to commit conf: $2"
 			exitcode=3
 		fi
 		if ${TEST} "$_REMOTE" != "no"; then
@@ -329,9 +329,9 @@ COMMIT)
 		hg --repository "$_VCSDIR" commit -m "pkgsrc: $2" --user pkgsrc > /dev/null
 		hgcommitstatus=$?
 		if ${TEST} $hgcommitstatus -eq 0; then
-			${ECHO} "conf commit: pkgsrc: $2"
+			${ECHO} "Conf commit: pkgsrc: $2"
 		else
-			${ECHO} "failed to commit conf: $2"
+			${ECHO} "Failed to commit conf: $2"
 			exitcode=3
 		fi
 		if ${TEST} "$_REMOTE" != "no"; then
@@ -352,9 +352,9 @@ COMMIT)
 				fi
 			done
 		if ${TEST} $_svnexitstatus -eq 0; then
-			${ECHO} "conf commit: pkgsrc: $2"
+			${ECHO} "Conf commit: pkgsrc: $2"
 		else
-			${ECHO} "failed to commit conf: $2"
+			${ECHO} "Failed to commit conf: $2"
 			exitcode=3
 		fi
 		;;
@@ -485,9 +485,9 @@ PULL)
 			fi	
 			;;
 		"rcs"|"RCS"|*)
-			${ECHO} "configuration deploy: $_VCS is not supported"
+			${ECHO} "Configuration deploy: $_VCS is not supported"
 			if ${TEST} -z "$VCS"; then
-				${ECHO} "set VCS to use configuration deploy in pkgsrc! Supported solutions are git, svn and hg"
+				${ECHO} "Set VCS to use configuration deploy in pkgsrc! Supported solutions are git, svn and hg"
 			fi
 			exitcode=2
 			;;
@@ -678,7 +678,7 @@ PULL)
 	fi
 	if ${TEST} $branchFound = "yes" -a $exitcode -eq 0; then
 		branchName=$(${ECHO} $branchName | ${SED} 's/ //g')
-		${ECHO} "about to use remote branch $branchName"
+		${ECHO} "About to use remote branch $branchName"
 		case "$_VCS" in
 			"git"|"GIT")
 				git --git-dir="$_TEMPDIR/.git" --work-tree="$_TEMPDIR/work" clone -b "$branchName" "$_REMOTE"

@@ -170,8 +170,8 @@ ADD)
 					${TEST} ! -x ./+VERSIONING ||
 						./+VERSIONING PREPARE
 					if ${TEST} ! $? -eq 0; then
-						${ECHO} "failed to initialize the repository that should store configuration revisions at $_VCSDIR!"
-						${ECHO} "temporarily disabling configuration files version tracking"
+						${ECHO} "Failed to initialize the repository that should store configuration revisions at $_VCSDIR!"
+						${ECHO} "Temporarily disabling configuration files version tracking"
 						_VCS_ENABLED=no
 					fi
 					if ${TEST} -w "$_VCSDIR/defaults"; then
@@ -190,7 +190,7 @@ ADD)
 					if ${TEST} "$_VCS_ENABLED" = "yes" -o "$_VCS_ENABLED" = "YES" && ! ${ECHO} "$f_flags" | ${GREP} -Fq "r" && ${TEST}"$VCSAUTOMERGE" = "yes" -a ! "$VCSCONFPULL" = "yes"; then
 						${ECHO} "${PKGNAME}: attempting to merge $file with new defaults!"
 						merge_userinstalled() {
-							${ECHO} "saving the currently user-installed revision to $_VCSDIR/user/$file"
+							${ECHO} "Saving the currently user-installed revision to $_VCSDIR/user/$file"
 							${MKDIR} -p "$_VCSDIR/user/$file" 2>/dev/null
 							${RMDIR} "$_VCSDIR/user/$file" 2>/dev/null
 							${CP} -fp "$file" "$_VCSDIR/user/$file"
@@ -206,7 +206,7 @@ ADD)
 							mergestatus=$?
 							case $mergestatus in
 							0)
-								${ECHO} "merged with no conflicts. installing it to $file!"
+								${ECHO} "Merged with no conflicts. installing it to $file!"
 								${DIFF} -u "$file" "$_VCSDIR/defaults/$file.automerge"
 								${CP} -fp "$_VCSDIR/defaults/$file.automerge" "$file"
 								if ${TEST} $? -eq 0; then
@@ -219,20 +219,20 @@ ADD)
 								fi
 								${TEST} ! -x ./+VERSIONING ||
 									./+VERSIONING CHECKOUT "$_VCSDIR/defaults/$file"
-								${ECHO} "revert from the last revision of $_VCSDIR/user/$file if needed"
+								${ECHO} "Revert from the last revision of $_VCSDIR/user/$file if needed"
 								;;
 							1)
-								${ECHO} "some conflicts merging. manually review them in"
+								${ECHO} "Some conflicts merging. manually review them in"
 								${ECHO} "$_VCSDIR/defaults/$file.automerge"
 								${ECHO} "then copy the result to $file"
 								;;
 							*)
-								${ECHO} "merge exited with errors. not changing anything"
+								${ECHO} "Merge exited with errors. not changing anything"
 								;;
 							esac
 						}
 						merge_automerged () {
-							${ECHO} "saving the currently installed revision to $_VCSDIR/automerged/$file"
+							${ECHO} "Saving the currently installed revision to $_VCSDIR/automerged/$file"
 							${MKDIR} -p "$_VCSDIR/automerged/$file" 2>/dev/null
 							${RMDIR} "$_VCSDIR/automerged/$file" 2>/dev/null
 							${CP} -fp "$file" "$_VCSDIR/automerged/$file"
@@ -248,7 +248,7 @@ ADD)
 							mergestatus=$?
 							case $mergestatus in
 							0)
-								${ECHO} "merged with no conflict. installing it to $file!"
+								${ECHO} "Merged with no conflict. installing it to $file!"
 								${DIFF} -u "$file" "$_VCSDIR/defaults/$file.automerge"
 								${CP} -fp "$_VCSDIR/defaults/$file.automerge" "$file"
 								${TEST} -x ./+VERSIONING ||
@@ -256,15 +256,15 @@ ADD)
 								${CP} -fp "$_VCSDIR/defaults/$file.automerge" "$_VCSDIR/automerged/$file"
 								${TEST} -x ./+VERSIONING ||
 									./+VERSIONING CHECKOUT "$_VCSDIR/automerged/$file"
-								${ECHO} "revert from the penultimate revision of $_VCSDIR/automerged/$file if needed"
+								${ECHO} "Revert from the penultimate revision of $_VCSDIR/automerged/$file if needed"
 								;;
 							1)
-								${ECHO} "some conflicts merging. manually review them in"
+								${ECHO} "Some conflicts merging. manually review them in"
 								${ECHO} "$_VCSDIR/defaults/$file.automerge"
 								${ECHO} "then copy the result to $file"
 								;;
 							*)
-								${ECHO} "merge exited with errors. not changing anything"
+								${ECHO} "Merge exited with errors. not changing anything"
 								;;
 							esac
 						}
