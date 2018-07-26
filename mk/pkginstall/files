@@ -152,7 +152,7 @@ ADD)
 			*f*:*:*|[!r]:yes:*|[!r][!r]:yes:*|[!r][!r][!r]:yes:*|*r*:yes:yes)
 				if ${TEST} "$_VCS_ENABLED" = "yes" -o "$_VCS_ENABLED" = "YES" && ! ${ECHO} "$f_flags" | grep -Fq "r" && ${TEST} ! "$VCSCONFPULL" = "yes"; then
 					if ${TEST} ! -d "$_VCSDIR"; then
-						${RM} -f "$_VCSDIR"
+						#${RM} -f "$_VCSDIR" 
 						${MKDIR} -p "$_VCSDIR"
 						if ${TEST} ! $? -eq 0; then
 							_VCS_ENABLED=no
