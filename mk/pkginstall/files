@@ -300,6 +300,7 @@ ADD)
 									${TEST} ! -x ./+VERSIONING ||
 										./+VERSIONING REGISTER "$_VCSDIR/user/$file"
 								fi
+							fi
 						fi
 					fi
 				elif ${TEST} -f "$f_eg" -o -c "$f_eg" && ${TEST} "$_VCSCONFPULLFAIL" = "yes" -o ! "$VCSCONFPULL" = "yes" || ${ECHO} "$f_flags" | ${GREP} -Fq "r"; then
