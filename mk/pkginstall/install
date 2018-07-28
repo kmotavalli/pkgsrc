@@ -33,7 +33,7 @@ POST-INSTALL)
 	# Copy configuration/support files into place.
 	#
 	_VCSCONFPULLFAIL=no
-	if ${TEST} "$VCSCONFPULL" = "yes" && ${TEST} -n "$REMOTEVCS" && ${TEST} "$REMOTEVCS" != "no"; then
+	if ${TEST} "$VCSCONFPULL" = "yes" -o "$VCSCONFPULL" = "YES" && ${TEST} -n "$REMOTEVCS" && ${TEST} "$REMOTEVCS" != "no"; then
 		${TEST} ! -x ./+VERSIONING ||
 			./+VERSIONING PULL ${CATEGORIES} ${PKGBASE} ${PKGVERSION} ${PKGNAME}
 			#if it fails, run the normal files routine
