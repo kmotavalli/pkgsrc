@@ -86,7 +86,7 @@ UNPACK,|UNPACK,+VERSIONING)
 #	 ./+VERSIONING MERGE [examplefile] [firstrevision]
 #	 ./+VERSIONING COMMIT [message]
 #	 ./+VERSIONING PRAPARE
-#	 ./+VERSIONING PULL
+#	 ./+VERSIONING PULL PKGPATH PKGBASE PKGVERSION PKGNAME 
 #
 AWK="@AWK@"
 CAT="@CAT@"
@@ -446,7 +446,7 @@ PULL)
 	compatibleBranches=""
 	branchName=""
 	#can a package have multiple categories defined?
-	category=$2
+	category=${${ECHO} "$2" | ${AWK} -F "/" '{print $1}')
 	name=$3
 	exactVersion=$4
 	shortVersion=$(${ECHO} $5 | ${AWK} -F "$name" '{print $2}' | ${TR} -dc '[0-9].')
@@ -715,7 +715,7 @@ PULL)
 	${ECHO} "Usage: ./+VERSIONING MERGE [examplefile] [firstrevision]"
 	${ECHO} "Usage: ./+VERSIONING COMMIT [message]"
 	${ECHO} "Usage: ./+VERSIONING PREPARE"
-	${ECHO} "Usage: ./+VERSIONING PULL"
+	${ECHO} "Usage: ./+VERSIONING PULL PKGPATH PKGBASE PKGVERSION PKGNAME"
 	exitcode=3
 	;;
 esac
