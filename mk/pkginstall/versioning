@@ -446,7 +446,7 @@ PULL)
 	compatibleBranches=""
 	branchName=""
 	#can a package have multiple categories defined?
-	category=${${ECHO} "$2" | ${AWK} -F "/" '{print $1}')
+	category=$(${ECHO} "$2" | ${AWK} -F "/" '{print $1}')
 	name=$3
 	exactVersion=$4
 	shortVersion=$(${ECHO} $5 | ${AWK} -F "$name" '{print $2}' | ${TR} -dc '[0-9].')
