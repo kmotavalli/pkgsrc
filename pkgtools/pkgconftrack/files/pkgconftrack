@@ -1,0 +1,122 @@
+#!/bin/sh
+
+usage () {
+	echo "Usage: pkgconftrack [-p PREFIX] store packagename"
+}
+extractAdditionalFiles() {
+#TODO: parse files for includes
+}
+
+store() {
+	if test ! -f $1; then
+		echo "Can't access file $1"
+		return 1
+	fi
+	if test -d "$2" -a -w "$2"; then
+		_dir=$(dirname $1)
+		if [ ! -d "$2/user/$_dir" ]; then
+			mkdir -p "$2/user/$_dir";
+		fi
+		cp -f "$1" "$2/user/$1"
+		case $3 in
+			"rcs"|"RCS")
+				rcs -U "$2/user/$1" > /dev/null
+				ci -u "$2/user/$1"
+				return $?
+				;;
+			"cvs"|"CVS")
+				if [ "$4" = "no" -o "$4" = "NO" ]; then
+					_CVSROOT="$2/CVSROOT"
+				else
+					_CVSROOT="$4"
+				fi
+				cd "$2/user"
+				IFS="/"
+				for curdir in $1
+					do
+						cvs -d "$_CVSROOT" add "$curdir"; _status=$?; cd "$curdir" 2>/dev/null
+						if [ "$_status" ! -eq 0 ]; then
+							return 1
+						fi
+					done
+				;;
+		esac		
+	else
+		echo "Can't use a working directory at VCSDIR: $2"
+		return 1
+	fi
+	
+}
+
+commit() {
+}
+
+
+while getopts "p:" flag
+do
+	_PREFIX=$OPTARG	
+	shift 2
+done
+
+if [ -z "$_PREFIX" ]; then
+	_PREFIX=/usr/pkg
+fi
+
+_VCSDIR="$VCSDIR"
+if [ -z "$_VCSDIR" ]; then
+	_VCSDIR=$(${_PREFIX}/sbin/pkg_admin config-var VCSDIR)
+fi
+_VCSDIR="${_VCSDIR:-/var/confrepo}"
+
+_REMOTEVCS="$REMOTEVCS"
+if [ -z "$_REMOTEVCS" ]; then
+	_REMOTEVCS=$(${_PREFIX}/sbin/pkg_admin config-var REMOTEVCS)
+fi
+_REMOTEVCS="${_REMOTEVCS:-no}"
+
+_VCS="$VCS"
+if [ -z "$_VCS" ]; then
+	_VCS=$(${_PREFIX}/sbin/pkg_admin config-var VCS)
+fi
+_VCS="${_VCS:-rcs}"
+
+echo "prefix: $_PREFIX, VCSDIR: $_VCSDIR, VCS: $_VCS, REMOTEVCS: $_REMOTEVCS"
+
+ACTION=$1
+PACKAGE=$2
+MESSAGE=$3
+
+case $ACTION in
+store|STORE)
+	_pkgdbpath=$(${_PREFIX}/sbin/pkg_info -E "$PACKAGE")
+	if [ $? -eq 0 ]; then
+		echo "Storing configuration files for $PACKAGE"
+		_LOCALBASE="$(${_PREFIX}/sbin/pkg_info -Q LOCALBASE "$PACKAGE")"
+		_filesList="$(${_PREFIX}/sbin/pkg_info -i "$PACKAGE" | sed -n "/^\# FILE: [/\.A-z]* [cf][^r]/{s/^\# FILE: //;p;}" | awk -v pre="$_LOCALBASE" '{printf "%s/%s", pre, $1}')"
+		for file in $_filesList
+			do
+				extractAdditionalFiles "$file"
+			done
+		_filesList="$_filesList $_includedFilesList"
+		_status=0
+		for file in $_filesList
+			do
+				store "$file" "$_VCSDIR" "$_VCS" "$_REMOTEVCS"
+				if [ $? ! -eq 0 ]; then
+					_status=1
+				fi
+			done
+		if [ $_status -eq 0 ]; then
+			commit "pkgconftrack $MESSAGE"
+		else
+			echo "Failed to store files for $PACKAGE"
+		fi 
+	else
+		echo "Package not found:" "$PACKAGE" "in the pkgdb for" "$_PREFIX"
+	fi
+	;;
+*)
+	echo "$ACTION: unknown action"
+	usage
+	;;
+esac
