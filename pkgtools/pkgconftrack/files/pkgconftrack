@@ -31,6 +31,7 @@ store() {
 					_CVSROOT="$4"
 				fi
 				cd "$2/user"
+				_status=0	
 				IFS="/"
 				for curdir in $1
 					do
@@ -39,6 +40,32 @@ store() {
 							return 1
 						fi
 					done
+				;;
+			"git"|"GIT")
+				cd "$2"
+				git --git-dir"$2/.git" --work-tree="$2" add -f "$2/user/$1"
+				return $?
+				;;
+			"hg"|"HG"|"mercurial")
+				cd "$2"
+				hg --repository "$2" add "$2/user/$1"
+				return $?
+				;;
+			"svn"|"SVN")
+				cd "$2/user"
+				IFS="/"
+				_status=0
+				for curdir in $1
+					do
+						svn add --force --depth=empty "$curdir"; _status=$?; cd "$curdir" 2>/dev/null
+						if [ ! "$_status" -eq 0 ]; then
+							return 1
+						fi
+					done
+				;;
+			*)
+				echo "Unsupported versioning system: $3"
+				return 1
 				;;
 		esac		
 	else
