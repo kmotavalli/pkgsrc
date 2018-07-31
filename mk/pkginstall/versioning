@@ -268,26 +268,36 @@ REGISTER)
 		_PATHSPLIT=$(${ECHO} "$CFILE" | ${AWK} -F "//" '{print $2}')
 		cd $(${ECHO} "$CFILE" | ${AWK} -F "//" '{print $1}')
 		IFS="/"
+		_cvsstatus=0
 		for curdir in $_PATHSPLIT
 			do
-				cvs -d "$_CVSROOT" add "$curdir"; cd "$curdir" 2>/dev/null
+				cvs -d "$_CVSROOT" add "$curdir"; _cvsstatus=$?; cd "$curdir" 2>/dev/null
+				if ${TEST} ! "$_cvsstatus" -eq 0; then
+					exitcode=1
+				fi
 			done
 		;;
 	"git"|"GIT")
 		cd "$_VCSDIR"
 		git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" add -f "$CFILE"
+		exitcode=$?
 		;;
 	"hg"|"HG"|"mercurial")
 		cd "$_VCSDIR"
 		hg --repository "$_VCSDIR" add "$CFILE"
+		exitcode=$?
 		;;
 	"svn"|"SVN")
 		_PATHSPLIT=$(${ECHO} "$CFILE" | ${AWK} -F "//" '{print $2}')
 		cd $(${ECHO} "$CFILE" | ${AWK} -F "//" '{print $1}')
+		_svnstatus=0
 		IFS="/"
 		for curdir in $_PATHSPLIT
 		do
-			svn add --force --depth=empty "$curdir"; cd "$curdir" 2>/dev/null
+			svn add --force --depth=empty "$curdir"; _svnstatus=$?; cd "$curdir" 2>/dev/null
+			if ${TEST} ! "$_svnstatus" -eq 0; then
+				exitcode=1
+			fi
 		done
 		;;
 	*)
