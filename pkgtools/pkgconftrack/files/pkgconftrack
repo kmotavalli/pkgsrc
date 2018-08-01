@@ -1,5 +1,4 @@
 #!/bin/sh
-
 usage () {
 	echo "Usage: pkgconftrack [-p PREFIX] [-m commit message] store packagename [... packagenames]"
 }
@@ -43,7 +42,7 @@ store() {
 				;;
 			"git"|"GIT")
 				cd "$2"
-				git --git-dir"$2/.git" --work-tree="$2" add -f "$2/user/$1"
+				git --git-dir="$2/.git" --work-tree="$2" add -f "$2/user/$1"
 				return $?
 				;;
 			"hg"|"HG"|"mercurial")
@@ -76,6 +75,46 @@ store() {
 }
 
 commit() {
+	if test -d "$2" -a -w "$2"; then
+		cd "$2"
+		#cd VCSDIR
+		_COMMITMESSAGE="$1"
+		case $3 in
+			"rcs"|"RCS")
+				#do nothing
+				;;
+			"cvs"|"CVS")
+				if [ "$4" = "no" -o "$4" = "NO" ]; then
+					_CVSROOT="$2/CVSROOT"
+				else
+					_CVSROOT="$4"
+				fi
+				cvs -Q -d "$_CVSROOT" commit -R -m "$_COMMITMESSAGE"
+				;;
+			"git"|"GIT")
+				git --git-dir="$2/.git" --work-tree="$2" commit -m "$_COMMITMESSAGE"
+				if [ "$4" != "no" -a "$4" != "NO" ]; then
+					git --git-dir="$2/.git" --work-tree="$2" push origin master
+				fi
+				;;
+			"hg"|"HG"|"mercurial")
+				hg --repository "$2" commit -m "$_COMMITMESSAGE" --user pkgconftrack
+				if [ "$4" != "no" -a "$4" != "NO" ]; then
+					hg --repository "$2" push "$4"
+				fi
+				;;
+			"svn"|"SVN")
+				cd "$2/user"
+				svn commit -m "$_COMMITMESSAGE"
+				;;
+			*)
+				echo "pkgconfrack: commit: $3: unsupported VCS"
+				;;
+		esac
+	else
+		echo "Can't access VCSDIR at $2!"
+		exit 1
+	fi
 }
 
 _toshift=0
@@ -155,9 +194,9 @@ store|STORE)
 			fi
 		done	
 		if [ $_status -eq 0 ]; then
-			commit "pkgconftrack $_MESSAGE"
+			commit "pkgconftrack $_MESSAGE" "$_VCSDIR" "$_VCS" "$_REMOTEVCS"
 		else
-			echo "Failed to store files for $PACKAGE"
+			echo "Failed to store configuration files"
 		fi 
 	;;
 *)
