@@ -82,6 +82,7 @@ commit() {
 		case $3 in
 			"rcs"|"RCS")
 				#do nothing
+				return 0
 				;;
 			"cvs"|"CVS")
 				if [ "$4" = "no" -o "$4" = "NO" ]; then
@@ -90,25 +91,34 @@ commit() {
 					_CVSROOT="$4"
 				fi
 				cvs -Q -d "$_CVSROOT" commit -R -m "$_COMMITMESSAGE"
+				return $?
 				;;
 			"git"|"GIT")
 				git --git-dir="$2/.git" --work-tree="$2" commit -m "$_COMMITMESSAGE"
-				if [ "$4" != "no" -a "$4" != "NO" ]; then
+				_gitStatus=$?
+				if [ "$4" != "no" -a "$4" != "NO" -a $_gitStatus -eq 0 ]; then
 					git --git-dir="$2/.git" --work-tree="$2" push origin master
+					_gitStatus=$?
 				fi
+				return $_gitStatus
 				;;
 			"hg"|"HG"|"mercurial")
 				hg --repository "$2" commit -m "$_COMMITMESSAGE" --user pkgconftrack
-				if [ "$4" != "no" -a "$4" != "NO" ]; then
+				_hgStatus=$?
+				if [ "$4" != "no" -a "$4" != "NO" -a $_hgStatus -eq 0 ]; then
 					hg --repository "$2" push "$4"
+					_hgStatus=$?
 				fi
+				return $_hgStatus
 				;;
 			"svn"|"SVN")
 				cd "$2/user"
 				svn commit -m "$_COMMITMESSAGE"
+				return $?
 				;;
 			*)
 				echo "pkgconfrack: commit: $3: unsupported VCS"
+				return 1
 				;;
 		esac
 	else
@@ -195,6 +205,7 @@ store|STORE)
 		done	
 		if [ $_status -eq 0 ]; then
 			commit "pkgconftrack $_MESSAGE" "$_VCSDIR" "$_VCS" "$_REMOTEVCS"
+			exit $?
 		else
 			echo "Failed to store configuration files"
 		fi 
@@ -202,5 +213,6 @@ store|STORE)
 *)
 	echo "$ACTION: unknown action"
 	usage
+	exit 2
 	;;
 esac

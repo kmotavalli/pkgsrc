@@ -1,0 +1,101 @@
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.nh
+.ad l
+.TH "PKGCONFTRACK" "1" "2018-08-01"
+.P
+.SH NAME 
+.RS 4
+\fBpkgconftrack\fR - track packages configuration files after manual edits
+.P
+.RE
+.SH SYNOPSIS
+.RS 4
+\fBpkgconftrack\fR [\fB-m\fR "commit message"] [\fB-p\fR PREFIX] store packageName [packageName_1 packageName_2 ... packageName_n]
+.P
+.RE
+.SH DESCRIPTION
+.P
+pkgsrc is capable of storing changes in package provided example configuration files in a version control system chosen by the user. Locally installed files, if they differ from the package provided ones, are also tracked across package upgrades and automatic merging of changes may be attemped if VCSAUTOMERGE is set to yes.
+.P
+\fBpkgconftrack\fR exists to easily store a group of changed configuration files in the version control solution configured with pkgsrc, even if the package(s) is not going to be upgraded (if the user made manual changes to installed configuration and cares storing a revision of the affected configuration files).
+.P
+The following command line options are available:
+.P
+.RS 4
+\fB-p\fR	is used to look in a specific prefix. If unspecified, \fI/usr/pkg\fR is looked into for VCS related options in \fIetc/pkg_install.conf\fR (see pkg_install.conf(5)). Installed configuration files for each package are extracted from the pkgdb found in the PREFIX.
+.P
+\fB-m\fR	allows to specify a custom commit message. By default, changes are stored with "pkgconftrack" and the output of the date(1) utility.
+.P
+.RE
+The options are to be followed by an action performed on one or more packages.
+Only \fIstore\fR is currenly supported as an action.
+.P
+Environment variables can be used to ovverride identically named options set in \fIpkg_install.conf\fR, these are:
+.RS 4
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.IP \(bu 4
+.\}
+VCS	used to set a version control system, by default RCS is assumed
+
+.RE
+.P
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.IP \(bu 4
+.\}
+VCSDIR	the working directory used by pkgsrc to track configuration files. \fI/var/confrepo\fR is the default working directory.
+
+.RE
+.P
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.IP \(bu 4
+.\}
+REMOTEVCS	an URI defining, in a format understood by the chosen VCS, how to access a remote repository. If unset, no is assumed and a local repository located in VCSDIR is used. Remember to set cryptographic material and additional daemons and their environment variables (such as ssh-agent) as needed before invoking pkgconftrack.
+
+.RE
+.P
+.RE
+.SH EXIT STATUS
+.RS 4
+pkgconftrack exits 0 if one or more package configuration files got successfully committed to the repository, and >0 if errors occurred. Non existant package names are ignored and are not reflected in the exit status. 
+.P
+.RE
+.SH EXAMPLES
+.RS 4
+Store local modifications to default nginx configuration files in the repository, reading VCS options from /usr/pkg/etc/pkg_install.conf:
+.RS 4
+'''
+# pkgconftrack store nginx 
+'''
+.P
+.RE
+Manually set VCS options on the command line, store nginx and php-fpm configuration with a custom commit message:
+.RS 4
+'''
+# export VCSDIR=/usr/local/configstore; export VCS=git; pkgconftrack -m "changed php-fpm socket path" store nginx php-fpm
+'''
+.P
+.RE
+Store configuration for nginx, php-fpm and mysql reading VCS options and the pkgdb for \fI/usr/packagesource/etc/pkg_install.conf\fR, set a custom message:		'''
+.RS 4
+# pkgconftrack -m "changed php-fpm socket path" -p /usr/packagesource store nginx php-fpm mysql-server
+'''
+.P
+.RE
+.RE
+.SH SEE ALSO
+.RS 4
+pkg_install.conf(5) pkg_info(1) pkg_admin(1)
+.RE
