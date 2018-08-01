@@ -191,8 +191,6 @@ pkg_install_config(void)
 
 	parse_pkg_install_conf();
 
-	if ((value = getenv("NOVCS")) != NULL)
-		vcs_novcs = value;
 	if ((value = getenv("PKG_DBDIR")) != NULL)
 		pkgdb_set_dir(value, 2);
 	else if (config_pkg_dbdir != NULL)
