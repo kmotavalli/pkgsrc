@@ -146,7 +146,7 @@ PREPARE)
 			cvs -d "$_CVSROOT" status defaults 1>/dev/null
 			repostatus=$?
 			if ${TEST} ! $repostatus -eq 0; then
-				if ${TEST} "$_REMOTE" = "no"; then	
+				if ${TEST} "$_REMOTE" = "no" -o "$_REMOTE" = "NO"; then	
 					cvs -d "$_CVSROOT" init
 					exitcode=$?
 				fi
@@ -173,7 +173,7 @@ PREPARE)
 		"svn"|"SVN")
 			svn info "$_VCSDIR/defaults" > /dev/null
 			if ${TEST} ! $? -eq 0; then
-				if ${TEST} "$_REMOTE" = "no"; then
+				if ${TEST} "$_REMOTE" = "no" -o "$_REMOTE" = "NO"; then
 					${RM} -fr "$_VCSDIR/localsvn" 2>/dev/null
 					svnadmin create "$_VCSDIR/localsvn"
 					for subdir in "automerged" "defaults" "user"
@@ -206,12 +206,12 @@ PREPARE)
 			if ${TEST} ! $gitstatus -eq 0; then 
 				git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" init
 				exitcode=$?
-				if ${TEST} "$_REMOTE" != "no" && ${TEST} $exitcode -eq 0; then
+				if ${TEST} "$_REMOTE" != "no"  -a "$_REMOTE" != "NO" && ${TEST} $exitcode -eq 0; then
 					git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" remote add origin "$_REMOTE"
 					exitcode=$?
 				fi
 			else
-				if ${TEST} ! "$_REMOTE" = "no"; then
+				if ${TEST} "$_REMOTE" != "no" -a "$_REMOTE" != "NO"; then
 					if git remote | ${GREP} -Fq "origin"; then
 						git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" remote remove origin
 						git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" remote add origin "$_REMOTE"
@@ -235,14 +235,14 @@ PREPARE)
 			if ${TEST} ! $? -eq 0; then
 				hg init "$_VCSDIR"
 				exitcode=$?
-				if ${TEST} "$_REMOTE" != "no"; then
+				if ${TEST} "$_REMOTE" != "no" -a "$_REMOTE" != "NO"; then
 					hg --repository "$_VCSDIR" pull "$_REMOTE" 
 					hg update -C -R "$_VCSDIR" 
 					hg --repository "$_VCSDIR" summary > /dev/null
 					exitcode=$?
 				fi
 			else
-				if ${TEST} ! "$_REMOTE" = "no"; then
+				if ${TEST} "$_REMOTE" != "no" -a "$_REMOTE" != "NO"; then
 					hg clone . "$_REMOTE"
 					hg --repository "$_VCSDIR" push "$_REMOTE"
 					hg --repository "$_VCSDIR" pull "$_REMOTE"
@@ -327,7 +327,7 @@ COMMIT)
 			${ECHO} "Failed to commit conf: $2"
 			exitcode=3
 		fi
-		if ${TEST} "$_REMOTE" != "no"; then
+		if ${TEST} "$_REMOTE" != "no" -a "$_REMOTE" != "NO"; then
 			git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" push origin master
 			#even if it fails, a local copy exists
 			if ${TEST} ! $? -eq 0; then
@@ -344,7 +344,7 @@ COMMIT)
 			${ECHO} "Failed to commit conf: $2"
 			exitcode=3
 		fi
-		if ${TEST} "$_REMOTE" != "no"; then
+		if ${TEST} "$_REMOTE" != "no" -a "$_REMOTE" != "NO"; then
 			hg --repository "$_VCSDIR" push "$_REMOTE"
 			if ${TEST} ! $? -eq 0; then
 				${ECHO} "hg: failed to push changes to the remote repository $_REMOTE"
