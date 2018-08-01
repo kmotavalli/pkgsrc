@@ -1,7 +1,7 @@
 #!/bin/sh
 
 usage () {
-	echo "Usage: pkgconftrack [-p PREFIX] store packagename"
+	echo "Usage: pkgconftrack [-p PREFIX] [-m commit message] store packagename [... packagenames]"
 }
 extractAdditionalFiles() {
 #TODO: parse files for includes
@@ -21,7 +21,7 @@ store() {
 		case $3 in
 			"rcs"|"RCS")
 				rcs -U "$2/user/$1" > /dev/null
-				ci -u "$2/user/$1"
+				echo "pkgconftrack $_MESSAGE""." | ci -u "$2/user/$1"
 				return $?
 				;;
 			"cvs"|"CVS")
@@ -36,7 +36,7 @@ store() {
 				for curdir in $1
 					do
 						cvs -d "$_CVSROOT" add "$curdir"; _status=$?; cd "$curdir" 2>/dev/null
-						if [ "$_status" ! -eq 0 ]; then
+						if [ ! "$_status" -eq 0 ]; then
 							return 1
 						fi
 					done
@@ -78,15 +78,26 @@ store() {
 commit() {
 }
 
-
-while getopts "p:" flag
+_toshift=0
+while getopts "p:m:" flag
 do
-	_PREFIX=$OPTARG	
-	shift 2
+	case $flag in
+	"m"|"M")
+		_MESSAGE=$OPTARG
+		_toshift=$((_toshift + 2))
+		;;
+	"p"|"P")
+		_PREFIX=$OPTARG
+		_toshift=$((_toshift +2))
+		;;	
+	esac
 done
-
+shift $_toshift
 if [ -z "$_PREFIX" ]; then
 	_PREFIX=/usr/pkg
+fi
+if [ -z "$_MESSAGE" ]; then
+	_MESSAGE=$(date)
 fi
 
 _VCSDIR="$VCSDIR"
@@ -110,37 +121,44 @@ _VCS="${_VCS:-rcs}"
 echo "prefix: $_PREFIX, VCSDIR: $_VCSDIR, VCS: $_VCS, REMOTEVCS: $_REMOTEVCS"
 
 ACTION=$1
-PACKAGE=$2
-MESSAGE=$3
+PACKAGES=""
+while [ $# -gt 1 ] 
+	do
+		PACKAGES="$2 $PACKAGES"
+		shift 1
+	done
 
 case $ACTION in
 store|STORE)
-	_pkgdbpath=$(${_PREFIX}/sbin/pkg_info -E "$PACKAGE")
-	if [ $? -eq 0 ]; then
-		echo "Storing configuration files for $PACKAGE"
-		_LOCALBASE="$(${_PREFIX}/sbin/pkg_info -Q LOCALBASE "$PACKAGE")"
-		_filesList="$(${_PREFIX}/sbin/pkg_info -i "$PACKAGE" | sed -n "/^\# FILE: [/\.A-z]* [cf][^r]/{s/^\# FILE: //;p;}" | awk -v pre="$_LOCALBASE" '{printf "%s/%s", pre, $1}')"
-		for file in $_filesList
-			do
-				extractAdditionalFiles "$file"
-			done
-		_filesList="$_filesList $_includedFilesList"
-		_status=0
-		for file in $_filesList
-			do
-				store "$file" "$_VCSDIR" "$_VCS" "$_REMOTEVCS"
-				if [ $? ! -eq 0 ]; then
-					_status=1
-				fi
-			done
+	_status=0
+	for _PACKAGE in $PACKAGES
+		do
+			_pkgdbpath=$(${_PREFIX}/sbin/pkg_info -E "$_PACKAGE")
+			if [ $? -eq 0 ]; then
+				echo "Storing configuration files for $_PACKAGE"
+				_LOCALBASE="$(${_PREFIX}/sbin/pkg_info -Q LOCALBASE "$_PACKAGE")"
+				_filesList="$(${_PREFIX}/sbin/pkg_info -i "$_PACKAGE" | sed -n "/^\# FILE: [/\.A-z]* [cf][^r]/{s/^\# FILE: //;p;}" | awk -v pre="$_LOCALBASE" '{printf "%s/%s", pre, $1}')"
+				for file in $_filesList
+					do
+						extractAdditionalFiles "$file"
+					done
+				_filesList="$_filesList $_includedFilesList"
+				for file in $_filesList
+					do
+						store "$file" "$_VCSDIR" "$_VCS" "$_REMOTEVCS"
+						if [ ! $? -eq 0 ]; then
+							_status=1
+						fi
+					done
+			else
+				echo "Package not found:" "$_PACKAGE" "in the pkgdb for" "$_PREFIX"
+			fi
+		done	
 		if [ $_status -eq 0 ]; then
-			commit "pkgconftrack $MESSAGE"
+			commit "pkgconftrack $_MESSAGE"
 		else
 			echo "Failed to store files for $PACKAGE"
 		fi 
-	else
-		echo "Package not found:" "$PACKAGE" "in the pkgdb for" "$_PREFIX"
-	fi
 	;;
 *)
 	echo "$ACTION: unknown action"
