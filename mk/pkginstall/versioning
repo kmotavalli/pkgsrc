@@ -129,7 +129,7 @@ _VCS="${VCS:-rcs}"
 #the URI, while required for pull/configuration deployment mode, does not enable it. by default the remote is only used to store the system configuration 
 _REMOTE="${REMOTEVCS:-no}"
 if ${TEST} "$_VCS" = "cvs" -o "$_VCS" = "CVS"; then
-	if ${TEST} "$_REMOTE" != "no"; then
+	if ${TEST} "$_REMOTE" != "no" -a "$_REMOTE" != "NO"; then
 		_CVSROOT="$_REMOTE"
 	else
 		_CVSROOT="$_VCSDIR/CVSROOT"
