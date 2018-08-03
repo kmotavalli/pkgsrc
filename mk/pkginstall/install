@@ -32,6 +32,11 @@ POST-INSTALL)
 	#
 	# Copy configuration/support files into place.
 	#
+	if ${TEST} "$VCS_CONF_FILES" = "yes" -o "$VCS_CONF_FILES" = "YES" && ${TEST} "$USER" = "root"; then
+		#create an unprivileged user for vcs use!
+		${TEST} ! -x ./+USERGROUP ||
+			./+USERGROUP ADDUSER pkgvcsconf pkgvcsconf
+	fi
 	_VCSCONFPULLFAIL=no
 	if ${TEST} "$VCSCONFPULL" = "yes" -o "$VCSCONFPULL" = "YES" && ${TEST} -n "$REMOTEVCS" && ${TEST} "$REMOTEVCS" != "no"; then
 		${TEST} ! -x ./+VERSIONING ||

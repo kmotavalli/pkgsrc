@@ -12,6 +12,7 @@ UNPACK,|UNPACK,+USERGROUP)
 #
 # Usage: ./+USERGROUP ADD|REMOVE [metadatadir]
 #        ./+USERGROUP CHECK-ADD|CHECK-REMOVE [metadatadir]
+#	 ./+USERGROUP ADDUSER username group [userid]
 #
 # This script supports two actions, ADD and REMOVE, that will add or
 # remove the users and groups needed by the package associated with
@@ -22,6 +23,9 @@ UNPACK,|UNPACK,+USERGROUP)
 # and print an informative message noting those users and groups.  The
 # CHECK-ADD and CHECK-REMOVE actions return non-zero if they detect
 # either missing or existing users/groups, respectively.
+# An additional action, ADDUSER, exist to check for and
+# add specific users not defined by the package 
+# (for pkgsrc/pkginstall own use).
 #
 # Lines starting with "# USER: " or "# GROUP: " are data read by this
 # script that name the users and groups that this package requires to
@@ -111,6 +115,29 @@ listwrap()
 
 exitcode=0
 case $ACTION in
+ADDUSER)
+	user="$1"; group="$2"; userid="$3"
+	if ${TEST} -z "$user" -o -z "$group"; then
+		exit 1
+	fi
+	group_exists $group
+	if ${TEST} "$?" -gt 0; then
+		addgroup "$group"
+	fi
+	user_exists $user $userid
+	case "$?" in
+	0)
+		#user exists
+		;;
+	2)
+		#user exists, userid doesn't match it
+		${ECHO} "The user $user exists, but it does not match userid $userid. Fix this manually!"
+		;;
+	*)
+		adduser "$user" "$group" "$userid"
+		;;
+	esac
+	;;
 ADD)
 	${SED} -n "/^\# GROUP: /{s/^\# GROUP: //;p;}" ${SELF} | ${SORT} -u |
 	{ while read line; do
@@ -371,7 +398,8 @@ CHECK-REMOVE)
 
 *)
 	${ECHO} "Usage: ./+USERGROUP ADD|REMOVE [metadatadir]"
-	${ECHO} "       ./+USERGROUP CHECK-ADD|CHECK-REMOVE [metadatadir]"
+	${ECHO} "       ./+USERGROUP HECK-ADD|CHECK-REMOVE [metadatadir]"
+	${ECHO} "	./+USERGROUP ADDUSER username grouP [USErid]"
 	;;
 esac
 exit $exitcode

@@ -137,119 +137,178 @@ if ${TEST} "$_VCS" = "cvs" -o "$_VCS" = "CVS"; then
 fi
 #ROLE: the system role, used in configuration deploy mode. Defaults to any if unset
 _ROLE="${ROLE:-any}"
+execute()
+{
+	if ${TEST} "$USER" = "root"; then
+		su -m pkgvcsconf -c "$1"
+		return $?
+	else
+		eval $1
+		return $?
+	fi
+}
+pkgchown()
+{
+	if ${TEST} -d "$1"; then
+		if ${TEST} -n "$(find "$1" -perm -2000 -or -perm -4000 -print -quit 2>/dev/null)"; then
+			${ECHO} "SUID/SGID files under "$1", refusing to run CHOWN -R"
+		else
+			${CHOWN} -R pkgvcsconf:pkgvcsconf "$1"
+			${CHMOD} 700 "$1"
+		fi
+	fi
+	if ${TEST} -f "$1"; then
+		if ${TEST} -u "$1" -o -g "$1"; then
+			${ECHO} "SUID/SGID file at "$1", refusing to chown it"
+		else
+			${CHOWN} pkgvcsconf:pkgvcsconf "$1"
+			${CHMOD} 600 "$1"
+			if ! execute "${TEST} -r "$1""; then
+				${CHOWN} -R pkgvcsconf:pkgvcsconf "$_VCSDIR"
+				${CHMOD} 700 "$_VCSDIR"
+				${CHMOD} 600 "$1"
+			fi
+		fi
+	fi
+}
+if ${TEST} "$USER" = "root"; then
+	drop=${TRUE}
+else
+	drop=${FALSE}
+fi
 
 case $ACTION in
 PREPARE)
 		cd "$_VCSDIR"
 		case $_VCS in
 		"cvs"|"CVS")
-			cvs -d "$_CVSROOT" rlog defaults 1>/dev/null
+			execute "cvs -d "$_CVSROOT" rlog defaults 1>/dev/null"
 			repostatus=$?
 			if ${TEST} ! $repostatus -eq 0; then
 				if ${TEST} "$_REMOTE" = "no" -o "$_REMOTE" = "NO"; then	
-					cvs -d "$_CVSROOT" init
+					execute "cvs -d "$_CVSROOT" init"
 					exitcode=$?
 				fi
 				for module in "automerged" "defaults" "user"
 					do
 						if ${TEST} -d "$_VCSDIR/$module" -a -r "$_VCSDIR/$module"; then
+							if $drop; then
+								pkgchown "$_VCSDIR/$module"
+							fi
 							cd "$_VCSDIR/$module"
-							cvs -d "$_CVSROOT" import -m "auto import preexisting $module files" "$module" auto start 1>/dev/null
+							execute "cvs -d "$_CVSROOT" import -m "auto import preexisting $module files" "$module" auto start 1>/dev/null"
 						fi
 					
 					done
 				cd "$_VCSDIR"
 				for module in "automerged" "defaults" "user"
 					do
-						cvs -d "$_CVSROOT" checkout -R "$module"
+						execute "cvs -d "$_CVSROOT" checkout -R "$module""
 					done	
 			fi
 			cd "$_VCSDIR"
 			for module in "automerged" "defaults" "user"
 				do
-					cvs -d "$_CVSROOT" update -A -R "$module"
+					if $drop; then
+						pkgchown "$_VCSDIR/$module"
+					ececute "cvs -d "$_CVSROOT" update -A -R "$module""
 				done
 			;;
 		"svn"|"SVN")
-			svn info "$_VCSDIR/defaults" > /dev/null
+			if drop; then
+				pkgchown "$_VCSDIR/defaults"
+			fi
+			execute "svn info "$_VCSDIR/defaults" > /dev/null"
 			if ${TEST} ! $? -eq 0; then
 				if ${TEST} "$_REMOTE" = "no" -o "$_REMOTE" = "NO"; then
 					${RM} -fr "$_VCSDIR/localsvn" 2>/dev/null
-					svnadmin create "$_VCSDIR/localsvn"
+					execute "svnadmin create "$_VCSDIR/localsvn""
 					for subdir in "automerged" "defaults" "user"
 						do
-							svn mkdir file://"$_VCSDIR/localsvn/$subdir" -m "create $subdir conf dir"
-							svn co file://"$_VCSDIR/localsvn/$subdir" "$_VCSDIR/$subdir"
+							execute "svn mkdir file://"$_VCSDIR/localsvn/$subdir" -m "create $subdir conf dir""
+							execute "svn co file://"$_VCSDIR/localsvn/$subdir" "$_VCSDIR/$subdir""
 						done
 				else
 					#manually migrate to a remote repository, if needed
 					for subdir in "automerged" "defaults" "user"
 						do
 							if ${TEST} -d "$_VCSDIR/$subdir"; then
-								svn import -m "initial import" "$_VCSDIR/$subdir" "$_REMOTE/$subdir"
+								if drop; then
+									pkgchown "$_VCSDIR/$subdir"
+								fi
+								execute "svn import -m "initial import" "$_VCSDIR/$subdir" "$_REMOTE/$subdir""
 							else
-								svn mkdir "$_REMOTE/$subdir"
+							       execute "svn mkdir "$_REMOTE/$subdir""
 							fi
-							svn co "$_REMOTE/$subdir" "$_VCSDIR/$subdir"
+							execute "svn co "$_REMOTE/$subdir" "$_VCSDIR/$subdir""
 						done
 				fi
 			fi	
-				svn info "$_VCSDIR/defaults" > /dev/null
+				execute "svn info "$_VCSDIR/defaults" > /dev/null"
 				exitcode=$?
-				svn update "$_VCSDIR/defaults" "$_VCSDIR/user" "$_VCSDIR/automerged" > /dev/null
+				execute "svn update "$_VCSDIR/defaults" "$_VCSDIR/user" "$_VCSDIR/automerged" > /dev/null"
 			;;
 		"git"|"GIT")
-			git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" status > /dev/null
+			if drop && ${TEST} -d "$_VCSDIR/.git"; then
+				pkgchown "$_VCSDIR/.git"
+			fi
+			execute "git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" status > /dev/null"
 			gitstatus=$?
 			#this script won't clone a remote repository if a local git repo already exists in the VCSDIR.
 			#just setting $REMOTE won't suffice, manually move over data and clone the repo first or use git remote add
 			if ${TEST} ! $gitstatus -eq 0; then 
-				git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" init
+				execute "git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" init"
 				exitcode=$?
 				if ${TEST} "$_REMOTE" != "no"  -a "$_REMOTE" != "NO" && ${TEST} $exitcode -eq 0; then
-					git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" remote add origin "$_REMOTE"
+					execute "git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" remote add origin "$_REMOTE""
 					exitcode=$?
 				fi
 			else
 				if ${TEST} "$_REMOTE" != "no" -a "$_REMOTE" != "NO"; then
-					if git remote | ${GREP} -Fq "origin"; then
-						git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" remote remove origin
-						git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" remote add origin "$_REMOTE"
+					if execute "git remote | ${GREP} -Fq "origin""; then
+						execute "git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" remote remove origin"
+						execute "git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" remote add origin "$_REMOTE""
 						#populate the remote repo if empty
 						#prefer losing remote status over local status
-						git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" push origin master
+						execute "git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" push origin master"
 						exitcode=$?
 				 	else	
-						git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" remote add origin "$_REMOTE"
+						execute "git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" remote add origin "$_REMOTE""
 						exitcode=$?
 					fi
 				fi
 				 
 			fi
 			if ${TEST} $exitcode -eq 0 -a ! "$_REMOTE" = "no"; then
-				git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" pull origin master
+				execute "git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" pull origin master"
 			fi 
 			;;
 		"hg"|"HG"|"mercurial")
-			hg --repository "$_VCSDIR" summary > /dev/null
+			if $drop && ${TEST} -d "$_VCSDIR/.hg"; then
+				pkgchown "$_VCSDIR/.hg"
+			fi
+			execute "hg --repository "$_VCSDIR" summary > /dev/null"
 			if ${TEST} ! $? -eq 0; then
-				hg init "$_VCSDIR"
+				execute "hg init "$_VCSDIR""
 				exitcode=$?
 				if ${TEST} "$_REMOTE" != "no" -a "$_REMOTE" != "NO"; then
-					hg --repository "$_VCSDIR" pull "$_REMOTE" 
-					hg update -C -R "$_VCSDIR" 
-					hg --repository "$_VCSDIR" summary > /dev/null
+					execute "hg --repository "$_VCSDIR" pull "$_REMOTE""
+					execute "hg update -C -R "$_VCSDIR""
+					execute "hg --repository "$_VCSDIR" summary > /dev/null"
 					exitcode=$?
 				fi
 			else
 				if ${TEST} "$_REMOTE" != "no" -a "$_REMOTE" != "NO"; then
-					hg clone . "$_REMOTE"
-					hg --repository "$_VCSDIR" push "$_REMOTE"
-					hg --repository "$_VCSDIR" pull "$_REMOTE"
+					execute "hg clone . "$_REMOTE""
+					execute "hg --repository "$_VCSDIR" push "$_REMOTE""
+					execute "hg --repository "$_VCSDIR" pull "$_REMOTE""
 				fi
 			fi
 			;;	
 		"rcs"|"RCS")
+			if $drop; then
+				pkgchown "$_VCSDIR"
+			fi
 			;;
 		*)
 			${ECHO} "$_VCS: unsupported versioning system"
@@ -260,41 +319,56 @@ PREPARE)
 REGISTER)
 	case $_VCS in
 	"rcs"|"RCS")
-		${RCS} -U "$CFILE" > /dev/null
-		${CI} -u "$CFILE"
+		if $drop; then
+			pkgchown "$CFILE"
+		fi
+		execute "${RCS} -U "$CFILE" > /dev/null"
+		execute "${CI} -u "$CFILE""
 		exitcode=$?
 		;;
 	"cvs"|"CVS")
+		if $drop; then
+			pkgchown "$CFILE"
+		fi
 		_PATHSPLIT=$(${ECHO} "$CFILE" | ${AWK} -F "//" '{print $2}')
 		cd $(${ECHO} "$CFILE" | ${AWK} -F "//" '{print $1}')
 		IFS="/"
 		_cvsstatus=0
 		for curdir in $_PATHSPLIT
 			do
-				cvs -d "$_CVSROOT" add "$curdir"; _cvsstatus=$?; cd "$curdir" 2>/dev/null
+				execute "cvs -d "$_CVSROOT" add "$curdir"; _cvsstatus=$?; cd "$curdir" 2>/dev/null"
 				if ${TEST} ! "$_cvsstatus" -eq 0; then
 					exitcode=1
 				fi
 			done
 		;;
 	"git"|"GIT")
+		if $drop; then
+			pkgchown "$CFILE"
+		fi
 		cd "$_VCSDIR"
-		git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" add -f "$CFILE"
+		execute "git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" add -f "$CFILE""
 		exitcode=$?
 		;;
 	"hg"|"HG"|"mercurial")
+		if $drop; then
+			pkgchown "$CFILE"
+		fi
 		cd "$_VCSDIR"
-		hg --repository "$_VCSDIR" add "$CFILE"
+		execute "hg --repository "$_VCSDIR" add "$CFILE""
 		exitcode=$?
 		;;
 	"svn"|"SVN")
+		if $drop; then
+			pkgchown "$CFILE"
+		fi
 		_PATHSPLIT=$(${ECHO} "$CFILE" | ${AWK} -F "//" '{print $2}')
 		cd $(${ECHO} "$CFILE" | ${AWK} -F "//" '{print $1}')
 		_svnstatus=0
 		IFS="/"
 		for curdir in $_PATHSPLIT
 		do
-			svn add --force --depth=empty "$curdir"; _svnstatus=$?; cd "$curdir" 2>/dev/null
+			execute	"svn add --force --depth=empty "$curdir"; _svnstatus=$?; cd "$curdir" 2>/dev/null"
 			if ${TEST} ! "$_svnstatus" -eq 0; then
 				exitcode=1
 			fi
@@ -310,16 +384,16 @@ COMMIT)
 	cd "$_VCSDIR"
 	case $_VCS in
 	"cvs"|"CVS")
-		cvs -Q -d "$_CVSROOT" commit -R -m "pkgsrc: $2" 
+		execute "cvs -Q -d "$_CVSROOT" commit -R -m "pkgsrc: $2""
 		if ${TEST} $? -eq 0; then
 			${ECHO} "Conf commit: pkgsrc: $2"
 		else
 			${ECHO} "Failed to commit conf: $2"
 			exitcode=3
-		fi	
+		fi
 		;;
 	"git"|"GIT")
-		git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" commit -m "pkgsrc: $2"
+		execute "git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" commit -m "pkgsrc: $2""
 		gitcommitstatus=$?
 		if ${TEST} $gitcommitstatus -eq 0; then
 			${ECHO} "Conf commit: pkgsrc: $2"
@@ -328,7 +402,7 @@ COMMIT)
 			exitcode=3
 		fi
 		if ${TEST} "$_REMOTE" != "no" -a "$_REMOTE" != "NO"; then
-			git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" push origin master
+			execute "git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" push origin master"
 			#even if it fails, a local copy exists
 			if ${TEST} ! $? -eq 0; then
 				${ECHO} "git: failed to push changes to the remote repository $_REMOTE"
@@ -336,7 +410,7 @@ COMMIT)
 		fi
 		;;
 	"hg"|"HG"|"mercurial")
-		hg --repository "$_VCSDIR" commit -m "pkgsrc: $2" --user pkgsrc > /dev/null
+		execute "hg --repository "$_VCSDIR" commit -m "pkgsrc: $2" --user pkgsrc > /dev/null"
 		hgcommitstatus=$?
 		if ${TEST} $hgcommitstatus -eq 0; then
 			${ECHO} "Conf commit: pkgsrc: $2"
@@ -345,7 +419,7 @@ COMMIT)
 			exitcode=3
 		fi
 		if ${TEST} "$_REMOTE" != "no" -a "$_REMOTE" != "NO"; then
-			hg --repository "$_VCSDIR" push "$_REMOTE"
+			execute "hg --repository "$_VCSDIR" push "$_REMOTE""
 			if ${TEST} ! $? -eq 0; then
 				${ECHO} "hg: failed to push changes to the remote repository $_REMOTE"
 			fi
@@ -355,8 +429,12 @@ COMMIT)
 		_svnexitstatus=0
 		for dir in "defaults" "user" "automerged"
 			do
+				if $drop && ! execute "${TEST} -r "$_VCSDIR/$dir""; then
+					pkgchown "$_VCSDIR/$dir"
+				fi
+
 				cd "$_VCSDIR/$dir"
-				svn commit -m "pkgsrc: $2" 2>/dev/null
+				execute "svn commit -m "pkgsrc: $2" 2>/dev/null"
 				if ${TEST} ! $? -eq 0; then
 					_svnexitstatus=1
 				fi
@@ -373,32 +451,35 @@ COMMIT)
 	esac
 	;;
 CHECKOUT)
+	if $drop; then
+		pkgchown "$_VCSDIR"
+	fi
 	case $_VCS in
 	"rcs"|"RCS")
-		${CO} -f "$CFILE"
+		execute "${CO} -f "$CFILE""
 		exitcode=$?
 		;;
 	"cvs"|"CVS")
 		cd "$_VCSDIR"
 		_PATHSPLIT=$(${ECHO} "$CFILE" | ${AWK} -F "$_VCSDIR" '{print $2}' | ${SED} 's@//@/@' | ${SED} 's@/@@')
-		cvs -d "$_CVSROOT" co "$_PATHSPLIT"
+		execute "cvs -d "$_CVSROOT" co "$_PATHSPLIT""
 		;;
 	"git"|"GIT")
 		cd "$_VCSDIR"
-		git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" checkout -- "$CFILE"
+		execute "git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" checkout -- "$CFILE""
 		;;
 	"svn"|"SVN")
 		cd "$_VCSDIR"
 		_PATHSPLIT=$(${ECHO} "$CFILE" | ${AWK} -F "$_VCSDIR" '{print $2}')
 		if ${TEST} "$_REMOTE" = "no"; then
-			svn export --force file://"$_VCSDIR/localsvn/$_PATHSPLIT" "$CFILE"
+			execute "svn export --force file://"$_VCSDIR/localsvn/$_PATHSPLIT" "$CFILE""
 		else
-			svn export --force "$_REMOTE/$_PATHSPLIT" "$CFILE"
+			execute "svn export --force "$_REMOTE/$_PATHSPLIT" "$CFILE""
 		fi
 		;;
 	"hg"|"HG"|"mercurial")
 		cd "$_VCSDIR"
-		hg --repository "$_VCSDIR" cat -r tip "$CFILE" > "$CFILE"
+		execute "hg --repository "$_VCSDIR" cat -r tip "$CFILE" > "$CFILE""
 		;;
 	*)
 		${ECHO} "$_VCS: unsupported versioning system"
@@ -408,32 +489,35 @@ CHECKOUT)
 	;;
 #checkout the initial revision of the file, used in the 3-way merge
 CHECKOUT-FIRST)
+	if $drop; then
+		pkgchown "$_VCSDIR"
+	fi
 	case $_VCS in
 	"rcs"|"RCS")
-		${CO} -f1.1 "$CFILE"
+		execute "${CO} -f1.1 "$CFILE""
 		exitcode=$?
 		;;
 	"cvs"|"CVS")
 		cd "$_VCSDIR"
 		_PATHSPLIT=$(${ECHO} "$CFILE" | ${AWK} -F "$_VCSDIR" '{print $2}' | ${SED} 's@//@/@' | ${SED} 's@/@@')
-		cvs -d "$_CVSROOT" co -r1.1 "$_PATHSPLIT"
+		execute "cvs -d "$_CVSROOT" co -r1.1 "$_PATHSPLIT""
 		;;
 	"git"|"GIT")
 		cd "$_VCSDIR"
-		git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" checkout $(git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" rev-list HEAD "$CFILE" | ${TAIL} -n 1) -- "$CFILE"
+		execute "git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" checkout $(git --git-dir="$_VCSDIR/.git" --work-tree="$_VCSDIR" rev-list HEAD "$CFILE" | ${TAIL} -n 1) -- "$CFILE""
 		;;
 	"hg"|"HG"|"mercurial")
 		cd "$_VCSDIR"
 		_PATHSPLIT=$(${ECHO} "$CFILE" | ${AWK} -F "$_VCSDIR" '{print $2}' | ${CUT} -c 2-)
-		hg --repository "$_VCSDIR" cat -r "first(file("$_PATHSPLIT"),1)" "$CFILE" > "$CFILE"
+		execute "hg --repository "$_VCSDIR" cat -r "first(file("$_PATHSPLIT"),1)" "$CFILE" > "$CFILE""
 		;;
 	"svn"|"SVN")
 		cd "$_VCSDIR"
 		_PATHSPLIT=$(${ECHO} "$CFILE" | ${AWK} -F "$_VCSDIR" '{print $2}')
 		if ${TEST} "$_REMOTE" = "no"; then
-			svn export --force --revision $(svn log --xml -r 1:HEAD --limit 1 file://"$_VCSDIR/localsvn/$_PATHSPLIT" | ${AWK} -F '"' '/revision=/ {print $2}') file://"$_VCSDIR/localsvn/$_PATHSPLIT" "$CFILE"
+			execute "svn export --force --revision $(svn log --xml -r 1:HEAD --limit 1 file://"$_VCSDIR/localsvn/$_PATHSPLIT" | ${AWK} -F '"' '/revision=/ {print $2}') file://"$_VCSDIR/localsvn/$_PATHSPLIT" "$CFILE""
 		else
-			svn export --force --revision $(svn log --xml -r 1:HEAD --limit 1 "$_REMOTE/$_PATHSPLIT" | ${AWK} -F '"' '/revision=/ {print $2}') "$_REMOTE/$_PATHSPLIT" "$CFILE"
+			execute "svn export --force --revision $(svn log --xml -r 1:HEAD --limit 1 "$_REMOTE/$_PATHSPLIT" | ${AWK} -F '"' '/revision=/ {print $2}') "$_REMOTE/$_PATHSPLIT" "$CFILE""
 		fi
 		;;
 	*)
@@ -467,12 +551,12 @@ PULL)
 		${RM} -fr "$_TEMPDIR"
 		_TEMPDIR="/tmp/pkgsrcdeploy-$RANDOM"
 	done
-	${MKDIR} -p "$_TEMPDIR"
-	${CHMOD} 0700 "$_TEMPDIR"
+	execute "${MKDIR} -p "$_TEMPDIR""
+	execute "${CHMOD} 0700 "$_TEMPDIR""
 	cd "$_TEMPDIR"
 	case "$_VCS" in
 		"git"|"GIT")
-			_output=$(git ls-remote --refs "$_REMOTE" "$category"_"$name""_*")
+			_output=$(execute "git ls-remote --refs "$_REMOTE" "$category"_"$name""_*"")
 			exitcode=$?
 			_output=$(${ECHO} "$_output" | ${AWK} -F "refs/heads/" '{print $2}')
 			;;
@@ -480,17 +564,17 @@ PULL)
 			if ! ${ECHO} "$_REMOTE" | ${GREP} -Fq "/branches"; then
 				_REMOTE="$_REMOTE/branches/"
 			fi
-			_output=$(svn ls "$_REMOTE")
+			_output=$(execute "svn ls "$_REMOTE"")
 			exitcode=$?
 			_output=$(${ECHO} "$_output" | ${SED} 's@/@@g' | ${GREP} "$category_$name_")
 			#it would be more accurate to iterate over single branch names, split them and check for category_name
 			;;
 		#Mercurial, CVS require to checkout the remote repository locally before listing branches...
 		"hg"|"HG"|"mercurial")
-			hg clone "$_REMOTE" "$_TEMPDIR/work"
+			execute "hg clone "$_REMOTE" "$_TEMPDIR/work""
 			exitcode=$?
 			if ${TEST} $exitcode -eq 0; then
-				_output=$(hg branches -R "$_TEMPDIR/work" | ${AWK} -v search="$category_$name_" '$0 ~search {print $1}')
+				_output=$(execute "hg branches -R "$_TEMPDIR/work" | ${AWK} -v search="$category_$name_" '$0 ~search {print $1}'")
 				exitcode=$?
 			fi	
 			;;
@@ -691,11 +775,11 @@ PULL)
 		${ECHO} "About to use remote branch $branchName"
 		case "$_VCS" in
 			"git"|"GIT")
-				git --git-dir="$_TEMPDIR/.git" --work-tree="$_TEMPDIR/work" clone -b "$branchName" "$_REMOTE"
+				execute "git --git-dir="$_TEMPDIR/.git" --work-tree="$_TEMPDIR/work" clone -b "$branchName" "$_REMOTE""
 				exitcode=$? 
 				;;
 			"svn"|"SVN")
-				svn co "$_REMOTE/$branchName" "$_TEMPDIR/work"
+				execute "svn co "$_REMOTE/$branchName" "$_TEMPDIR/work""
 				exitcode=$?
 				if ${TEST} $exitcode -eq 0; then
 					${RM} -fr "$_TEMPDIR/work/.svn"
@@ -703,7 +787,7 @@ PULL)
 				fi
 				;;
 			"hg"|"HG"|"mercurial")
-					hg -R "$_TEMPDIR/work" update -C "$branchName"
+					execute "hg -R "$_TEMPDIR/work" update -C "$branchName""
 					exitcode=$?
 					if ${TEST} $exitcode -eq 0; then
 						${RM} -fr "$_TEMPDIR/work/.hg"

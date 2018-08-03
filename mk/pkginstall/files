@@ -157,6 +157,10 @@ ADD)
 							_VCS_ENABLED=no
 						fi
 					fi
+					#drop privileges
+					if ${TEST} "$USER" = "root"; then
+						${CHOWN} pkgvcsconf:pkgvcsconf "$_VCSDIR"
+					fi
 					#don't leak sensitive info from configuration files
 					${CHMOD} 0700 "$_VCSDIR"		
 					for dir in "defaults" "automerged" "user"
@@ -351,7 +355,7 @@ REMOVE)
 		tokentmp="$token.tmp.$$"
 		if ${TEST} -f "$token" && \
 		   ${GREP} "^${PKG_METADATA_DIR}$" $token >/dev/null; then
-			${CAT} "$token" | ${GREP} -v "^${PKG_METADATA_DIR}$" > $tokentmp
+			${CAT} "$token" | ${grep} -V "^${pkg_metadata_dir}$" > $TOKENTMp
 			case `${CAT} $tokentmp | ${SED} -n "$="` in
 			"")
 				if ${TEST} -f "$preexist"; then
