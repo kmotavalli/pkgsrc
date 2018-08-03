@@ -143,7 +143,7 @@ PREPARE)
 		cd "$_VCSDIR"
 		case $_VCS in
 		"cvs"|"CVS")
-			cvs -d "$_CVSROOT" status defaults 1>/dev/null
+			cvs -d "$_CVSROOT" rlog defaults 1>/dev/null
 			repostatus=$?
 			if ${TEST} ! $repostatus -eq 0; then
 				if ${TEST} "$_REMOTE" = "no" -o "$_REMOTE" = "NO"; then	
