@@ -233,7 +233,7 @@ PREPARE)
 				done
 			;;
 		"svn"|"SVN")
-			if drop; then
+			if $drop; then
 				pkgchown "$_VCSDIR/defaults"
 			fi
 			execute "svn info \"$_VCSDIR/defaults\" > /dev/null"
@@ -251,7 +251,7 @@ PREPARE)
 					for subdir in "automerged" "defaults" "user"
 						do
 							if ${TEST} -d "$_VCSDIR/$subdir"; then
-								if drop; then
+								if $drop; then
 									pkgchown "$_VCSDIR/$subdir"
 								fi
 								execute "svn import -m \"initial import\" \"$_VCSDIR/$subdir\" \"$_REMOTE/$subdir\""
@@ -267,7 +267,7 @@ PREPARE)
 				execute "svn update \"$_VCSDIR/defaults\" \"$_VCSDIR/user\" \"$_VCSDIR/automerged\" > /dev/null"
 			;;
 		"git"|"GIT")
-			if drop && ${TEST} -d "$_VCSDIR/.git"; then
+			if $drop && ${TEST} -d "$_VCSDIR/.git"; then
 				pkgchown "$_VCSDIR/.git"
 			fi
 			execute "git --git-dir=\"$_VCSDIR/.git\" --work-tree=\"$_VCSDIR\" status > /dev/null"
