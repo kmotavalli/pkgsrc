@@ -6,7 +6,7 @@
 case "${STAGE},$1" in
 UNPACK,|UNPACK,+VERSIONING)
 	${CAT} > ./+VERSIONING << 'EOF'
-set -x
+
 #!@SH@
 #
 # +VERSIONING - operate on version control systems
@@ -175,13 +175,11 @@ pkgchown()
 				${CHMOD} 700 "$_VCSDIR"
 				${CHMOD} 600 "$1"
 			fi
-			_dirs="(${DIRNAME} \"$1\")"
-			_dirsplit="$(${ECHO} \"$_dirs\" | ${AWK} -F \"$_VCSDIR\" \'{print $2}\'| ${TR} \'/\' \' \')"
+			_dirs=$(${DIRNAME} "$1")
+			_dirsplit=$(${ECHO} "$_dirs" | ${AWK} -F "$_VCSDIR" '{print $2}'| ${TR} "/" " ")
 			cd "$_VCSDIR"
-			echo "debug: dirsplit: $_dirsplit"
 			for dir in $_dirsplit
 				do
-					printf "debug: dir: %s" "$dir"
 					if ! execute "${TEST} -r \"$dir\" -a -w \"$dir\""; then
 						${CHOWN} pkgvcsconf:pkgvcsconf "$dir"
 						${CHMOD} 700 "$dir"
@@ -354,9 +352,11 @@ REGISTER)
 		_cvsstatus=0
 		for curdir in $_PATHSPLIT
 			do
-				execute "cvs -d \"$_CVSROOT\" add \"$curdir\"; _cvsstatus=$?; cd \"$curdir\" 2>/dev/null"
-				if ${TEST} ! "$_cvsstatus" -eq 0; then
+				execute "cvs -d \"$_CVSROOT\" add \"$curdir\"" 
+				if ${TEST} ! $? -eq 0; then
 					exitcode=1
+				else
+					cd "$curdir" 2>/dev/null
 				fi
 			done
 		;;
@@ -377,9 +377,11 @@ REGISTER)
 		IFS="/"
 		for curdir in $_PATHSPLIT
 		do
-			execute	"svn add --force --depth=empty \"$curdir\"; _svnstatus=$?; cd \"$curdir\" 2>/dev/null"
-			if ${TEST} ! "$_svnstatus" -eq 0; then
+			execute	"svn add --force --depth=empty \"$curdir\""
+			if ${TEST} ! $? -eq 0; then
 				exitcode=1
+			else
+				cd "$curdir"
 			fi
 		done
 		;;
@@ -524,9 +526,9 @@ CHECKOUT-FIRST)
 		cd "$_VCSDIR"
 		_PATHSPLIT=$(${ECHO} "$CFILE" | ${AWK} -F "$_VCSDIR" '{print $2}')
 		if ${TEST} "$_REMOTE" = "no" -o "$_REMOTE" = "NO"; then
-			execute "svn export --force --revision $(svn log --xml -r 1:HEAD --limit 1 file:\/\/\"$_VCSDIR/localsvn/$_PATHSPLIT\" | ${AWK} -F \" \'/revision=/ {print $2}\') file:\/\/\"$_VCSDIR/localsvn/$_PATHSPLIT\" \"$CFILE\""
+			execute "svn export --force --revision $(svn log --xml -r 1:HEAD --limit 1 file:\/\/\"$_VCSDIR/localsvn/$_PATHSPLIT\" | ${AWK} -F \" '/revision=/ {print $2}') file:\/\/\"$_VCSDIR/localsvn/$_PATHSPLIT\" \"$CFILE\""
 		else
-			execute "svn export --force --revision $(svn log --xml -r 1:HEAD --limit 1 \"$_REMOTE/$_PATHSPLIT\" | ${AWK} -F \" \'/revision=/ {print $2}\') \"$_REMOTE/$_PATHSPLIT\" \"$CFILE\""
+			execute "svn export --force --revision $(svn log --xml -r 1:HEAD --limit 1 \"$_REMOTE/$_PATHSPLIT\" | ${AWK} -F \" '/revision=/ {print $2}') \"$_REMOTE/$_PATHSPLIT\" \"$CFILE\""
 		fi
 		;;
 	*)
@@ -600,11 +602,11 @@ PULL)
 		for branch in $_output
 			do
 				if ${TEST} $(${ECHO} "$branch" | ${GREP} -o "_" | ${WC} -l) -gt 4 && \
-					${TEST} "$(${ECHO} \"$branch\" | ${AWK} -F \"_\" \'{print $1}\')" = "$category" && \
-					${TEST} "$(${ECHO} \"$branch\" | ${AWK} -F \"_\" \'{print $2}\')" = "$name" && \
-					${TEST} -n "$(${ECHO} \"$branch\" | ${AWK} -F \"_\" \'{print $3}\' | ${TR} -dc \'[0-9]\')" && \
-					${TEST} -n "$(${ECHO} \"$branch\" | ${AWK} -F \"_\" \'{print $4}\' | ${TR} -dc \'[0-9]\')" && \
-					${TEST} -n "$(${ECHO} \"$branch\" | ${AWK} -F \"_\" \'{print $5}\' | ${TR} -dc \'[0-9]\')"; then
+					${TEST} "$(${ECHO} \"$branch\" | ${AWK} -F "_" '{print $1}')" = "$category" && \
+					${TEST} "$(${ECHO} \"$branch\" | ${AWK} -F "_" '{print $2}')" = "$name" && \
+					${TEST} -n "$(${ECHO} \"$branch\" | ${AWK} -F "_" '{print $3}' | ${TR} -dc '[0-9]')" && \
+					${TEST} -n "$(${ECHO} \"$branch\" | ${AWK} -F "_" '{print $4}' | ${TR} -dc '[0-9]')" && \
+					${TEST} -n "$(${ECHO} \"$branch\" | ${AWK} -F "_" '{print $5}' | ${TR} -dc '[0-9]')"; then
 						compatibleBranches="$branch $compatibleBranches"
 				else
 					${ECHO} "Warning: ignoring branch with invalid naming: $branch"
@@ -712,11 +714,11 @@ PULL)
 			for branch in $compatibleBranches
 				do
 					
-					if ${TEST} "$(${ECHO} \"$branch\" | ${AWK} -F \"_\" \'{print $3}\')" = "$exactVersion"; then
+					if ${TEST} "$(${ECHO} \"$branch\" | ${AWK} -F "_" '{print $3}')" = "$exactVersion"; then
 						branchFound=yes
 						branchName=$branch
 						break	
-					elif ${TEST} "$(${ECHO} \"$branch\" | ${AWK} -F \"_\" \'{print $3}\')" = "$shortVersion"; then
+					elif ${TEST} "$(${ECHO} \"$branch\" | ${AWK} -F "_" '{print $3}')" = "$shortVersion"; then
 						branchFound=yes
 						branchName=$branch
 						break
