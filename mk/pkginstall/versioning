@@ -180,7 +180,6 @@ pkgchown()
 	else
 		_dirs="$1"
 	fi
-	
 	_dirsplit=$(${ECHO} "$_dirs" | ${AWK} -F "$_VCSDIR" '{print $2}'| ${TR} "/" " " )
 	cd "$_VCSDIR"
 	for dir in $_dirsplit

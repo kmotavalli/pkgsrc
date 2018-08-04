@@ -15,40 +15,47 @@ execute()
 		return $?
 	fi
 }
+
 pkgchown()
 {
-	if test -d "$1"; then
-		if test -n "$(find "$1" -perm -2000 -or -perm -4000 -print -quit 2>/dev/null)"; then
-			find "SUID/SGID files under "$1", refusing to run CHOWN -R"
+	_restoreDir="$(${PWD_CMD})"
+	if ${TEST} -d "$1"; then
+		if ${TEST} -n "$(${FIND} "$1" -perm -2000 -or -perm -4000 -print -quit 2>/dev/null)"; then
+			${ECHO} "SUID/SGID files under "$1", refusing to run CHOWN -R"
 		else
-			chown -R pkgvcsconf:pkgvcsconf "$1"
-			chmod 700 "$1"
+			${CHMOD} 700 "$1"
+			${CHOWN} -R pkgvcsconf:pkgvcsconf "$1"
 		fi
 	fi
-	if test -f "$1"; then
-		if test -u "$1" -o -g "$1"; then
-			echo "SUID/SGID file at "$1", refusing to chown it"
+	if ${TEST} -f "$1"; then
+		if ${TEST} -u "$1" -o -g "$1"; then
+			${ECHO} "SUID/SGID file at "$1", refusing to chown it"
 		else
-			chown pkgvcsconf:pkgvcsconf "$1"
-			chmod 600 "$1"
-			if ! execute "test -r \"$1\" -a -w \"$1\""; then
-				chmod -R pkgvcsconf:pkgvcsconf "$_VCSDIR"
-				chmod 700 "$_VCSDIR"
-				chmod 600 "$1"
+			${CHMOD} 600 "$1"
+			${CHOWN} pkgvcsconf:pkgvcsconf "$1"
+			if ! execute "${TEST} -r \"$1\" -a -w \"$1\""; then
+				${CHMOD} 700 "$_VCSDIR"
+				${CHOWN} -R pkgvcsconf:pkgvcsconf "$_VCSDIR"
+				${CHMOD} 600 "$1"
 			fi
-			_dirs=$(dirname "$1")
-			_dirsplit=$(echo "$_dirs" | awk -F "$_VCSDIR" '{print $2}'| ${TR} "/" " ")
-			cd "$_VCSDIR"
-			for dir in $_dirsplit
-				do
-					if ! execute "test -r \"$dir\" -a -w \"$dir\""; then
-						chown pkgvcsconf:pkgvcsconf "$dir"
-						chmod 700 "$dir"
+		fi
+		_dirs=$(${DIRNAME} "$1")
+	else
+		_dirs="$1"
+	fi
+	_dirsplit=$(${ECHO} "$_dirs" | ${AWK} -F "$_VCSDIR" '{print $2}'| ${TR} "/" " " )
+	cd "$_VCSDIR"
+	for dir in $_dirsplit
+		do
+			if ${TEST} -d "$dir"; then
+					if ! execute "${TEST} -r \"$dir\" -a -w \"$dir\""; then
+						${CHMOD} 700 "$dir"
+						${CHOWN} pkgvcsconf:pkgvcsconf "$dir"
 					fi
 					cd "$dir"
-				done
-		fi
-	fi
+			fi
+		done
+	cd "$_restoreDir"
 }
 if [ "$USER" = "root" ]; then
 	drop=$(which true)
@@ -61,7 +68,7 @@ store() {
 		return 1
 	fi
 	if test -d "$2" -a -w "$2"; then
-		if ! execute "test -r \"$2\" -a -w \"$2\""; then
+		if $drop; then
 			pkgchown "$2"
 		fi
 		_dir=$(dirname $1)
@@ -69,7 +76,9 @@ store() {
 			execute "mkdir -p \"$2/user/$_dir\"";
 		fi
 		cp -f "$1" "$2/user/$1"
-		pkgchown "$2/user/$1"
+		if $drop; then
+			pkgchown "$2/user/$1"
+		fi
 		case $3 in
 			"rcs"|"RCS")
 				execute "rcs -U \"$2/user/$1\" > /dev/null"
@@ -138,7 +147,7 @@ store() {
 commit() {
 	if test -d "$2" -a -w "$2"; then
 		cd "$2"
-		if ! execute "test -r \"$2\" -a -w \"$2\"2; then
+		if $drop; then
 			pkgchown "$2"
 		fi
 		_COMMITMESSAGE="$1"
