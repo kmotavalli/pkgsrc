@@ -156,7 +156,7 @@ execute()
 pkgchown()
 {
 	if ${TEST} -d "$1"; then
-		if ${TEST} -n "$(find "$1" -perm -2000 -or -perm -4000 -print -quit 2>/dev/null)"; then
+		if ${TEST} -n "$(${FIND} "$1" -perm -2000 -or -perm -4000 -print -quit 2>/dev/null)"; then
 			${ECHO} "SUID/SGID files under "$1", refusing to run CHOWN -R"
 		else
 			${CHOWN} -R pkgvcsconf:pkgvcsconf "$1"
