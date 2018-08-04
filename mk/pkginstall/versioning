@@ -825,7 +825,7 @@ esac
 exit $exitcode
 
 EOF
-	${SED} -n "/^\# VERSIONING: /p" ${SELF} >> ./+VERSIONING
+	${SED} -n "/^\# VERSIONING: /p" "${SELF}" >> ./+VERSIONING
 	${CHMOD} +x ./+VERSIONING
 	;;
 esac
