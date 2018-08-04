@@ -62,7 +62,8 @@ VCSDIR	the working directory used by pkgsrc to track configuration files. \fI/va
 .el \{\
 .IP \(bu 4
 .\}
-REMOTEVCS	an URI defining, in a format understood by the chosen VCS, how to access a remote repository. If unset, no is assumed and a local repository located in VCSDIR is used. Remember to set cryptographic material and additional daemons and their environment variables (such as ssh-agent) as needed before invoking pkgconftrack.
+REMOTEVCS	an URI defining, in a format understood by the chosen VCS, how to access a remote repository. If unset, no is assumed and a local repository located in VCSDIR is used. Remember to set cryptographic material and additional daemons and their environment variables (such as ssh-agent) as needed before invoking pkgconftrack. Also note that, when running as root, pkgsrc and pkgconftrack
+drop privileges to "pkgvcsconf:pkgvcsconf", so keys will get searched in pkgvcsconf home directory. SSH_AUTH_SOCK, if ssh-agent is in use, must be accessible to that user. 
 
 .RE
 .P
