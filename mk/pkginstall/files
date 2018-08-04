@@ -210,7 +210,7 @@ ADD)
 								mergestatus=$?
 								case $mergestatus in
 								0)
-									${ECHO} "Merged with no conflicts. installing it to $file!"
+									${ECHO} "Merged with no conflicts. Installing the configuration to $file!"
 									${DIFF} -u "$file" "$_VCSDIR/defaults/$file.automerge"
 									${CP} -fp "$_VCSDIR/defaults/$file.automerge" "$file"
 									if ${TEST} $? -eq 0; then
@@ -226,12 +226,12 @@ ADD)
 									${ECHO} "Revert from the last revision of $_VCSDIR/user/$file if needed"
 									;;
 								1)
-									${ECHO} "Some conflicts merging. manually review them in"
+									${ECHO} "Some conflicts merging. Manually review them in"
 									${ECHO} "$_VCSDIR/defaults/$file.automerge"
 									${ECHO} "then copy the result to $file"
 									;;
 								*)
-									${ECHO} "Merge exited with errors. not changing anything"
+									${ECHO} "Merge exited with errors. Not changing anything"
 									;;
 								esac
 							}
