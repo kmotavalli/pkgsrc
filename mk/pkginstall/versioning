@@ -270,6 +270,7 @@ PREPARE)
 			fi	
 				execute "svn info \"$_VCSDIR/defaults\" > /dev/null"
 				exitcode=$?
+				cd "$_VCSDIR"
 				execute "svn update \"$_VCSDIR/defaults\" \"$_VCSDIR/user\" \"$_VCSDIR/automerged\" > /dev/null"
 			;;
 		"git"|"GIT")
@@ -529,7 +530,7 @@ CHECKOUT-FIRST)
 	"git"|"GIT")
 		cd "$_VCSDIR"
 		pkgchown "$_VCSDIR/.git"
- 		_firstRev=$(execute "git --git-dir=\"$_VCSDIR/.git\" --work-tree=\"$_VCSDIR\" rev-list HEAD \"$CFILE\" | ${TAIL} -n 1") 
+ 		_firstRev=$(execute "git --git-dir=\"$_VCSDIR/.git\" --work-tree=\"$_VCSDIR\" rev-list HEAD \"$CFILE\"" | ${TAIL} -n 1) 
 		execute "git --git-dir=\"$_VCSDIR/.git\" --work-tree=\"$_VCSDIR\" checkout $_firstRev -- \"$CFILE\""
 		;;
 	"hg"|"HG"|"mercurial")
@@ -542,10 +543,10 @@ CHECKOUT-FIRST)
 		cd "$_VCSDIR"
 		_PATHSPLIT=$(${ECHO} "$CFILE" | ${AWK} -F "$_VCSDIR" '{print $2}')
 		if ${TEST} "$_REMOTE" = "no" -o "$_REMOTE" = "NO"; then
-			_firstRev=$(execute "svn log --xml -r 1:HEAD --limit 1 file:\/\/\"$_VCSDIR/localsvn/$_PATHSPLIT\" | ${AWK} -F \" '/revision=/ {print $2}'")
+			_firstRev=$(execute "svn log --xml -r 1:HEAD --limit 1 file:\/\/\"$_VCSDIR/localsvn/$_PATHSPLIT\"" | ${AWK} -F\"  '/revision=/ {print $2}')
 			execute "svn export --force --revision $_firstRev file:\/\/\"$_VCSDIR/localsvn/$_PATHSPLIT\" \"$CFILE\""
 		else
-			_firstRev=$(execute "svn log --xml -r 1:HEAD --limit 1 \"$_REMOTE/$_PATHSPLIT\" | ${AWK} -F \" '/revision=/ {print $2}'")
+			_firstRev=$(execute "svn log --xml -r 1:HEAD --limit 1 \"$_REMOTE/$_PATHSPLIT\"" | ${AWK} -F \" '/revision=/ {print $2}')
 			execute "svn export --force --revision $_firstRev \"$_REMOTE/$_PATHSPLIT\" \"$CFILE\""
 		fi
 		;;
