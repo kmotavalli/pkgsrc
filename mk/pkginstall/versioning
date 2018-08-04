@@ -347,6 +347,7 @@ REGISTER)
 	"cvs"|"CVS")
 		_PATHSPLIT=$(${ECHO} "$CFILE" | ${AWK} -F "//" '{print $2}')
 		cd $(${ECHO} "$CFILE" | ${AWK} -F "//" '{print $1}')
+		OLDIFS="$IFS"
 		IFS="/"
 		_cvsstatus=0
 		for curdir in $_PATHSPLIT
@@ -358,6 +359,7 @@ REGISTER)
 					cd "$curdir" 2>/dev/null
 				fi
 			done
+		IFS="$OLDIFS"
 		;;
 	"git"|"GIT")
 		cd "$_VCSDIR"
@@ -373,6 +375,7 @@ REGISTER)
 		_PATHSPLIT=$(${ECHO} "$CFILE" | ${AWK} -F "//" '{print $2}')
 		cd $(${ECHO} "$CFILE" | ${AWK} -F "//" '{print $1}')
 		_svnstatus=0
+		OLDIFS="$IFS"
 		IFS="/"
 		for curdir in $_PATHSPLIT
 		do
@@ -383,6 +386,7 @@ REGISTER)
 				cd "$curdir"
 			fi
 		done
+		IFS="$OLDIFS"
 		;;
 	*)
 		${ECHO} "$_VCS: unsupported versioning system. I shouldn't be there!"
