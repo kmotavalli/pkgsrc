@@ -6,7 +6,6 @@
 case "${STAGE},$1" in
 UNPACK,|UNPACK,+VERSIONING)
 	${CAT} > ./+VERSIONING << 'EOF'
-
 #!@SH@
 #
 # +VERSIONING - operate on version control systems
