@@ -526,7 +526,7 @@ CHECKOUT-FIRST)
 		if ${TEST} "$_REMOTE" = "no" -o "$_REMOTE" = "NO"; then
 			execute "svn export --force --revision $(svn log --xml -r 1:HEAD --limit 1 file:\/\/\"$_VCSDIR/localsvn/$_PATHSPLIT\" | ${AWK} -F \" \'/revision=/ {print $2}\') file:\/\/\"$_VCSDIR/localsvn/$_PATHSPLIT\" \"$CFILE\""
 		else
-			execute "svn export --force --revision $(svn log --xml -r 1:HEAD --limit 1 \"$_REMOTE/$_PATHSPLIT\" | ${AWK} -F \" \'/revision=/ {print $2}') \"$_REMOTE/$_PATHSPLIT\" \"$CFILE\""
+			execute "svn export --force --revision $(svn log --xml -r 1:HEAD --limit 1 \"$_REMOTE/$_PATHSPLIT\" | ${AWK} -F \" \'/revision=/ {print $2}\') \"$_REMOTE/$_PATHSPLIT\" \"$CFILE\""
 		fi
 		;;
 	*)
