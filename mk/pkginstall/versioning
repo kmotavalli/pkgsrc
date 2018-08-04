@@ -166,7 +166,7 @@ pkgchown()
 	fi
 	if ${TEST} -f "$1"; then
 		if ${TEST} -u "$1" -o -g "$1"; then
-			${ECHO} "SUID/SGID file at "$1", refusing to chown it"
+			${ECHO} "SUID/SGID file at \"$1\", refusing to chown it"
 		else
 			${CHMOD} 600 "$1"
 			${CHOWN} pkgvcsconf:pkgvcsconf "$1"
