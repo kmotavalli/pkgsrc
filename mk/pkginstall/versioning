@@ -182,7 +182,7 @@ pkgchown()
 					if ! execute "${TEST} -r \"$dir\" -a -w \"$dir\""; then
 						${CHOWN} pkgvcsconf:pkgvcsconf "$dir"
 						${CHMOD} 700 "$dir"
-					fi 	
+					fi
 					cd "$dir"
 				done
 		fi
