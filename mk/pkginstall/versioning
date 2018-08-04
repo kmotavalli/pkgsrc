@@ -251,7 +251,9 @@ PREPARE)
 					for subdir in "automerged" "defaults" "user"
 						do
 							execute "svn mkdir file:\/\/\"$_VCSDIR/localsvn/$subdir\" -m \"create $subdir conf dir\""
-							pkgchown "$_VCSDIR/$subdir"
+							if $drop; then
+								pkgchown "$_VCSDIR/$subdir"
+							fi
 							execute "svn co file:\/\/\"$_VCSDIR/localsvn/$subdir\" \"$_VCSDIR/$subdir\""
 						done
 				else
@@ -489,12 +491,16 @@ CHECKOUT)
 		execute "cvs -d \"$_CVSROOT\" co \"$_PATHSPLIT\""
 		;;
 	"git"|"GIT")
-		pkgchown "$_VCSDIR/.git"
+		if $drop; then
+			pkgchown "$_VCSDIR/.git"
+		fi
 		cd "$_VCSDIR"
 		execute "git --git-dir=\"$_VCSDIR/.git\" --work-tree=\"$_VCSDIR\" checkout -- \"$CFILE\""
 		;;
 	"svn"|"SVN")
-		pkgchown "$_VCSDIR/localsvn"
+		if $drop; then
+			pkgchown "$_VCSDIR/localsvn"
+		fi
 		cd "$_VCSDIR"
 		_PATHSPLIT=$(${ECHO} "$CFILE" | ${AWK} -F "$_VCSDIR" '{print $2}')
 		if ${TEST} "$_REMOTE" = "no"; then
@@ -504,7 +510,9 @@ CHECKOUT)
 		fi
 		;;
 	"hg"|"HG"|"mercurial")
-		pkgchown "$_VCSDIR/.hg"
+		if $drop; then
+			pkgchown "$_VCSDIR/.hg"
+		fi
 		cd "$_VCSDIR"
 		execute "hg --repository \"$_VCSDIR\" cat -r tip \"$CFILE\" > \"$CFILE\""
 		;;
@@ -530,13 +538,17 @@ CHECKOUT-FIRST)
 		execute "cvs -d \"$_CVSROOT\" co -r1.1 \"$_PATHSPLIT\""
 		;;
 	"git"|"GIT")
-		pkgchown "$_VCSDIR/.git"
+		if $drop; then
+			pkgchown "$_VCSDIR/.git"
+		fi
 		cd "$_VCSDIR"
  		_firstRev=$(execute "git --git-dir=\"$_VCSDIR/.git\" --work-tree=\"$_VCSDIR\" rev-list HEAD \"$CFILE\"" | ${TAIL} -n 1) 
 		execute "git --git-dir=\"$_VCSDIR/.git\" --work-tree=\"$_VCSDIR\" checkout $_firstRev -- \"$CFILE\""
 		;;
 	"hg"|"HG"|"mercurial")
-		pkgchown "$_VCSDIR/.hg"
+		if $drop; then
+			pkgchown "$_VCSDIR/.hg"
+		fi
 		cd "$_VCSDIR"
 		_PATHSPLIT=$(${ECHO} "$CFILE" | ${AWK} -F "$_VCSDIR" '{print $2}' | ${CUT} -c 2-)
 		execute "hg --repository \"$_VCSDIR\" cat -r \"first(file(\"$_PATHSPLIT\"),1)\" \"$CFILE\" > \"$CFILE\""
