@@ -175,10 +175,12 @@ pkgchown()
 				${CHMOD} 600 "$1"
 			fi
 		fi
+		_dirs=$(${DIRNAME} "$1")
+	else
+		_dirs="$1"
 	fi
 	
-	_dirs=$(${DIRNAME} "$1")
-	_dirsplit=$(${ECHO} "$_dirs" | ${AWK} -F "$_VCSDIR" '{print $2}'| ${TR} "/" " ")
+	_dirsplit=$(${ECHO} "$_dirs" | ${AWK} -F "$_VCSDIR" '{print $2}'| ${TR} "/" " " )
 	cd "$_VCSDIR"
 	for dir in $_dirsplit
 		do
@@ -247,6 +249,7 @@ PREPARE)
 					for subdir in "automerged" "defaults" "user"
 						do
 							execute "svn mkdir file:\/\/\"$_VCSDIR/localsvn/$subdir\" -m \"create $subdir conf dir\""
+							pkgchown "$_VCSDIR/$subdir"
 							execute "svn co file:\/\/\"$_VCSDIR/localsvn/$subdir\" \"$_VCSDIR/$subdir\""
 						done
 				else
@@ -386,7 +389,7 @@ REGISTER)
 			if ${TEST} ! $? -eq 0; then
 				exitcode=1
 			else
-				cd "$curdir"
+				cd "$curdir" 2>/dev/null
 			fi
 		done
 		IFS="$OLDIFS"
@@ -443,7 +446,7 @@ COMMIT)
 		fi
 		;;
 	"svn"|"SVN")
-		_svnexitstatus=0
+		_svnexitstatus=1
 		for dir in "defaults" "user" "automerged"
 			do
 				if $drop && ! execute "${TEST} -r \"$_VCSDIR/$dir\""; then
@@ -452,8 +455,9 @@ COMMIT)
 
 				cd "$_VCSDIR/$dir"
 				execute "svn commit -m \"pkgsrc: $2\" 2>/dev/null"
-				if ${TEST} ! $? -eq 0; then
-					_svnexitstatus=1
+				if ${TEST}  $? -eq 0; then
+					_svnexitstatus=0
+					#at least one worked
 				fi
 			done
 		if ${TEST} $_svnexitstatus -eq 0; then
