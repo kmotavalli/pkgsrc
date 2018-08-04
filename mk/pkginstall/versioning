@@ -155,23 +155,24 @@ execute()
 }
 pkgchown()
 {
+	_restoreDir="$(${PWD_CMD})"
 	if ${TEST} -d "$1"; then
 		if ${TEST} -n "$(${FIND} "$1" -perm -2000 -or -perm -4000 -print -quit 2>/dev/null)"; then
 			${ECHO} "SUID/SGID files under "$1", refusing to run CHOWN -R"
 		else
-			${CHOWN} -R pkgvcsconf:pkgvcsconf "$1"
 			${CHMOD} 700 "$1"
+			${CHOWN} -R pkgvcsconf:pkgvcsconf "$1"
 		fi
 	fi
 	if ${TEST} -f "$1"; then
 		if ${TEST} -u "$1" -o -g "$1"; then
 			${ECHO} "SUID/SGID file at "$1", refusing to chown it"
 		else
-			${CHOWN} pkgvcsconf:pkgvcsconf "$1"
 			${CHMOD} 600 "$1"
+			${CHOWN} pkgvcsconf:pkgvcsconf "$1"
 			if ! execute "${TEST} -r \"$1\" -a -w \"$1\""; then
-				${CHOWN} -R pkgvcsconf:pkgvcsconf "$_VCSDIR"
 				${CHMOD} 700 "$_VCSDIR"
+				${CHOWN} -R pkgvcsconf:pkgvcsconf "$_VCSDIR"
 				${CHMOD} 600 "$1"
 			fi
 		fi
@@ -186,12 +187,13 @@ pkgchown()
 		do
 			if ${TEST} -d "$dir"; then
 					if ! execute "${TEST} -r \"$dir\" -a -w \"$dir\""; then
-						${CHOWN} pkgvcsconf:pkgvcsconf "$dir"
 						${CHMOD} 700 "$dir"
+						${CHOWN} pkgvcsconf:pkgvcsconf "$dir"
 					fi
 					cd "$dir"
 			fi
 		done
+	cd "$_restoreDir"
 }
 if ${TEST} "$USER" = "root"; then
 	drop=${TRUE}
@@ -492,8 +494,8 @@ CHECKOUT)
 		execute "git --git-dir=\"$_VCSDIR/.git\" --work-tree=\"$_VCSDIR\" checkout -- \"$CFILE\""
 		;;
 	"svn"|"SVN")
-		cd "$_VCSDIR"
 		pkgchown "$_VCSDIR/localsvn"
+		cd "$_VCSDIR"
 		_PATHSPLIT=$(${ECHO} "$CFILE" | ${AWK} -F "$_VCSDIR" '{print $2}')
 		if ${TEST} "$_REMOTE" = "no"; then
 			execute "svn export --force file:\/\/\"$_VCSDIR/localsvn/$_PATHSPLIT\" \"$CFILE\""
@@ -502,8 +504,8 @@ CHECKOUT)
 		fi
 		;;
 	"hg"|"HG"|"mercurial")
-		cd "$_VCSDIR"
 		pkgchown "$_VCSDIR/.hg"
+		cd "$_VCSDIR"
 		execute "hg --repository \"$_VCSDIR\" cat -r tip \"$CFILE\" > \"$CFILE\""
 		;;
 	*)
@@ -528,14 +530,14 @@ CHECKOUT-FIRST)
 		execute "cvs -d \"$_CVSROOT\" co -r1.1 \"$_PATHSPLIT\""
 		;;
 	"git"|"GIT")
-		cd "$_VCSDIR"
 		pkgchown "$_VCSDIR/.git"
+		cd "$_VCSDIR"
  		_firstRev=$(execute "git --git-dir=\"$_VCSDIR/.git\" --work-tree=\"$_VCSDIR\" rev-list HEAD \"$CFILE\"" | ${TAIL} -n 1) 
 		execute "git --git-dir=\"$_VCSDIR/.git\" --work-tree=\"$_VCSDIR\" checkout $_firstRev -- \"$CFILE\""
 		;;
 	"hg"|"HG"|"mercurial")
-		cd "$_VCSDIR"
 		pkgchown "$_VCSDIR/.hg"
+		cd "$_VCSDIR"
 		_PATHSPLIT=$(${ECHO} "$CFILE" | ${AWK} -F "$_VCSDIR" '{print $2}' | ${CUT} -c 2-)
 		execute "hg --repository \"$_VCSDIR\" cat -r \"first(file(\"$_PATHSPLIT\"),1)\" \"$CFILE\" > \"$CFILE\""
 		;;
