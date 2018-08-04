@@ -174,19 +174,22 @@ pkgchown()
 				${CHMOD} 700 "$_VCSDIR"
 				${CHMOD} 600 "$1"
 			fi
-			_dirs=$(${DIRNAME} "$1")
-			_dirsplit=$(${ECHO} "$_dirs" | ${AWK} -F "$_VCSDIR" '{print $2}'| ${TR} "/" " ")
-			cd "$_VCSDIR"
-			for dir in $_dirsplit
-				do
+		fi
+	fi
+	
+	_dirs=$(${DIRNAME} "$1")
+	_dirsplit=$(${ECHO} "$_dirs" | ${AWK} -F "$_VCSDIR" '{print $2}'| ${TR} "/" " ")
+	cd "$_VCSDIR"
+	for dir in $_dirsplit
+		do
+			if ${TEST} -d "$dir"; then
 					if ! execute "${TEST} -r \"$dir\" -a -w \"$dir\""; then
 						${CHOWN} pkgvcsconf:pkgvcsconf "$dir"
 						${CHMOD} 700 "$dir"
 					fi
 					cd "$dir"
-				done
-		fi
-	fi
+			fi
+		done
 }
 if ${TEST} "$USER" = "root"; then
 	drop=${TRUE}
@@ -466,7 +469,7 @@ COMMIT)
 	;;
 CHECKOUT)
 	if $drop; then
-		pkgchown "$_VCSDIR"
+		pkgchown "$CFILE"
 	fi
 	case $_VCS in
 	"rcs"|"RCS")
@@ -479,11 +482,13 @@ CHECKOUT)
 		execute "cvs -d \"$_CVSROOT\" co \"$_PATHSPLIT\""
 		;;
 	"git"|"GIT")
+		pkgchown "$_VCSDIR/.git"
 		cd "$_VCSDIR"
 		execute "git --git-dir=\"$_VCSDIR/.git\" --work-tree=\"$_VCSDIR\" checkout -- \"$CFILE\""
 		;;
 	"svn"|"SVN")
 		cd "$_VCSDIR"
+		pkgchown "$_VCSDIR/localsvn"
 		_PATHSPLIT=$(${ECHO} "$CFILE" | ${AWK} -F "$_VCSDIR" '{print $2}')
 		if ${TEST} "$_REMOTE" = "no"; then
 			execute "svn export --force file:\/\/\"$_VCSDIR/localsvn/$_PATHSPLIT\" \"$CFILE\""
@@ -493,6 +498,7 @@ CHECKOUT)
 		;;
 	"hg"|"HG"|"mercurial")
 		cd "$_VCSDIR"
+		pkgchown "$_VCSDIR/.hg"
 		execute "hg --repository \"$_VCSDIR\" cat -r tip \"$CFILE\" > \"$CFILE\""
 		;;
 	*)
@@ -504,7 +510,7 @@ CHECKOUT)
 #checkout the initial revision of the file, used in the 3-way merge
 CHECKOUT-FIRST)
 	if $drop; then
-		pkgchown "$_VCSDIR"
+		pkgchown "$CFILE"
 	fi
 	case $_VCS in
 	"rcs"|"RCS")
@@ -518,10 +524,13 @@ CHECKOUT-FIRST)
 		;;
 	"git"|"GIT")
 		cd "$_VCSDIR"
-		execute "git --git-dir=\"$_VCSDIR/.git\" --work-tree=\"$_VCSDIR\" checkout $(git --git-dir=\"$_VCSDIR/.git\" --work-tree=\"$_VCSDIR\" rev-list HEAD \"$CFILE\" | ${TAIL} -n 1) -- \"$CFILE\""
+		pkgchown "$_VCSDIR/.git"
+ 		_firstRev=$(execute "git --git-dir=\"$_VCSDIR/.git\" --work-tree=\"$_VCSDIR\" rev-list HEAD \"$CFILE\" | ${TAIL} -n 1") 
+		execute "git --git-dir=\"$_VCSDIR/.git\" --work-tree=\"$_VCSDIR\" checkout $_firstRev -- \"$CFILE\""
 		;;
 	"hg"|"HG"|"mercurial")
 		cd "$_VCSDIR"
+		pkgchown "$_VCSDIR/.hg"
 		_PATHSPLIT=$(${ECHO} "$CFILE" | ${AWK} -F "$_VCSDIR" '{print $2}' | ${CUT} -c 2-)
 		execute "hg --repository \"$_VCSDIR\" cat -r \"first(file(\"$_PATHSPLIT\"),1)\" \"$CFILE\" > \"$CFILE\""
 		;;
@@ -529,9 +538,11 @@ CHECKOUT-FIRST)
 		cd "$_VCSDIR"
 		_PATHSPLIT=$(${ECHO} "$CFILE" | ${AWK} -F "$_VCSDIR" '{print $2}')
 		if ${TEST} "$_REMOTE" = "no" -o "$_REMOTE" = "NO"; then
-			execute "svn export --force --revision $(svn log --xml -r 1:HEAD --limit 1 file:\/\/\"$_VCSDIR/localsvn/$_PATHSPLIT\" | ${AWK} -F \" '/revision=/ {print $2}') file:\/\/\"$_VCSDIR/localsvn/$_PATHSPLIT\" \"$CFILE\""
+			_firstRev=$(execute "svn log --xml -r 1:HEAD --limit 1 file:\/\/\"$_VCSDIR/localsvn/$_PATHSPLIT\" | ${AWK} -F \" '/revision=/ {print $2}'")
+			execute "svn export --force --revision $_firstRev file:\/\/\"$_VCSDIR/localsvn/$_PATHSPLIT\" \"$CFILE\""
 		else
-			execute "svn export --force --revision $(svn log --xml -r 1:HEAD --limit 1 \"$_REMOTE/$_PATHSPLIT\" | ${AWK} -F \" '/revision=/ {print $2}') \"$_REMOTE/$_PATHSPLIT\" \"$CFILE\""
+			_firstRev=$(execute "svn log --xml -r 1:HEAD --limit 1 \"$_REMOTE/$_PATHSPLIT\" | ${AWK} -F \" '/revision=/ {print $2}'")
+			execute "svn export --force --revision $_firstRev \"$_REMOTE/$_PATHSPLIT\" \"$CFILE\""
 		fi
 		;;
 	*)
@@ -553,7 +564,6 @@ PULL)
 	branchFound=no
 	compatibleBranches=""
 	branchName=""
-	#can a package have multiple categories defined?
 	category=$(${ECHO} "$2" | ${AWK} -F "/" '{print $1}')
 	name=$3
 	exactVersion=$4
