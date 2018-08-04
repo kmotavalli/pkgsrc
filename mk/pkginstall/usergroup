@@ -116,12 +116,13 @@ listwrap()
 exitcode=0
 case $ACTION in
 ADDUSER)
-	user="$1"; group="$2"; userid="$3"
+	user="$2"; group="$3"; userid="$4"
 	if ${TEST} -z "$user" -o -z "$group"; then
 		exit 1
 	fi
+	USERADD="@USERADD@"
 	group_exists $group
-	if ${TEST} "$?" -gt 0; then
+	if ${TEST} $? -gt 0; then
 		addgroup "$group"
 	fi
 	user_exists $user $userid
@@ -134,7 +135,14 @@ ADDUSER)
 		${ECHO} "The user $user exists, but it does not match userid $userid. Fix this manually!"
 		;;
 	*)
-		adduser "$user" "$group" "$userid"
+		case $userid in
+		"")
+			${USERADD} -m -s "@SH@" -g $group $user
+			;;
+		*)
+			${USERADD} -m -s "@SH@" -g $group -u $userid $user
+			;;
+		esac
 		;;
 	esac
 	;;
