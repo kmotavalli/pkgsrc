@@ -577,7 +577,6 @@ MERGE)
 	exitcode=$?
 	;;
 PULL)
-	set -x
 	#change in spec: branch name contains package name
 	#category_baseName_pkgVersion_rangeStart_rangeEnd_systemRole_optionalHostname
 	#remember to set the env variables $ROLE and $HOSTNAME
@@ -749,11 +748,11 @@ PULL)
 			for branch in $compatibleBranches
 				do
 					
-					if ${TEST} "$(${ECHO} \"$branch\" | ${AWK} -F "_" '{print $3}')" = "$exactVersion"; then
+					if ${TEST} "$(${ECHO} $branch | ${AWK} -F "_" '{print $3}')" = "$exactVersion"; then
 						branchFound=yes
 						branchName=$branch
 						break	
-					elif ${TEST} "$(${ECHO} \"$branch\" | ${AWK} -F "_" '{print $3}')" = "$shortVersion"; then
+					elif ${TEST} "$(${ECHO} $branch | ${AWK} -F "_" '{print $3}')" = "$shortVersion"; then
 						branchFound=yes
 						branchName=$branch
 						break
