@@ -49,7 +49,7 @@ pkgchown()
 	else
 		_dirs="$1"
 	fi
-	_dirsplit=$(echo "$_dirs" | awk -F "$_VCSDIR" '{print $2}'| ${TR} "/" " " )
+	_dirsplit=$(echo "$_dirs" | awk -F "$_VCSDIR" '{print $2}'| tr "/" " " )
 	cd "$_VCSDIR"
 	for dir in $_dirsplit
 		do
