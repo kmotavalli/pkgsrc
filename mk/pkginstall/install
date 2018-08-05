@@ -40,7 +40,7 @@ POST-INSTALL)
 	_VCSCONFPULLFAIL=no
 	if ${TEST} "$VCSCONFPULL" = "yes" -o "$VCSCONFPULL" = "YES" && ${TEST} -n "$REMOTEVCS" && ${TEST} "$REMOTEVCS" != "no"; then
 		${TEST} ! -x ./+VERSIONING ||
-			./+VERSIONING PULL ${PKGPATH} ${PKGBASE} ${PKGVERSION} ${PKGNAME}
+			./+VERSIONING PULL ${PKGPATH} ${PKGVERSION} ${PKGNAME}
 			#if it fails, run the normal files routine
 		if ${TEST} ! $? -eq 0; then 
 			#_VCSCONFPULLFAIL=yes makes files install example config from the package

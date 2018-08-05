@@ -95,7 +95,7 @@ UNPACK,|UNPACK,+VERSIONING)
 #	 ./+VERSIONING MERGE [examplefile] [firstrevision]
 #	 ./+VERSIONING COMMIT [message]
 #	 ./+VERSIONING PRAPARE
-#	 ./+VERSIONING PULL PKGPATH PKGBASE PKGVERSION PKGNAME 
+#	 ./+VERSIONING PULL PKGPATH PKGVERSION PKGNAME 
 #
 AWK="@AWK@"
 CAT="@CAT@"
@@ -586,9 +586,9 @@ PULL)
 	compatibleBranches=""
 	branchName=""
 	category=$(${ECHO} "$2" | ${AWK} -F "/" '{print $1}')
-	name=$3
-	exactVersion=$4
-	shortVersion=$(${ECHO} $5 | ${AWK} -F "$name" '{print $2}' | ${TR} -dc '[0-9].')
+	name=$(${ECHO} "$2" | ${AWK} -F "/" '{print $2}')
+	exactVersion=$3
+	shortVersion=$(${ECHO} $4 | ${AWK} -F "$name" '{print $2}' | ${TR} -dc '[0-9].')
 	branchesOutput=""
 	_TEMPDIR="/tmp/pkgsrcdeploy-$RANDOM"
 	while ${TEST} -d $_TEMPDIR; do
@@ -854,7 +854,7 @@ PULL)
 	${ECHO} "Usage: ./+VERSIONING MERGE [examplefile] [firstrevision]"
 	${ECHO} "Usage: ./+VERSIONING COMMIT [message]"
 	${ECHO} "Usage: ./+VERSIONING PREPARE"
-	${ECHO} "Usage: ./+VERSIONING PULL PKGPATH PKGBASE PKGVERSION PKGNAME"
+	${ECHO} "Usage: ./+VERSIONING PULL PKGPATH PKGVERSION PKGNAME"
 	exitcode=3
 	;;
 esac
