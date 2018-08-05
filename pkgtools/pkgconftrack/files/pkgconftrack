@@ -19,6 +19,10 @@ execute()
 pkgchown()
 {
 	_restoreDir="$(pwd)"
+	if ! echo "$1" | grep -Fq "$_VCSDIR"; then
+		echo "path \"$1\" not under VCSDIR: \"$_VCSDIR\""
+		return 1
+	fi
 	if test -d "$_VCSDIR"; then
 		chmod 700 "$_VCSDIR"
 		chown pkgvcsconf:pkgvcsconf "$_VCSDIR"
@@ -29,6 +33,9 @@ pkgchown()
 		else
 			chmod 700 "$1"
 			chown -R pkgvcsconf:pkgvcsconf "$1"
+		fi
+		if test "$1" = "$_VCSDIR"; then
+			return 0
 		fi
 	fi
 	if test -f "$1"; then

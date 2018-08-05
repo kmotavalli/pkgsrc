@@ -160,21 +160,28 @@ execute()
 pkgchown()
 {
 	_restoreDir="$(${PWD_CMD})"
+	if ! ${ECHO} "$1" | ${GREP} -Fq "$_VCSDIR"; then
+		${ECHO} "Path \"$1\" not under VCSDIR: \"$_VCSDIR\""
+		return 1
+	fi
 	if ${TEST} -d "$_VCSDIR"; then
 		${CHMOD} 700 "$_VCSDIR"
 		${CHOWN} pkgvcsconf:pkgvcsconf "$_VCSDIR"
 	fi
 	if ${TEST} -d "$1"; then
 		if ${TEST} -n "$(${FIND} "$1" -perm -2000 -or -perm -4000 -print -quit 2>/dev/null)"; then
-			${ECHO} "SUID/SGID files under \"$1\", refusing to run CHOWN -R"
+			${ECHO} "SUID/SGID files under $1, refusing to run CHOWN -R"
 		else
 			${CHMOD} 700 "$1"
 			${CHOWN} -R pkgvcsconf:pkgvcsconf "$1"
 		fi
+		if ${TEST} "$1" = "$_VCSDIR"; then
+			return 0
+		fi
 	fi
 	if ${TEST} -f "$1"; then
 		if ${TEST} -u "$1" -o -g "$1"; then
-			${ECHO} "SUID/SGID file at \"$1\", refusing to chown it"
+			${ECHO} "SUID/SGID file at $1, refusing to chown it"
 		else
 			${CHMOD} 600 "$1"
 			${CHOWN} pkgvcsconf:pkgvcsconf "$1"
