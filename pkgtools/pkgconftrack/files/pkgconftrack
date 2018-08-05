@@ -270,6 +270,10 @@ store|STORE)
 						if [ ! $? -eq 0 ]; then
 							_status=1
 						fi
+						if test -f "$_VCSDIR/automergedfiles" && grep -Fq "$file" "$_VCSDIR/automergedfiles"; then
+							grep -Fv "$file" "$_VCSDIR/automergedfiles" > "$_VCSDIR/automergedfiles.rm"
+							mv -f "$_VCSDIR/automergedfiles.rm" "$_VCSDIR/automergedfiles"
+						fi
 					done
 			else
 				echo "Package not found:" "$_PACKAGE" "in the pkgdb for" "$_PREFIX"
