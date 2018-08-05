@@ -1,4 +1,5 @@
 #!/bin/sh
+set -x
 usage () {
 	echo "Usage: pkgconftrack [-p PREFIX] [-m commit message] store packagename [... packagenames]"
 }
@@ -18,38 +19,38 @@ execute()
 
 pkgchown()
 {
-	_restoreDir="$(${PWD_CMD})"
-	if ${TEST} -d "$_VCSDIR"; then
-		${CHMOD} 700 "$_VCSDIR"
-		${CHOWN} pkgvcsconf:pkgvcsconf "$_VCSDIR"
+	_restoreDir="$(pwd)"
+	if test -d "$_VCSDIR"; then
+		chmod 700 "$_VCSDIR"
+		chown pkgvcsconf:pkgvcsconf "$_VCSDIR"
 	fi
-	if ${TEST} -d "$1"; then
-		if ${TEST} -n "$(${FIND} "$1" -perm -2000 -or -perm -4000 -print -quit 2>/dev/null)"; then
-			${ECHO} "SUID/SGID files under \"$1\", refusing to run CHOWN -R"
+	if test -d "$1"; then
+		if test -n "$(find "$1" -perm -2000 -or -perm -4000 -print -quit 2>/dev/null)"; then
+			echo "SUID/SGID files under $1, refusing to run CHOWN -R"
 		else
-			${CHMOD} 700 "$1"
-			${CHOWN} -R pkgvcsconf:pkgvcsconf "$1"
+			chmod 700 "$1"
+			chown -R pkgvcsconf:pkgvcsconf "$1"
 		fi
 	fi
-	if ${TEST} -f "$1"; then
-		if ${TEST} -u "$1" -o -g "$1"; then
-			${ECHO} "SUID/SGID file at \"$1\", refusing to chown it"
+	if test -f "$1"; then
+		if test -u "$1" -o -g "$1"; then
+			echo "SUID/SGID file at $1, refusing to chown it"
 		else
-			${CHMOD} 600 "$1"
-			${CHOWN} pkgvcsconf:pkgvcsconf "$1"
+			chmod 600 "$1"
+			chown pkgvcsconf:pkgvcsconf "$1"
 		fi
-		_dirs=$(${DIRNAME} "$1")
+		_dirs=$(dirname "$1")
 	else
 		_dirs="$1"
 	fi
-	_dirsplit=$(${ECHO} "$_dirs" | ${AWK} -F "$_VCSDIR" '{print $2}'| ${TR} "/" " " )
+	_dirsplit=$(echo "$_dirs" | awk -F "$_VCSDIR" '{print $2}'| ${TR} "/" " " )
 	cd "$_VCSDIR"
 	for dir in $_dirsplit
 		do
-			if ${TEST} -d "$dir"; then
-					if ! execute "${TEST} -r \"$dir\" -a -w \"$dir\""; then
-						${CHMOD} 700 "$dir"
-						${CHOWN} pkgvcsconf:pkgvcsconf "$dir"
+			if test -d "$dir"; then
+					if ! execute "test -r \"$dir\" -a -w \"$dir\""; then
+						chmod 700 "$dir"
+						chown pkgvcsconf:pkgvcsconf "$dir"
 					fi
 					cd "$dir"
 			fi
