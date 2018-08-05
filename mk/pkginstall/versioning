@@ -577,6 +577,7 @@ MERGE)
 	exitcode=$?
 	;;
 PULL)
+	set -x
 	#change in spec: branch name contains package name
 	#category_baseName_pkgVersion_rangeStart_rangeEnd_systemRole_optionalHostname
 	#remember to set the env variables $ROLE and $HOSTNAME
@@ -711,7 +712,7 @@ PULL)
 				do
 					if ${TEST} $(${ECHO} "$branch" | ${GREP} -o "_" | ${WC} -l) -gt 5; then
 						#optional hostname exists in branch name
-						_branchHostname=$(${ECHO} "$branch" | ${AWK} -F "_" '{$1=$2=$3=$4=$5=$6=""; print $0}')
+						_branchHostname=$(${ECHO} "$branch" | ${AWK} -F "_" '{for(i=7;i<=NF;++i)print $i}')
 						_charCounter=1
 						for character in $(${ECHO} "$_branchHostname" | ${GREP} -o ".") 
 							do
