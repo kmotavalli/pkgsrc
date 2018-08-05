@@ -732,7 +732,7 @@ PULL)
 			if ${TEST} -n "$bestHostnameMatch"; then
 				for branch in $compatibleBranches
 					do
-						if ${TEST} $(${ECHO} "$branch" | ${GREP} -o "_" | ${WC} -l) -eq 6 && ${TEST} $(${ECHO} "$branch" | ${AWK} -F "_" '{for(i=7;i<=NF;++i)print $i}') = "$bestHostnameMatch"; then
+						if ${TEST} $(${ECHO} "$branch" | ${GREP} -o "_" | ${WC} -l) -gt 5 && ${TEST} $(${ECHO} "$branch" | ${AWK} -F "_" '{for(i=7;i<=NF;++i)print $i}') = "$bestHostnameMatch"; then
 							compatibleBranchesWithHostnames="$branch $compatibleBranchesWithHostnames"
 						fi
 					done
