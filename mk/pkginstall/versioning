@@ -619,7 +619,7 @@ PULL)
 			execute "hg clone \"$_REMOTE\" \"$_TEMPDIR/work\""
 			exitcode=$?
 			if ${TEST} $exitcode -eq 0; then
-				_output=$(execute "hg branches -R \"$_TEMPDIR/work\" | ${AWK} -v search=\"$category_$name_\" \'$0 ~search {print $1}\'")
+				_output=$(execute "hg branches -R \"$_TEMPDIR/work\"" | ${AWK} -v search="$category_$name_" '$0 ~search {print $1}')
 				exitcode=$?
 			fi	
 			;;
