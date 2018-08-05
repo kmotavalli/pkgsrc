@@ -636,10 +636,10 @@ PULL)
 		for branch in $_output
 			do
 				if ${TEST} $(${ECHO} "$branch" | ${GREP} -o "_" | ${WC} -l) -gt 4 && \
-					${TEST} "$(${ECHO} \"$branch\" | ${AWK} -F "_" '{print $1}')" = "$category" && \
-					${TEST} "$(${ECHO} \"$branch\" | ${AWK} -F "_" '{print $2}')" = "$name" && \
-					${TEST} -n "$(${ECHO} \"$branch\" | ${AWK} -F "_" '{print $3}' | ${TR} -dc '[0-9]')" && \
-					${TEST} -n "$(${ECHO} \"$branch\" | ${AWK} -F "_" '{print $4}' | ${TR} -dc '[0-9]')" && \
+					${TEST} "$(${ECHO} "$branch" | ${AWK} -F "_" '{print $1}')" = "$category" && \
+					${TEST} "$(${ECHO} "$branch" | ${AWK} -F "_" '{print $2}')" = "$name" && \
+					${TEST} -n "$(${ECHO} $branch | ${AWK} -F "_" '{print $3}' | ${TR} -dc '[0-9]')" && \
+					${TEST} -n "$(${ECHO} $branch | ${AWK} -F "_" '{print $4}' | ${TR} -dc '[0-9]')" && \
 					${TEST} -n "$(${ECHO} \"$branch\" | ${AWK} -F "_" '{print $5}' | ${TR} -dc '[0-9]')"; then
 						compatibleBranches="$branch $compatibleBranches"
 				else
