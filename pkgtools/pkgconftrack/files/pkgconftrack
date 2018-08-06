@@ -89,7 +89,7 @@ store() {
 		case $3 in
 			"rcs"|"RCS")
 				execute "rcs -U \"$2/user/$1\" > /dev/null"
-				execute "echo \"pkgconftrack $_MESSAGE\"\".\" | ci -u \"$2/user/$1\""
+				execute "ci -m\"$_MESSAGE\" -u \"$2/user/$1\""
 				return $?
 				;;
 			"cvs"|"CVS")
@@ -228,6 +228,7 @@ if [ -z "$_MESSAGE" ]; then
 	_MESSAGE=$(date)
 fi
 tstamp=$(date +%s)
+_MESSAGE="$tstamp:pkgconftrack: $_MESSAGE"
 
 _VCSDIR="$VCSDIR"
 if [ -z "$_VCSDIR" ]; then
@@ -288,7 +289,7 @@ store|STORE)
 			fi
 		done	
 		if [ $_status -eq 0 ]; then
-			commit "$tstamp:pkgconftrack: $_MESSAGE" "$_VCSDIR" "$_VCS" "$_REMOTEVCS"
+			commit "$_MESSAGE" "$_VCSDIR" "$_VCS" "$_REMOTEVCS"
 			exit $?
 		else
 			echo "Failed to store configuration files"
