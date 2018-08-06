@@ -266,7 +266,7 @@ store|STORE)
 			if [ $? -eq 0 ]; then
 				echo "Storing configuration files for $_PACKAGE"
 				_LOCALBASE="$(${_PREFIX}/sbin/pkg_info -Q LOCALBASE "$_PACKAGE")"
-				_filesList="$(${_PREFIX}/sbin/pkg_info -i "$_PACKAGE" | sed -n "/^\# FILE: [/\.A-z]* [cf][^r]/{s/^\# FILE: //;p;}" | awk -v pre="$_LOCALBASE" '{printf "%s/%s", pre, $1}')"
+				_filesList="$(${_PREFIX}/sbin/pkg_info -i "$_PACKAGE" | sed -n "/^\# FILE: [/\.A-z]* [cf][^r]/{s/^\# FILE: //;p;}" | awk -v pre="$_LOCALBASE" '{printf "%s/%s\n", pre, $1}')"
 				for file in $_filesList
 					do
 						extractAdditionalFiles "$file"
