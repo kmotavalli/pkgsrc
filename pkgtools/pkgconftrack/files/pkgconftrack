@@ -97,7 +97,7 @@ store() {
 				return $?
 				;;
 			"cvs")
-				if [ "$4" = "no" -o "$4" = "NO" ]; then
+				if [ "$4" = "no" ]; then
 					_CVSROOT="${2}/CVSROOT"
 				else
 					_CVSROOT="$4"
@@ -168,7 +168,7 @@ commit() {
 				return 0
 				;;
 			"cvs")
-				if [ "$4" = "no" -o "$4" = "NO" ]; then
+				if [ "$4" = "no" ]; then
 					_CVSROOT="${2}/CVSROOT"
 				else
 					_CVSROOT="$4"
@@ -179,7 +179,7 @@ commit() {
 			"git")
 				execute "git --git-dir=\"${2}/.git\" --work-tree=\"${2}\" commit -m \"${_COMMITMESSAGE}\""
 				_gitStatus=$?
-				if [ "$4" != "no" -a "$4" != "NO" -a $_gitStatus -eq 0 ]; then
+				if [ "$4" != "no" -a $_gitStatus -eq 0 ]; then
 					execute "git --git-dir=\"${2}/.git\" --work-tree=\"${2}\" push origin master"
 					_gitStatus=$?
 				fi
@@ -188,7 +188,7 @@ commit() {
 			"mercurial")
 				execute "hg --repository \"${2}\" commit -m \"${_COMMITMESSAGE}\" --user pkgconftrack"
 				_hgStatus=$?
-				if [ "$4" != "no" -a "$4" != "NO" -a $_hgStatus -eq 0 ]; then
+				if [ "$4" != "no" -a $_hgStatus -eq 0 ]; then
 					execute "hg --repository \"${2}\" push \"${4}\""
 					_hgStatus=$?
 				fi
@@ -252,7 +252,7 @@ if [ -z "$_REMOTEVCS" ]; then
 	_REMOTEVCS=$(${_PREFIX}/sbin/pkg_admin config-var REMOTEVCS)
 fi
 _REMOTEVCS="${_REMOTEVCS:-no}"
-case "${_REMOTEVCS} in
+case "${_REMOTEVCS}" in
 [Nn][Oo])
 	_REMOTEVCS=no
 	;;
