@@ -536,7 +536,7 @@ CHECKOUT)
 		execute "cvs -d \"${_CVSROOT}\" co \"${_PATHSPLIT}\""
 		;;
 	"git")
-		if {$drop}; then
+		if ${drop}; then
 			pkgchown "${_VCSDIR}/.git"
 		fi
 		cd "${_VCSDIR}"
