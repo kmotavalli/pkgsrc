@@ -152,10 +152,10 @@ case "${_VCS}" in
 [Ss][Vv][Nn])
 	_VCS=subversion
 	;;
-"MERCURIAL")
+[Mm][Ee][Rr][Cc][Uu][Rr][Ii][Aa][Ll])
 	_VCS=mercurial
 	;;
-"SUBVERSION")
+[Ss][Uu][Bb][Vv][Ee][Rr][Ss][Ii][Oo][Nn])
 	_VCS=subversion
 	;;
 esac
