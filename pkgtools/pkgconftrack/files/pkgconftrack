@@ -234,7 +234,14 @@ _VCSDIR="$VCSDIR"
 if [ -z "$_VCSDIR" ]; then
 	_VCSDIR=$(${_PREFIX}/sbin/pkg_admin config-var VCSDIR)
 fi
-_VCSDIR="${_VCSDIR:-/var/confrepo}"
+if [ -z "$_VCSDIR" ]; then
+	VARBASE=$(${_PREFIX}/sbin/pkg_info -i $(${_PREFIX}/sbin/pkg_info | head -n 1 | awk '{print $1}') | awk -F "=" '/^VARBASE=/ {gsub("\"","");printf "%s", $2}')
+	if [ -n "$VARBASE" ]; then
+		_VCSDIR=$VARBASE/confrepo
+	else
+		_VCSDIR=/var/confrepo
+	fi
+fi
 
 _REMOTEVCS="$REMOTEVCS"
 if [ -z "$_REMOTEVCS" ]; then
