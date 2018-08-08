@@ -89,7 +89,7 @@ store() {
 		case $3 in
 			"rcs"|"RCS")
 				execute "rcs -U \"$2/user/$1\" > /dev/null"
-				execute "ci -m\"$_MESSAGE\" -u \"$2/user/$1\""
+				execute "echo . | ci -m\"$_MESSAGE\" -u \"$2/user/$1\""
 				return $?
 				;;
 			"cvs"|"CVS")
@@ -267,7 +267,7 @@ store|STORE)
 			if [ $? -eq 0 ]; then
 				echo "Storing configuration files for $_PACKAGE"
 				_LOCALBASE="$(${_PREFIX}/sbin/pkg_info -Q LOCALBASE "$_PACKAGE")"
-				_filesList="$(${_PREFIX}/sbin/pkg_info -i "$_PACKAGE" | sed -n "/^\# FILE: [/\.A-z]* [cf][^r]/{s/^\# FILE: //;p;}" | awk -v pre="$_LOCALBASE" '{printf "%s/%s\n", pre, $1}')"
+				_filesList="$(${_PREFIX}/sbin/pkg_info -i "$_PACKAGE" | awk -v pre="$_LOCALBASE" '/^# FILE: / && $4 ~ /c/ && $4 !~ /r/ {printf "%s/%s\n", pre, $3}')"
 				for file in $_filesList
 					do
 						extractAdditionalFiles "$file"
