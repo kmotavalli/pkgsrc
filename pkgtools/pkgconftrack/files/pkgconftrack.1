@@ -51,7 +51,7 @@ VCS	used to set a version control system, by default RCS is assumed
 .el \{\
 .IP \(bu 4
 .\}
-VCSDIR	the working directory used by pkgsrc to track configuration files. \fI/var/confrepo\fR is the default working directory.
+VCSDIR	the working directory used by pkgsrc to track configuration files. \fIVARBASE/confrepo\fR is the default working directory. If the packages in your prefix have not been built with a vcs-aware pkginstall release, and no VCSDIR is otherwise defined, pkgconftrack falls back to using \fI/var/confrepo\fR instead.
 
 .RE
 .P
