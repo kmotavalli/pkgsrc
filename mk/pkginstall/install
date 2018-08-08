@@ -1,5 +1,20 @@
 # $NetBSD: install,v 1.5 2017/06/14 16:23:09 prlw1 Exp $
 
+case "${VCS_CONF_FILES}" in
+[Yy][Ee][Ss])
+	VCS_CONF_FILES=yes
+	;;
+esac
+case "${VCSCONFPULL}" in
+[Yy][Ee][Ss])
+	VCSCONFPULL=yes
+	;;
+esac
+case "${REMOTEVCS}" in
+[Nn][Oo])
+	REMOTEVCS=no
+	;;
+esac
 case ${STAGE} in
 PRE-INSTALL)
 	#
@@ -21,7 +36,7 @@ PRE-INSTALL)
 		./+DIRS ADD ${PKG_METADATA_DIR}
 	${TEST} ! -x ./+DIRS ||
 		./+DIRS PERMS ${PKG_METADATA_DIR}
-	if ${TEST} "$VCS_CONF_FILES" = "yes" -o "$VCS_CONF_FILES" = "YES" && ${TEST} "$USER" = "root"; then
+	if ${TEST} "$VCS_CONF_FILES" = "yes" && ${TEST} "$USER" = "root"; then
 		#create an unprivileged user for vcs conf tracking!
 		${TEST} ! -x ./+USERGROUP ||
 			./+USERGROUP ADDUSER pkgvcsconf pkgvcsconf
@@ -38,13 +53,14 @@ POST-INSTALL)
 	# Copy configuration/support files into place.
 	#
 	_VCSCONFPULLFAIL=no
-	if ${TEST} "$VCSCONFPULL" = "yes" -o "$VCSCONFPULL" = "YES" && ${TEST} -n "$REMOTEVCS" && ${TEST} "$REMOTEVCS" != "no"; then
+	if ${TEST} "$VCSCONFPULL" = "yes" \
+		&& ${TEST} -n "$REMOTEVCS" && ${TEST} "$REMOTEVCS" != "no"; then
 		${TEST} ! -x ./+VERSIONING ||
 			./+VERSIONING PULL ${PKGPATH} ${PKGVERSION} ${PKGNAME}
 			#if it fails, run the normal files routine
 		if ${TEST} ! $? -eq 0; then 
-			#_VCSCONFPULLFAIL=yes makes files install example config from the package
-			#rc.d scripts are always installed
+			#_VCSCONFPULLFAIL=yes makes files install example config
+			# from the package; rc.d scripts are always installed
 			_VCSCONFPULLFAIL=yes
 		fi
 	fi
