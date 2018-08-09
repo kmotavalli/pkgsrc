@@ -53,6 +53,7 @@ CHGRP="@CHGRP@"
 CHMOD="@CHMOD@"
 CHOWN="@CHOWN@"
 CMP="@CMP@"
+DIFF="@DIFF@"
 ECHO="@ECHO@"
 GREP="@GREP@"
 LS="@LS@"
@@ -68,7 +69,6 @@ TRUE="@TRUE@"
 
 SELF=$0
 ACTION=$1
-
 : ${PKG_PREFIX=@PREFIX@}
 
 case "${PKG_CONFIG:-@PKG_CONFIG@}" in
@@ -95,15 +95,38 @@ case "${PKG_RCD_SCRIPTS:-@PKG_RCD_SCRIPTS@}" in
 	_PKG_RCD_SCRIPTS=no
 	;;
 esac
-
 CURDIR=`${PWD_CMD}`
 PKG_METADATA_DIR="${2-${CURDIR}}"
 : ${PKGNAME=${PKG_METADATA_DIR##*/}}
 : ${PKG_DBDIR=${PKG_METADATA_DIR%/*}}
 : ${PKG_REFCOUNT_DBDIR=${PKG_DBDIR}.refcount}
 PKG_REFCOUNT_FILES_DBDIR="${PKG_REFCOUNT_DBDIR}/files"
-
+_VCSCONFPULLFAIL=$3
+_VCSDIR="${VCSDIR:-@VARBASE@/confrepo}"
+_VCS_ENABLED="${VCSTRACK_CONF:-no}"
+case "${_VCS_ENABLED}" in
+[Nn][Oo])
+	_VCS_ENABLED=no
+	;;
+[Yy][Ee][Ss])
+	_VCS_ENABLED=yes
+	;;
+esac
+case "${VCSCONFPULL}" in
+[Yy][Ee][Ss])
+	VCSCONFPULL=yes
+	;;
+esac
+case "${VCSAUTOMERGE}" in
+[Yy][Ee][Ss])
+	VCSAUTOMERGE=yes
+	;;
+*)
+	VCSAUTOMERGE=no
+	;;
+esac
 exitcode=0
+
 case $ACTION in
 ADD)
 	${SED} -n "/^\# FILE: /{s/^\# FILE: //;p;}" ${SELF} | ${SORT} -u |
@@ -141,15 +164,183 @@ ADD)
 		"")	;;
 	 	*)	${ECHO} "$f_mode $f_user $f_group" > $perms ;;
 		esac
-		if ${TEST} ! -f "$file" -a ! -f "$f_eg" -a ! -c "$f_eg"; then
+
+		if ${TEST} ! -f "$file" \
+		&& ${TEST} ! -f "$f_eg" \
+		&& ${TEST} ! -c "$f_eg"; then
 			:
 		else
 			case "$f_flags:$_PKG_CONFIG:$_PKG_RCD_SCRIPTS" in
 			*f*:*:*|[!r]:yes:*|[!r][!r]:yes:*|[!r][!r][!r]:yes:*|*r*:yes:yes)
-				if ${TEST} -f "$file"; then
-					${ECHO} "${PKGNAME}: $file already exists"
-				elif ${TEST} -f "$f_eg" -o -c "$f_eg"; then
-					${ECHO} "${PKGNAME}: copying $f_eg to $file"
+				if ${TEST} "${_VCS_ENABLED}" = "yes" \
+				&& ${TEST} "${f_flags%r*}" = "${f_flags}" \
+				&& ${TEST} "${VCSCONFPULL}" != "yes"; then
+					if ${TEST} ! -d "${_VCSDIR}"; then
+						${MKDIR} -p "${_VCSDIR}"
+						if ${TEST} $? -ne 0; then
+							_VCS_ENABLED=no
+						fi
+					fi
+					#drop privileges
+					if ${TEST} "${USER}" = "root"; then
+						${CHOWN} pkgvcsconf:pkgvcsconf\
+						"${_VCSDIR}"
+					fi
+					${CHMOD} 0700 "${_VCSDIR}"		
+					for dir in "defaults" "automerged" "user"
+					do	
+						if ${TEST} ! -d "${_VCSDIR}/${dir}"; then
+							${RM} -f "${_VCSDIR}/${dir}"
+							${MKDIR} -p "${_VCSDIR}/${dir}"
+						fi
+					done
+					${TEST} ! -x ./+VERSIONING ||
+						./+VERSIONING PREPARE
+					if ${TEST} $? -ne 0; then
+						${ECHO} 1>&2 "Failed to initialize the repository that should store configuration revisions at ${_VCSDIR}!"
+						${ECHO} 1>&2 "Temporarily disabling configuration files version tracking"
+						_VCS_ENABLED=no
+					fi
+					if ${TEST} -w "${_VCSDIR}/defaults"; then
+						${MKDIR} -p "${_VCSDIR}/defaults/${file}" 2>/dev/null
+						${RMDIR} "${_VCSDIR}/defaults/${file}" 2>/dev/null
+						${CP} -fp "${f_eg}" "${_VCSDIR}/defaults/${file}"
+						${TEST} ! -x ./+VERSIONING ||
+							./+VERSIONING REGISTER "${_VCSDIR}/defaults/${file}" 
+							${ECHO} REGISTER "${_VCSDIR}/defaults/${file}"
+					else
+						${ECHO} 1>&2 "${_VCSDIR} is not writable!"
+					fi	
+				fi
+				if ${TEST} -f "${file}"; then
+					${ECHO} "${PKGNAME}: ${file} already exists"
+					if ${TEST} "${_VCS_ENABLED}" = "yes" \
+					&& ${TEST} ! "${VCSCONFPULL}" = "yes"\
+					&& ${TEST} "${f_flags%r*}" = "${f_flags}"; then
+						if ${TEST} "${VCSAUTOMERGE}" = "yes"; then
+							${ECHO} "${PKGNAME}: attempting to merge ${file} with new defaults!"
+							merge_userinstalled()
+							{
+								${ECHO} "Saving the currently user-installed revision to ${_VCSDIR}/user/${file}"
+								${MKDIR} -p "${_VCSDIR}/user/${file}" 2>/dev/null
+								${RMDIR} "${_VCSDIR}/user/${file}" 2>/dev/null
+								${CP} -fp "${file}" "${_VCSDIR}/user/${file}"
+								${TEST} ! -x ./+VERSIONING ||
+									./+VERSIONING REGISTER "${_VCSDIR}/user/${file}"
+								${TEST} ! -x ./+VERSIONING ||
+									./+VERSIONING COMMIT "backup user conf before attempting merge for $PKGNAME"
+								${TEST} ! -x ./+VERSIONING ||
+									./+VERSIONING CHECKOUT-FIRST "${_VCSDIR}/defaults/${file}"
+								${CP} -fp "${file}" "${_VCSDIR}/defaults/${file}.automerge"
+								${TEST} ! -x ./+VERSIONING ||
+									./+VERSIONING MERGE "${f_eg}" "${_VCSDIR}/defaults/${file}"
+								mergestatus=$?
+								case ${mergestatus} in
+								0)
+									${ECHO} "Merged with no conflicts. Installing the configuration to ${file}!"
+									${DIFF} -u "${file}" "${_VCSDIR}/defaults/${file}.automerge"
+									${CP} -fp "${_VCSDIR}/defaults/${file}.automerge" "${file}"
+									if ${TEST} $? -eq 0; then
+										${ECHO} "${file}" >> "${_VCSDIR}/automergedfiles"
+										${MKDIR} -p "${_VCSDIR}/automerged/${file}" 2>/dev/null
+										${RMDIR} "${_VCSDIR}/automerged/${file}" 2>/dev/null
+										${CP} -fp "${_VCSDIR}/defaults/${file}.automerge" "${_VCSDIR}/automerged/${file}"
+										${TEST} ! -x ./+VERSIONING ||
+											./+VERSIONING REGISTER "${_VCSDIR}/automerged/${file}"
+									fi
+									${TEST} ! -x ./+VERSIONING ||
+										./+VERSIONING CHECKOUT "${_VCSDIR}/defaults/${file}"
+									${ECHO} "Revert from the last revision of ${_VCSDIR}/user/${file} if needed"
+									;;
+								1)
+									${ECHO} "Some conflicts merging. Manually review them in"
+									${ECHO} "${_VCSDIR}/defaults/${file}.automerge"
+									${ECHO} "then copy the result to ${file}"
+									;;
+								*)
+									${ECHO} "Merge exited with errors. Not changing anything"
+									;;
+								esac
+							}
+
+							merge_automerged()
+								{
+								${ECHO} "Saving the currently installed revision to ${_VCSDIR}/automerged/${file}"
+								${MKDIR} -p "${_VCSDIR}/automerged/${file}" 2>/dev/null
+								${RMDIR} "${_VCSDIR}/automerged/${file}" 2>/dev/null
+								${CP} -fp "${file}" "${_VCSDIR}/automerged/${file}"
+								${TEST} ! -x ./+VERSIONING ||
+									./+VERSIONING REGISTER "${_VCSDIR}/automerged/${file}"
+								${TEST} ! -x ./+VERSIONING ||
+									./+VERSIONING COMMIT "backup preexisting conf before attempting merge for ${PKGNAME}"
+								${TEST} ! -x ./+VERSIONING ||
+									./+VERSIONING CHECKOUT-FIRST "${_VCSDIR}/defaults/${file}"
+								${CP} -fp "${file}" "${_VCSDIR}/defaults/${file}.automerge"
+								${TEST} ! -x ./+VERSIONING ||
+									./+VERSIONING MERGE "${f_eg}" "${_VCSDIR}/defaults/${file}"
+								mergestatus=$?
+								case ${mergestatus} in
+								0)
+									${ECHO} "Merged with no conflict. installing it to ${file}!"
+									${DIFF} -u "${file}" "${_VCSDIR}/defaults/${file}.automerge"
+									${CP} -fp "${_VCSDIR}/defaults/${file}.automerge" "${file}"
+									${TEST} -x ./+VERSIONING ||
+										./+VERSIONING CHECKOUT "${_VCSDIR}/defaults/${file}"
+									${CP} -fp "${_VCSDIR}/defaults/${file}.automerge" "${_VCSDIR}/automerged/${file}"
+									${TEST} -x ./+VERSIONING ||
+										./+VERSIONING CHECKOUT "${_VCSDIR}/automerged/${file}"
+									${ECHO} "Revert from the penultimate revision of ${_VCSDIR}/automerged/${file} if needed"
+									;;
+								1)
+									${ECHO} "Some conflicts merging. manually review them in"
+									${ECHO} "${_VCSDIR}/defaults/${file}.automerge"
+									${ECHO} "then copy the result to ${file}"
+									;;
+								*)
+									${ECHO} "Merge exited with errors. not changing anything"
+									;;
+								esac
+							}
+
+							if ${TEST} -f "${_VCSDIR}/automergedfiles" && ${GREP} -F "${file}" "${_VCSDIR}/automergedfiles" > /dev/null; then
+								#check if the automergedfile was manually edited after being automatically registered as merged
+								${TEST} ! -x ./+VERSIONING ||
+									./+VERSIONING CHECKOUT "${_VCSDIR}/automerged/${file}"
+								if ${TEST} -f "${_VCSDIR}/automerged/${file}"; then
+									${DIFF} -q "${file}" "${_VCSDIR}/automerged/${file}" 2>/dev/null
+									if ${TEST} $? -ne 0; then
+										#the installed file and the last automerged version differ! must have been manually edited after being committed
+										${GREP} -Fv "${file}" "${_VCSDIR}/automergedfiles" > "${_VCSDIR}/automergedfiles.rm"
+										${MV} -f "${_VCSDIR}/automergedfiles.rm" "${_VCSDIR}/automergedfiles"
+										merge_userinstalled
+									else
+										merge_automerged
+									fi
+								else
+									merge_automerged
+								fi
+							else
+								merge_userinstalled
+							fi
+						else
+						#always track installed conf files
+							if ${GREP} -Fv "${file}" "${_VCSDIR}/automergedfiles" 2>/dev/null; then
+								${MKDIR} -p "${_VCSDIR}/user/${file}" 2>/dev/null;
+								${RMDIR} "${_VCSDIR}/user/${file}" 2>/dev/null;
+								${CP} -fp "${file}" "${_VCSDIR}/user/${file}";
+								if ${TEST} $? -eq 0; then
+									${ECHO} "Attempting to track the existing configuration file"
+									${TEST} ! -x ./+VERSIONING ||
+										./+VERSIONING REGISTER "${_VCSDIR}/user/${file}"
+								fi
+							fi
+						fi
+					fi
+				elif ( ${TEST} -f "${f_eg}" || ${TEST} -c "${f_eg}" ) \
+				&& ( ${TEST} "${_VCSCONFPULLFAIL}" = "yes" \
+				|| ${TEST} ! "${VCSCONFPULL}" = "yes" ) \
+				|| ${ECHO} "${f_flags}" | ${GREP} -F "r"; then
+					${ECHO} "${PKGNAME}: copying ${f_eg} to ${file}"
 					${CP} $f_eg $file
 					case $f_user in
 					"")	;;
@@ -168,6 +359,11 @@ ADD)
 			esac
 		fi
 	done
+	if ${TEST} "${_VCS_ENABLED}" = "yes" \
+	&& ${TEST} "${VCSCONFPULL}" != "yes"; then
+		${TEST} ! -x ./+VERSIONING ||
+			./+VERSIONING COMMIT "add ${PKGNAME}"
+	fi 
 	;;
 
 REMOVE)
@@ -198,7 +394,7 @@ REMOVE)
 			"")
 				if ${TEST} -f "$preexist"; then
 					:
-				elif ${TEST} -f "$file" -a \( -f "$f_eg" -o -c "$f_eg" \) && \
+				elif ${TEST} -f "${file}" && ( ${TEST} -f "${f_eg}" || ${TEST} -c "${f_eg}" ) && \
 				     ${CMP} -s "$file" "$f_eg"; then
 					case "$f_flags:$_PKG_CONFIG:$_PKG_RCD_SCRIPTS" in
 					*f*:*:*|[!r]:yes:*|[!r][!r]:yes:*|[!r][!r][!r]:yes:*|*r*:yes:yes)

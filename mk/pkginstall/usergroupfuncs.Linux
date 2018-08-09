@@ -141,7 +141,7 @@ adduser()
 addgroup()
 {
 	group="$1"; groupid="$2"
-	${TEST} $# -eq 2 || return 1
+	${TEST} $# -gt 1 || return 1
 	${TEST} -n "$group" || return 2
 
 	GROUPADD="@GROUPADD@"

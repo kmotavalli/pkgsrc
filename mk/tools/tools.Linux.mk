@@ -45,10 +45,16 @@ TOOLS_PLATFORM.chown?=		/bin/chown
 .elif exists(/usr/sbin/chown)
 TOOLS_PLATFORM.chown?=		/usr/sbin/chown
 .endif
+.if exists(/usr/bin/ci)
+TOOLS_PLATFORM.ci?=		/usr/bin/ci
+.endif
 .if exists(/bin/cmp)
 TOOLS_PLATFORM.cmp?=		/bin/cmp
 .elif exists(/usr/bin/cmp)
 TOOLS_PLATFORM.cmp?=		/usr/bin/cmp
+.endif
+.if exists(/usr/bin/co)
+TOOLS_PLATFORM.co?=		/usr/bin/co
 .endif
 TOOLS_PLATFORM.cp?=		/bin/cp
 .if exists(/bin/tcsh)
@@ -94,6 +100,7 @@ TOOLS_PLATFORM.fgrep?=		/usr/bin/fgrep
 .endif
 TOOLS_PLATFORM.file?=		/usr/bin/file
 TOOLS_PLATFORM.find?=		/usr/bin/find
+TOOLS_PLATFORM.fold?=		/usr/bin/fold
 .if exists(/etc/debian_version)
 .  if exists(/usr/bin/gawk)
 TOOLS_PLATFORM.gawk?=		/usr/bin/gawk
@@ -188,6 +195,9 @@ TOOLS_PLATFORM.mail?=		/usr/bin/mail	# Debian, Slackware, SuSE
 .if exists(/usr/bin/makeinfo)
 TOOLS_PLATFORM.makeinfo?=	/usr/bin/makeinfo
 .endif
+.if exists(/usr/bin/merge)
+TOOLS_PLATFORM.merge?=		/usr/bin/merge
+.endif
 TOOLS_PLATFORM.mkdir?=		/bin/mkdir -p
 .if exists(/usr/bin/mktemp)
 TOOLS_PLATFORM.mktemp?=		/usr/bin/mktemp
@@ -221,6 +231,9 @@ TOOLS_PLATFORM.openssl?=	/usr/bin/openssl
 TOOLS_PLATFORM.printf?=		/usr/bin/printf
 .endif
 TOOLS_PLATFORM.pwd?=		/bin/pwd
+.if exists(/usr/bin/rcs)
+TOOLS_PLATFORM.rcs?=		/usr/bin/rcs
+.endif
 TOOLS_PLATFORM.readlink?=	/bin/readlink
 TOOLS_PLATFORM.rm?=		/bin/rm
 TOOLS_PLATFORM.rmdir?=		/bin/rmdir

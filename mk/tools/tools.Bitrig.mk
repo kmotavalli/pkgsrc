@@ -10,7 +10,13 @@ TOOLS_PLATFORM.cat?=		/bin/cat
 TOOLS_PLATFORM.chgrp?=		/bin/chgrp
 TOOLS_PLATFORM.chmod?=		/bin/chmod
 TOOLS_PLATFORM.chown?=		/sbin/chown
+.if exists(/usr/bin/ci)
+TOOLS_PLATFORM.ci?=		/usr/bin/ci
+.endif
 TOOLS_PLATFORM.cmp?=		/usr/bin/cmp
+.if exists(/usr/bin/co)
+TOOLS_PLATFORM.co?=		/usr/bin/co
+.endif
 TOOLS_PLATFORM.cp?=		/bin/cp
 TOOLS_PLATFORM.csh?=		/bin/csh
 TOOLS_PLATFORM.cut?=		/usr/bin/cut
@@ -26,6 +32,7 @@ TOOLS_PLATFORM.false?=		false			# shell builtin
 TOOLS_PLATFORM.fgrep?=		/usr/bin/fgrep
 TOOLS_PLATFORM.file?=		/usr/bin/file
 TOOLS_PLATFORM.find?=		/usr/bin/find
+TOOLS_PLATFORM.fold?=		/usr/bin/fold
 TOOLS_PLATFORM.flex?=		/usr/bin/flex
 TOOLS_PLATFORM.grep?=		/usr/bin/grep
 TOOLS_PLATFORM.gunzip?=		/usr/bin/gunzip -f
@@ -45,6 +52,9 @@ TOOLS_PLATFORM.ls?=		/bin/ls
 TOOLS_PLATFORM.m4?=		/usr/bin/m4
 TOOLS_PLATFORM.mail?=		/usr/bin/mail
 TOOLS_PLATFORM.makeinfo?=	/usr/bin/makeinfo
+.if exists(/usr/bin/merge)
+TOOLS_PLATFORM.merge?=		/usr/bin/merge
+.endif
 TOOLS_PLATFORM.mkdir?=		/bin/mkdir -p
 TOOLS_PLATFORM.mktemp?=		/usr/bin/mktemp
 TOOLS_PLATFORM.mtree?=		/usr/sbin/mtree
@@ -58,6 +68,9 @@ TOOLS_PLATFORM.patch?=		/usr/bin/patch
 TOOLS_PLATFORM.pax?=		/bin/pax
 TOOLS_PLATFORM.printf?=		/usr/bin/printf
 TOOLS_PLATFORM.pwd?=		/bin/pwd
+.if exists(/usr/bin/rcs)
+TOOLS_PLATFORM.rcs?=		/usr/bin/rcs
+.endif
 TOOLS_PLATFORM.readelf?=	/usr/bin/readelf
 TOOLS_PLATFORM.readlink?=	/usr/bin/readlink
 TOOLS_PLATFORM.rm?=		/bin/rm

@@ -85,6 +85,13 @@ const char *pkg_vulnerabilities_url;
 const char *ignore_advisories = NULL;
 const char tnf_vulnerability_base[] = "http://ftp.NetBSD.org/pub/NetBSD/packages/vulns";
 const char *acceptable_licenses = NULL;
+const char *vcs_enabled;
+const char *vcs_vcs;
+const char *vcs_vcsdir;
+const char *vcs_vcsautomerge;
+const char *vcs_vcsconfpull;
+const char *vcs_remotevcs;
+const char *vcs_role;
 
 static struct config_variable {
 	const char *name;
@@ -116,6 +123,13 @@ static struct config_variable {
 	{ "PKGVULNURL", &pkg_vulnerabilities_url },
 	{ "VERBOSE_NETIO", &verbose_netio },
 	{ "VERIFIED_INSTALLATION", &verified_installation },
+	{ "VCSTRACK_CONF", &vcs_enabled },
+	{ "VCS", &vcs_vcs },
+	{ "VCSDIR", &vcs_vcsdir },
+	{ "VCSAUTOMERGE", &vcs_vcsautomerge },
+	{ "VCSCONFPULL", &vcs_vcsconfpull },
+	{ "REMOTEVCS", &vcs_remotevcs },
+	{ "ROLE", &vcs_role },
 	{ NULL, NULL }, /* For use by pkg_install_show_variable */
 	{ NULL, NULL }
 };

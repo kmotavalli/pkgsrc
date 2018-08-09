@@ -24,6 +24,7 @@ TOOLS_PLATFORM.false?=		/usr/bin/false
 TOOLS_PLATFORM.fgrep?=		/usr/bin/grep -F
 TOOLS_PLATFORM.file?=		/usr/bin/file
 TOOLS_PLATFORM.find?=		/usr/bin/find
+TOOLS_PLATFORM.fold?=		/usr/bin/fold
 TOOLS_PLATFORM.grep?=		/usr/bin/grep
 TOOLS_PLATFORM.head?=		/usr/bin/head
 TOOLS_PLATFORM.hostname?=	/usr/bin/hostname

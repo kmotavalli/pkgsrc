@@ -492,15 +492,19 @@ TOOLS_ARGS.gzip=		-nf ${GZIP}
 .  endif
 .endif
 
-.if !defined(TOOLS_IGNORE.ident) && !empty(_USE_TOOLS:Mident)
-.  if !empty(PKGPATH:Mdevel/rcs)
-MAKEFLAGS+=			TOOLS_IGNORE.ident=
-.  elif !empty(_TOOLS_USE_PKGSRC.ident:M[yY][eE][sS])
-TOOLS_DEPENDS.ident?=		rcs-[0-9]*:../../devel/rcs
-TOOLS_CREATE+=			ident
-TOOLS_PATH.ident=		${LOCALBASE}/bin/ident
-.  endif
-.endif
+_TOOLS.rcsutils=	ident merge ci co rcs
+.for _t_ in ${_TOOLS.rcsutils}
+.	if !defined(TOOLS_IGNORE.${_t_}) && !empty(_USE_TOOLS:M${_t_})
+.		if !empty(PKGPATH:Mdevel/rcs)
+MAKEFLAGS+=             TOOLS_IGNORE.${_t_}=
+.	elif !empty(_TOOLS_USE_PKGSRC.${_t_}:M[yY][eE][sS])
+TOOLS_DEPENDS.${_t_}?=		rcs-[0-9]*:../../devel/rcs
+TOOLS_CREATE+=			${_t_}
+TOOLS_PATH.${_t_}=		${LOCALBASE}/bin/${_t_}
+.		endif
+.	endif
+.endfor
+
 
 .if !defined(TOOLS_IGNORE.install-info) && !empty(_USE_TOOLS:Minstall-info)
 .  if !empty(PKGPATH:Mpkgtools/pkg_install-info)
@@ -889,7 +893,7 @@ _TOOLS_VERSION.perl!=							\
 	eval $$(${TOOLS_PLATFORM.perl} -V:version) && echo $$version
 _TOOLS_PKG.perl=		perl-${_TOOLS_VERSION.perl}
 .  if !empty(_TOOLS_USE_PKGSRC.perl:M[nN][oO])
-.    for _dep_ in perl>=${PERL5_REQD} 
+.    for _dep_ in perl>=${PERL5_REQD}
 .      if !empty(_TOOLS_USE_PKGSRC.perl:M[nN][oO])
 _TOOLS_USE_PKGSRC.perl!=						\
 	if ${PKG_ADMIN} pmatch ${_dep_:Q} ${_TOOLS_PKG.perl:Q}; then \
@@ -947,7 +951,8 @@ TOOLS_PATH.${_t_}=		${LOCALBASE}/bin/${_t_}
 _TOOLS.coreutils=	basename cat chgrp chmod chown cp cut date	\
 		dirname echo env expr false head hostname id install	\
 		ln ls mkdir mv nice numfmt printf pwd readlink realpath \
-		rm rmdir sleep sort tail tee test touch tr true tsort wc
+		rm rmdir sleep sort tail tee test touch tr true tsort wc\
+		fold
 
 .for _t_ in ${_TOOLS.coreutils}
 .  if !defined(TOOLS_IGNORE.${_t_}) && !empty(_USE_TOOLS:M${_t_})

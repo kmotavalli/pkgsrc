@@ -31,6 +31,7 @@ TOOLS_PLATFORM.false?=		false			# shell builtin
 TOOLS_PLATFORM.fgrep?=		/bin/fgrep
 TOOLS_PLATFORM.file?=		/usr/bin/file
 TOOLS_PLATFORM.find?=		/usr/bin/find
+TOOLS_PLATFORM.fold?=		/usr/bin/fold
 TOOLS_PLATFORM.gm4?=		/usr/bin/m4
 .if exists(/usr/bin/make)
 TOOLS_PLATFORM.gmake?=		/usr/bin/make

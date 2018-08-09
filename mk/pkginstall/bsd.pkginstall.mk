@@ -96,6 +96,7 @@ DEINSTALL_TEMPLATES+=	${PKGDIR}/DEINSTALL
 _DEINSTALL_TMPL?=	${.CURDIR}/../../mk/pkginstall/deinstall
 _INSTALL_UNPACK_TMPL?=	# empty
 _INSTALL_TMPL?=		${.CURDIR}/../../mk/pkginstall/install
+_INSTALL_TMPL+=		${.CURDIR}/../../mk/pkginstall/versioning
 INSTALL_TEMPLATES?=	# empty
 .if exists(${PKGDIR}/INSTALL) && \
     empty(INSTALL_TEMPLATES:M${PKGDIR}/INSTALL)
@@ -147,7 +148,9 @@ FILES_SUBST+=		PKG_SYSCONFBASEDIR=${PKG_SYSCONFBASEDIR:Q}
 FILES_SUBST+=		PKG_SYSCONFDIR=${PKG_SYSCONFDIR:Q}
 FILES_SUBST+=		CONF_DEPENDS=${CONF_DEPENDS:C/:.*//:Q}
 FILES_SUBST+=		PKGBASE=${PKGBASE:Q}
-
+FILES_SUBST+=		PKGVERSION=${PKGVERSION:Q}
+FILES_SUBST+=		SIMPLENAME=${PKGNAME_NOREV:Q}
+FILES_SUBST+=		PKGPATH=${PKGPATH:Q}
 # PKG_USERS represents the users to create for the package.  It is a
 #	space-separated list of elements of the form
 #
@@ -297,10 +300,12 @@ ${_INSTALL_USERGROUP_FILE}:						\
 	${SED}	-e "/^# platform-specific adduser\/addgroup functions/r${_INSTALL_USERGROUPFUNCS_FILE}" ../../mk/pkginstall/usergroup |			\
 	${SED} ${FILES_SUBST_SED} > ${.TARGET}
 	${RUN}								\
-	if ${_ZERO_FILESIZE_P} ${_INSTALL_USERGROUP_DATAFILE}; then	\
-		${RM} -f ${.TARGET};					\
-		${TOUCH} ${TOUCH_ARGS} ${.TARGET};			\
-	fi
+#	if ${_ZERO_FILESIZE_P} ${_INSTALL_USERGROUP_DATAFILE}; then	\
+#		${RM} -f ${.TARGET};					\
+#		${TOUCH} ${TOUCH_ARGS} ${.TARGET};			\
+#	fi
+# PKGSRC now creates its own user, pkgvcsconf, when running as root with conf
+# tracking enabled. The functions it uses are part of the usergroup scripts
 
 _INSTALL_USERGROUP_UNPACKER=	${_PKGINSTALL_DIR}/usergroup-unpack
 
@@ -390,7 +395,7 @@ su-create-usergroup: ${_INSTALL_USERGROUP_UNPACKER}
 #
 # GAMEDATA_PERMS and GAMEDIR_PERMS are convenience definitions for files
 # that are meant to be accessed by things that are setgid games. Because
-# such files should normally be under ${VARBASE}, generally these 
+# such files should normally be under ${VARBASE}, generally these
 # definitions should be used roughly as follows:
 #
 #	REQD_DIRS_PERMS+=  /path/to/scoredir ${GAMEDIR_PERMS}
@@ -492,6 +497,9 @@ _INSTALL_FILES_FILE=		${_PKGINSTALL_DIR}/files
 _INSTALL_FILES_DATAFILE=	${_PKGINSTALL_DIR}/files-data
 _INSTALL_UNPACK_TMPL+=		${_INSTALL_FILES_FILE}
 _INSTALL_DATA_TMPL+=		${_INSTALL_FILES_DATAFILE}
+
+_INSTALL_VERSIONING_FILE=	${_PKGINSTALL_DIR}/versioning
+_INSTALL_UNPACK_TMPL+=		${_INSTALL_VERSIONING_FILE}
 
 # Only generate init scripts if we are using rc.d
 _INSTALL_RCD_SCRIPTS=	# empty
@@ -600,6 +608,10 @@ ${_INSTALL_FILES_FILE}: ../../mk/pkginstall/files
 		${RM} -f ${.TARGET};					\
 		${TOUCH} ${TOUCH_ARGS} ${.TARGET};			\
 	fi
+${_INSTALL_VERSIONING_FILE}: ../../mk/pkginstall/versioning
+	${RUN}${MKDIR} ${.TARGET:H}
+	${RUN}	\
+	${SED} ${FILES_SUBST_SED} ../../mk/pkginstall/versioning > ${.TARGET}
 
 # OWN_DIRS contains a list of directories for this package that should be
 #       created and should attempt to be destroyed by the INSTALL/DEINSTALL
@@ -1076,6 +1088,9 @@ FILES_SUBST+=		FONTS_VERBOSE=${FONTS_VERBOSE:Q}
 FILES_SUBST+=		INFO_FILES_VERBOSE=${INFO_FILES_VERBOSE:Q}
 FILES_SUBST+=		OCAML_FINDLIB_REGISTER_VERBOSE=${OCAML_FINDLIB_REGISTER_VERBOSE:Q}
 
+#workaround systems without $RANDOM by using urandom
+USE_TOOLS+=		fold
+
 # Substitute for various programs used in the DEINSTALL/INSTALL scripts and
 # in the rc.d scripts.
 #
@@ -1087,6 +1102,8 @@ FILES_SUBST+=		CHMOD=${CHMOD:Q}
 FILES_SUBST+=		CHOWN=${CHOWN:Q}
 FILES_SUBST+=		CMP=${CMP:Q}
 FILES_SUBST+=		CP=${CP:Q}
+FILES_SUBST+=		CUT=${CUT:Q}
+FILES_SUBST+=		DIFF=${DIFF:Q}
 FILES_SUBST+=		DIRNAME=${DIRNAME:Q}
 FILES_SUBST+=		ECHO=${ECHO:Q}
 FILES_SUBST+=		ECHO_N=${ECHO_N:Q}
@@ -1094,6 +1111,7 @@ FILES_SUBST+=		EGREP=${EGREP:Q}
 FILES_SUBST+=		EXPR=${EXPR:Q}
 FILES_SUBST+=		FALSE=${FALSE:Q}
 FILES_SUBST+=		FIND=${FIND:Q}
+FILES_SUBST+=		FOLD=${FOLD:Q}
 FILES_SUBST+=		GREP=${GREP:Q}
 FILES_SUBST+=		GROUPADD=${GROUPADD:Q}
 FILES_SUBST+=		GTAR=${GTAR:Q}
@@ -1119,12 +1137,61 @@ FILES_SUBST+=		SETENV=${SETENV:Q}
 FILES_SUBST+=		SH=${SH:Q}
 FILES_SUBST+=		SORT=${SORT:Q}
 FILES_SUBST+=		SU=${SU:Q}
+FILES_SUBST+=		TAIL=${TAIL:Q}
 FILES_SUBST+=		TEST=${TEST:Q}
 FILES_SUBST+=		TOUCH=${TOUCH:Q}
 FILES_SUBST+=		TR=${TR:Q}
 FILES_SUBST+=		TRUE=${TRUE:Q}
 FILES_SUBST+=		USERADD=${USERADD:Q}
+FILES_SUBST+=		WC=${WC:Q}
 FILES_SUBST+=		XARGS=${XARGS:Q}
+
+DISABLE_RCSDEP=no
+.for _test in ${USE_TOOLS}
+.	if "${_test}" == "${PKGBASE}"
+DISABLE_RCSDEP=yes
+.	endif
+.	for _ttype_ in "bootstrap" "run" "pkgsrc" "build"
+.		if "${_test}" == "{PKBGASE}:${_ttype_}"
+DISABLE_RCSDEP=yes
+.		endif
+.	endfor
+.endfor
+
+.if "${DISABLE_RCSDEP}" == "no" && !defined(IGNORE_VCS)
+.	if defined(TOOLS_PLATFORM.rcs)
+RCS=${TOOLS_PLATFORM.rcs}
+.	else
+USE_TOOLS+=	rcs
+RCS=${TOOLS_PATH.rcs}
+.	endif
+FILES_SUBST+=		RCS=${RCS:Q}
+
+.	if defined(TOOLS_PLATFORM.ci)
+CI=${TOOLS_PLATFORM.ci}
+.	else
+USE_TOOLS+=	ci
+CI=${TOOLS_PATH.ci}
+.	endif
+FILES_SUBST+=		CI=${CI:Q}
+
+.	if defined(TOOLS_PLATFORM.co)
+CO=${TOOLS_PLATFORM.co}
+.	else
+USE_TOOLS+=	co
+CO=${TOOLS_PATH.co}
+.	endif
+FILES_SUBST+=		CO=${CO:Q}
+
+.	if defined(TOOLS_PLATFORM.merge)
+MERGE=${TOOLS_PLATFORM.merge}
+.	else
+USE_TOOLS+=	merge
+MERGE=${TOOLS_PATH.merge}
+.	endif
+FILES_SUBST+=		MERGE=${MERGE:Q}
+
+.endif
 
 FILES_SUBST_SED=	${FILES_SUBST:S/=/@!/:S/$/!g/:S/^/ -e s!@/}
 

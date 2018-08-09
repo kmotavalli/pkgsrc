@@ -24,6 +24,7 @@ TOOLS_PLATFORM.false?=		false			# shell builtin
 TOOLS_PLATFORM.fgrep?=		/usr/bin/fgrep
 TOOLS_PLATFORM.file?=		/usr/bin/file
 TOOLS_PLATFORM.find?=		/sbin/find
+TOOLS_PLATFORM.fold?=		/sbin/fold
 TOOLS_PLATFORM.grep?=		/sbin/grep
 .if exists(/usr/sbin/gunzip)
 TOOLS_PLATFORM.gunzip?=		/usr/sbin/gunzip -f

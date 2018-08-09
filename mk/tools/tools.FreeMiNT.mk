@@ -26,6 +26,7 @@ TOOLS_PLATFORM.expr?=		/usr/bin/expr
 TOOLS_PLATFORM.false?=		false			# shell builtin
 TOOLS_PLATFORM.fgrep?=		/bin/fgrep
 TOOLS_PLATFORM.find?=		/usr/bin/find
+TOOLS_PLATFORM.fold?=		/usr/bin/fold
 TOOLS_PLATFORM.flex?=		/usr/bin/lex
 TOOLS_PLATFORM.grep?=		/bin/grep
 TOOLS_PLATFORM.groff?=		/usr/bin/groff

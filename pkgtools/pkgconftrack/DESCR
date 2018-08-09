@@ -1,0 +1,2 @@
+Manually handle configuration files revisions in pkgsrc VCS backends
+outside of package upgrades.
