@@ -1,0 +1,343 @@
+#!/bin/sh
+usage () {
+	echo "Usage: pkgconftrack [-p PREFIX] [-m commit message]"\
+	"store packagename [... packagenames]"
+}
+extractAdditionalFiles() {
+#TODO: parse files for includes
+}
+execute()
+{
+	if test "${USER}" = "root"; then
+		su -m pkgvcsconf -c "$1"
+		return $?
+	else
+		eval $1
+		return $?
+	fi
+}
+
+pkgchown()
+{
+	_restoreDir="$(pwd)"
+	if ! echo "$1" | grep -Fq "${_VCSDIR}"; then
+		echo "path \"$1\" not under VCSDIR: \"${_VCSDIR}\""
+		return 1
+	fi
+	if test -d "${_VCSDIR}"; then
+		chmod 700 "${_VCSDIR}"
+		chown pkgvcsconf:pkgvcsconf "${_VCSDIR}"
+	fi
+	if test -d "$1"; then
+		if test -n "$(find "$1" -perm -2000 -or -perm -4000 -print \
+			-quit 2>/dev/null)"; then
+			echo "SUID/SGID files under $1,"\ 
+			"refusing to run CHOWN -R"
+		else
+			chmod 700 "$1"
+			chown -R pkgvcsconf:pkgvcsconf "$1"
+		fi
+		if test "$1" = "${_VCSDIR}"; then
+			return 0
+		fi
+	fi
+	if test -f "$1"; then
+		if test -u "$1" -o -g "$1"; then
+			echo "SUID/SGID file at $1, refusing to chown it"
+		else
+			chmod 600 "$1"
+			chown pkgvcsconf:pkgvcsconf "$1"
+		fi
+		_dirs=$(dirname "$1")
+	else
+		_dirs="$1"
+	fi
+	_dirsplit=$(echo "${_dirs}" | awk -F "${_VCSDIR}" '{print $2}'| tr "/" " " )
+	cd "${_VCSDIR}"
+	for dir in ${_dirsplit}
+		do
+			if test -d "${dir}"; then
+					if ! execute "test -r \"${dir}\" -a -w \"${dir}\""; then 
+						chmod 700 "${dir}"
+						chown pkgvcsconf:pkgvcsconf\
+						"${dir}"
+					fi
+					cd "${dir}"
+			fi
+		done
+	cd "${_restoreDir}"
+}
+
+if [ "${USER}" = "root" ]; then
+	drop=$(which true)
+else
+	drop=$(which false)
+fi
+store() {
+	if test ! -f $1; then
+		echo "Can't access file $1"
+		return 1
+	fi
+	if test -d "$2" -a -w "$2"; then
+		if $drop; then
+			pkgchown "$2"
+		fi
+		_dir=$(dirname $1)
+		if [ ! -d "${2}/user/${_dir}" ]; then
+			execute "mkdir -p \"${2}/user/${_dir}\"";
+		fi
+		cp -f "$1" "${2}/user/${1}"
+		if $drop; then
+			pkgchown "${2}/user/${1}"
+		fi
+		case ${3} in
+			"rcs")
+				execute "rcs -U \"${2}/user/${1}\" > /dev/null"
+				execute "echo . | ci -m\"${_MESSAGE}\" -u \"${2}/user/${1}\"" 
+				return $?
+				;;
+			"cvs")
+				if [ "$4" = "no" ]; then
+					_CVSROOT="${2}/CVSROOT"
+				else
+					_CVSROOT="$4"
+				fi
+				cd "${2}/user"
+				_status=0
+				OLDIFS="$IFS"
+				IFS="/"
+				for curdir in $1
+					do
+						execute "cvs -d \"${_CVSROOT}\" add \"${curdir}\""
+						if [ ! $? -eq 0 ]; then
+							return 1
+						else
+							cd "${curdir}" 2>/dev/null
+						fi
+					done
+				IFS="$OLDIFS"
+				;;
+			"git")
+				cd "$2"
+				execute "git --git-dir=\"${2}/.git\" --work-tree=\"${2}\" add -f \"${2}/user/${1}\""
+				return $?
+				;;
+			"mercurial")
+				cd "${2}"
+				execute "hg --repository \"${2}\" add \"${2}/user/${1}\""
+				return $?
+				;;
+			"subversion")
+				cd "${2}/user"
+				OLDIFS="$IFS"
+				IFS="/"
+				_status=0
+				for curdir in $1
+					do
+						execute "svn add --force --depth=empty \"${curdir}\""
+						if [ ! $? -eq 0 ]; then
+							return 1
+						else
+							cd "${curdir}" 2>/dev/null
+						fi
+					done
+				IFS="$OLDIFS"
+				;;
+			*)
+				echo "Unsupported versioning system: $3"
+				return 1
+				;;
+		esac		
+	else
+		echo "Can't use a working directory at VCSDIR: $2"
+		return 1
+	fi
+	
+}
+
+commit() {
+	if test -d "$2" -a -w "$2"; then
+		cd "$2"
+		if $drop; then
+			pkgchown "$2"
+		fi
+		_COMMITMESSAGE="$1"
+		case $3 in
+			"rcs")
+				#do nothing
+				return 0
+				;;
+			"cvs")
+				if [ "$4" = "no" ]; then
+					_CVSROOT="${2}/CVSROOT"
+				else
+					_CVSROOT="$4"
+				fi
+				execute "cvs -Q -d \"${_CVSROOT}\" commit -R -m \"${_COMMITMESSAGE}\""
+				return $?
+				;;
+			"git")
+				execute "git --git-dir=\"${2}/.git\" --work-tree=\"${2}\" commit -m \"${_COMMITMESSAGE}\""
+				_gitStatus=$?
+				if [ "$4" != "no" -a $_gitStatus -eq 0 ]; then
+					execute "git --git-dir=\"${2}/.git\" --work-tree=\"${2}\" push origin master"
+					_gitStatus=$?
+				fi
+				return $_gitStatus
+				;;
+			"mercurial")
+				execute "hg --repository \"${2}\" commit -m \"${_COMMITMESSAGE}\" --user pkgconftrack"
+				_hgStatus=$?
+				if [ "$4" != "no" -a $_hgStatus -eq 0 ]; then
+					execute "hg --repository \"${2}\" push \"${4}\""
+					_hgStatus=$?
+				fi
+				return $_hgStatus
+				;;
+			"subversion")
+				cd "${2}/user"
+				execute "svn commit -m \"${_COMMITMESSAGE}\""
+				return $?
+				;;
+			*)
+				echo "pkgconfrack: commit: ${3}: unsupported VCS"
+				return 1
+				;;
+		esac
+	else
+		echo "Can't access VCSDIR at ${2}!"
+		exit 1
+	fi
+}
+
+_toshift=0
+while getopts "p:m:" flag
+do
+	case $flag in
+	"m"|"M")
+		_MESSAGE=$OPTARG
+		_toshift=$((_toshift + 2))
+		;;
+	"p"|"P")
+		_PREFIX=$OPTARG
+		_toshift=$((_toshift +2))
+		;;	
+	esac
+done
+shift $_toshift
+if [ -z "$_PREFIX" ]; then
+	_PREFIX=/usr/pkg
+fi
+if [ -z "$_MESSAGE" ]; then
+	_MESSAGE=$(date)
+fi
+tstamp=$(date +%s)
+_MESSAGE="${tstamp}:pkgconftrack: ${_MESSAGE}"
+
+_VCSDIR="$VCSDIR"
+if [ -z "$_VCSDIR" ]; then
+	_VCSDIR=$(${_PREFIX}/sbin/pkg_admin config-var VCSDIR)
+fi
+if [ -z "$_VCSDIR" ]; then
+	VARBASE=$(${_PREFIX}/sbin/pkg_info -i $(${_PREFIX}/sbin/pkg_info | head -n 1 | awk '{print $1}') | awk -F "=" '/^VARBASE=/ {gsub("\"","");printf "%s", $2}')
+	if [ -n "$VARBASE" ]; then
+		_VCSDIR=${VARBASE}/confrepo
+	else
+		_VCSDIR=/var/confrepo
+	fi
+fi
+
+_REMOTEVCS="$REMOTEVCS"
+if [ -z "$_REMOTEVCS" ]; then
+	_REMOTEVCS=$(${_PREFIX}/sbin/pkg_admin config-var REMOTEVCS)
+fi
+_REMOTEVCS="${_REMOTEVCS:-no}"
+case "${_REMOTEVCS}" in
+[Nn][Oo])
+	_REMOTEVCS=no
+	;;
+esac
+
+_VCS="$VCS"
+if [ -z "$_VCS" ]; then
+	_VCS=$(${_PREFIX}/sbin/pkg_admin config-var VCS)
+fi
+_VCS="${_VCS:-rcs}"
+case "${_VCS}" in
+[Rr][Cc][Ss])
+	_VCS=rcs
+	;;
+[Gg][Ii][Tt])
+	_VCS=git
+	;;
+[Cc][Vv][Ss])
+	_VCS=cvs
+	;;
+[Hh][Gg])
+	_VCS=mercurial
+	;;
+[Ss][Vv][Nn])
+	_VCS=subversion
+	;;
+[Ss][Uu][Bb][Vv][Ee][Rr][Ss][Ii][Oo][Nn])
+	_VCS=subversion
+	;;
+[Mm][Ee][Rr][Cc][Uu][Rr][Ii][Aa][Ll])
+	_VCS=mercurial
+	;;
+esac
+
+echo "prefix: ${_PREFIX}, VCSDIR: ${_VCSDIR}, VCS: ${_VCS}, REMOTEVCS: ${_REMOTEVCS}"
+
+ACTION=$1
+PACKAGES=""
+while [ $# -gt 1 ] 
+	do
+		PACKAGES="${2} ${PACKAGES}"
+		shift 1
+	done
+
+case $ACTION in
+store|STORE)
+	_status=0
+	for _PACKAGE in ${PACKAGES}
+		do
+			_pkgdbpath=$(${_PREFIX}/sbin/pkg_info -E "${_PACKAGE}")
+			if [ $? -eq 0 ]; then
+				echo "Storing configuration files for ${_PACKAGE}"
+				_LOCALBASE="$(${_PREFIX}/sbin/pkg_info -Q LOCALBASE "${_PACKAGE}")"
+				_filesList="$(${_PREFIX}/sbin/pkg_info -i "${_PACKAGE}" | awk -v pre="${_LOCALBASE}" '/^# FILE: / && $4 ~ /c/ && $4 !~ /r/ {printf "%s/%s\n", pre, $3}')"
+				for file in ${_filesList}
+					do
+						extractAdditionalFiles "${file}"
+					done
+				_filesList="${_filesList} ${_includedFilesList}"
+				for file in ${_filesList}
+					do
+						store "${file}" "${_VCSDIR}" "${_VCS}" "${_REMOTEVCS}"
+						if [ ! $? -eq 0 ]; then
+							_status=1
+						fi
+						if test -f "${_VCSDIR}/automergedfiles"\
+						&& grep -Fq "${file}" "${_VCSDIR}/automergedfiles"; then
+							grep -Fv "${file}" "${_VCSDIR}/automergedfiles" > "${_VCSDIR}/automergedfiles.rm"
+							mv -f "${_VCSDIR}/automergedfiles.rm" "${_VCSDIR}/automergedfiles"
+						fi
+					done
+			else
+				echo "Package not found:" "${_PACKAGE}" "in the pkgdb for" "${_PREFIX}"
+			fi
+		done	
+		if [ $_status -eq 0 ]; then
+			commit "${_MESSAGE}" "${_VCSDIR}" "${_VCS}" "${_REMOTEVCS}"
+			exit $?
+		else
+			echo "Failed to store configuration files"
+		fi 
+	;;
+*)
+	echo "${ACTION}: unknown action"
+	usage
+	exit 2
+	;;
+esac

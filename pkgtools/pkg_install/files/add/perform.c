@@ -977,6 +977,19 @@ run_install_script(struct pkg_task *pkg, const char *argument)
 	setenv(PKG_PREFIX_VNAME, pkg->prefix, 1);
 	setenv(PKG_METADATA_DIR_VNAME, pkg->logdir, 1);
 	setenv(PKG_REFCOUNT_DBDIR_VNAME, config_pkg_refcount_dbdir, 1);
+	setenv("VCS_CONF_FILES", vcs_enabled, 0);
+	if (vcs_vcs != NULL)
+		setenv("VCS", vcs_vcs, 1);
+	if (vcs_vcsdir != NULL)
+		setenv("VCSDIR", vcs_vcsdir, 1);
+	if (vcs_vcsautomerge != NULL)
+		setenv("VCSAUTOMERGE", vcs_vcsautomerge, 0); //prefer temporary setting
+	if (vcs_vcsconfpull != NULL)
+		setenv("VCSCONFPULL", vcs_vcsconfpull, 1);
+	if (vcs_remotevcs != NULL)
+		setenv("REMOTEVCS", vcs_remotevcs, 1);
+	if (vcs_role != NULL)
+		setenv("ROLE", vcs_role, 1);
 
 	if (Verbose)
 		printf("Running install with PRE-INSTALL for %s.\n", pkg->pkgname);

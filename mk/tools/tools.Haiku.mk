@@ -24,7 +24,9 @@ TOOLS_PLATFORM.cat?=		/bin/cat
 TOOLS_PLATFORM.chgrp?=		/bin/chgrp
 TOOLS_PLATFORM.chmod?=		/bin/chmod
 TOOLS_PLATFORM.chown?=		/bin/chown
+TOOLS_PLATFORM.ci?=		/bin/ci
 TOOLS_PLATFORM.cmp?=		/bin/cmp
+TOOLS_PLATFORM.co?=		/bin/co
 TOOLS_PLATFORM.cp?=		/bin/cp
 TOOLS_PLATFORM.cut?=		/bin/cut
 .if exists(/bin/curl)
@@ -101,6 +103,9 @@ TOOLS_PLATFORM.makeinfo?=	/bin/makeinfo
 .elif exists(/boot/common/bin/makeinfo)
 TOOLS_PLATFORM.makeinfo?=	/boot/common/bin/makeinfo
 .endif
+.if exists(/bin/merge)
+TOOLS_PLATFORM.merge?=		/bin/merge
+.endif
 TOOLS_PLATFORM.mkdir?=		/bin/mkdir -p
 .if exists(/bin/mktemp)
 TOOLS_PLATFORM.mktemp?=		/bin/mktemp
@@ -120,6 +125,7 @@ TOOLS_PLATFORM.openssl?=	/boot/common/bin/openssl
 #TOOLS_PLATFORM.patch?=		/bin/patch
 TOOLS_PLATFORM.printf?=		/bin/printf
 TOOLS_PLATFORM.pwd?=		/bin/pwd
+TOOLS_PLATFORM.rcs?=		/bin/rcs
 TOOLS_PLATFORM.readlink?=	/bin/readlink
 TOOLS_PLATFORM.rm?=		/bin/rm
 TOOLS_PLATFORM.rmdir?=		/bin/rmdir

@@ -20,7 +20,13 @@ TOOLS_PLATFORM.chown?=		/sbin/chown
 .elif exists(/usr/sbin/chown)
 TOOLS_PLATFORM.chown?=		/usr/sbin/chown
 .endif
+.if exists(/usr/bin/ci)
+TOOLS_PLATFORM?=		/usr/bin/ci
+.endif
 TOOLS_PLATFORM.cmp?=		/usr/bin/cmp
+.if exists(/usr/bin/co)
+TOOLS_PLATFORM?=		/usr/bin/co
+.endif
 TOOLS_PLATFORM.cp?=		/bin/cp
 TOOLS_PLATFORM.csh?=		/bin/csh
 TOOLS_PLATFORM.cut?=		/usr/bin/cut
@@ -58,6 +64,9 @@ TOOLS_PLATFORM.m4?=		/usr/bin/m4
 TOOLS_PLATFORM.mail?=		/usr/bin/mail
 .if exists(/usr/bin/makeinfo)
 TOOLS_PLATFORM.makeinfo?=	/usr/bin/makeinfo
+.endif
+.if exists(/usr/bin/merge)
+TOOLS_PLATFORM.merge?=		/usr/bin/merge
 .endif
 TOOLS_PLATFORM.mkdir?=		/bin/mkdir -p
 TOOLS_PLATFORM.mktemp?=		/usr/bin/mktemp
