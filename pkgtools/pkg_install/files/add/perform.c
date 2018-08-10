@@ -977,7 +977,7 @@ run_install_script(struct pkg_task *pkg, const char *argument)
 	setenv(PKG_PREFIX_VNAME, pkg->prefix, 1);
 	setenv(PKG_METADATA_DIR_VNAME, pkg->logdir, 1);
 	setenv(PKG_REFCOUNT_DBDIR_VNAME, config_pkg_refcount_dbdir, 1);
-	setenv("VCS_CONF_FILES", vcs_enabled, 0);
+	setenv("VCSTRACK_CONF", vcs_enabled, 0);
 	if (vcs_vcs != NULL)
 		setenv("VCS", vcs_vcs, 1);
 	if (vcs_vcsdir != NULL)

@@ -9,34 +9,42 @@ UNPACK,|UNPACK,+VERSIONING)
 #!@SH@
 #
 # +VERSIONING - operate on version control systems
-# set VCS_CONF_FILES=yes in order to enable configuration file version tracking!
+# set VCSTRACK_CONF=yes in order to enable configuration file version tracking!
 #
 # This script calls VCS software, "rcs" by default, in order to store revisions
 # of configuration files. This is done by the "REGISTER" action, which takes 
 # the path to an example configuration file as argument.
+#
 # Said file should be placed in the VCS working directory by the "files" script
 # VERSIONING only handles the storage of revisions inside a vcs.
 # Once all configuration files for a package are registered, files should call
 # the COMMIT action, which will commit changes on backends that support
 # atomic transactions (if using rcs, commit won't execute further operations).
+#
 # MERGE calls RCS merge to attempt a 3-way merge between the copy of an  
 # installed configuration file, its original revision and the last example file
 # as provided by the package. This is a non-interactive merge, if successful
 # "files" will install the output in place of the existing configuration.
+#
 # CHECKOUT and CHECKOUT-FIRST exist to assist "files" in retrieving revisions
-# before attempting an automatic merge.  
+# before attempting an automatic merge.
+#
 # Files only attempts to automatically merge changes if the environment
 # variable VCSAUTOMERGE is set to "yes". A backup of the installed configuration
 # is taken first, and user modified configuration files are stored separately,
 # in order to enable for a quick restoration of the last known working file.
+#
 # PREPARE is called before registering files: under some VCSs it checks
 # that the working directory and/or the remote repository is correctly
 # initialized, and initializes it otherwise. 
+#
 # The VCSDIR environment variable is read to set the working directory,
 # under which the repository will also reside, if a local vcs is being used.
 # It defaults to VARBASE/confrepo.
-# The VCS backend to use can be set via VCS environment variable, and defaults
-# to RCS (Revision Control System).
+#
+# The VCS backend to be used can be set via the VCS environment variable;
+# it defaults to RCS (Revision Control System).
+#
 # REMOTEVCS, if set, must contain a string that the chosen VCS understands as
 # an URI to a remote repository, including login credentials if not specified
 # through other means. This is non standard across different backends, and
@@ -80,35 +88,46 @@ UNPACK,|UNPACK,+VERSIONING)
 # independently of the role they are created for, scoring and using the one
 # with the best matching optional hostname and/or nearest to the target release
 # as explained below:
+#
 # The checks now further refine the candidates: if a branch pkgVersion exactly
 # corresponds with the version of the package being installed,
 # that branch gets selected, otherwise the procedure uses the one
 # which is closest to the package version being installed.
-# non numerical values in package versions are accounted for
+#
+# Non numerical values in package versions are accounted for
 # when checking for an exact match, and are otherwise ignored.
 # Only integer versions and dot-separated sequence based identifiers are
 # understood when checking for compatible software ranges and for the closest
-# branch, if no branch exactly matches with the package version being installed.
+# branch, if no branch exactly matches with the package version being installed.#
 # Dates are handled provided they follow the ISO 8601 scheme: YYYY-MM-DD, YYYYMMDD 
 #
 # Usage: ./+VERSIONING REGISTER|CHECKOUT|CHECKOUT-FIRST [examplefile]
-#	 ./+VERSIONING MERGE [examplefile] [firstrevision]
-#	 ./+VERSIONING COMMIT [message]
-#	 ./+VERSIONING PRAPARE
-#	 ./+VERSIONING PULL PKGPATH PKGVERSION PKGNAME 
+#        ./+VERSIONING MERGE [examplefile] [firstrevision]
+#        ./+VERSIONING COMMIT [message]
+#        ./+VERSIONING PREPARE
+#        ./+VERSIONING PULL PKGPATH PKGVERSION PKGNAME 
 #
 AWK="@AWK@"
 CAT="@CAT@"
 CHMOD="@CHMOD@"
 CHOWN="@CHOWN@"
+CI="@CI@"
+CO="@CO@"
+CP="@CP@"
+CUT="@CUT@"
 DIRNAME="@DIRNAME@"
 ECHO="@ECHO@"
+EXPR="@EXPR@"
 FIND="@FIND@"
+FOLD="@FOLD@"
 GREP="@GREP@"
+HEAD="@HEAD@"
 LS="@LS@"
+MERGE="@MERGE@"
 MKDIR="@MKDIR@"
 MV="@MV@"
 PWD_CMD="@PWD_CMD@"
+RCS="@RCS@"
 RM="@RM@"
 RMDIR="@RMDIR@"
 SED="@SED@"
@@ -117,12 +136,6 @@ TAIL="@TAIL@"
 TEST="@TEST@"
 TR="@TR@"
 TRUE="@TRUE@"
-RCS="@RCS@"
-CI="@CI@"
-CO="@CO@"
-CP="@CP@"
-CUT="@CUT@"
-MERGE="@MERGE@"
 WC="@WC@"
 
 SELF=$0
@@ -168,7 +181,7 @@ case "${_REMOTE}" in
 	_REMOTE=no
 	;;
 esac
-if ${TEST} "$_VCS" = "cvs" -o "$_VCS" = "CVS"; then
+if ${TEST} "$_VCS" = "cvs" || ${TEST} "$_VCS" = "CVS"; then
 	if ${TEST} "$_REMOTE" != "no"; then
 		_CVSROOT="$_REMOTE"
 	else
@@ -185,52 +198,57 @@ esac
 execute()
 {
 	if ${TEST} "${USER}" = "root"; then
-		su -m pkgvcsconf -c "$1"
+		su -m pkgvcsconf -c "${1}"
 		return $?
 	else
-		eval $1
+		eval "${1}"
 		return $?
 	fi
 }
+
 pkgchown()
 {
-	_restoreDir="$(${PWD_CMD})"
-	if ! ${ECHO} "$1" | ${GREP} -Fq "${_VCSDIR}"; then
-		${ECHO} "Path \"$1\" not under VCSDIR: \"${_VCSDIR}\""
+	_restoreDir="`${PWD_CMD}`"
+	if ${ECHO} "${1}" | ${GREP} -Fv "${_VCSDIR}" > /dev/null; then
+		${ECHO} 1>&2 "Path \"${1}\" not under VCSDIR: \"${_VCSDIR}\""
 		return 1
 	fi
 	if ${TEST} -d "${_VCSDIR}"; then
 		${CHMOD} 700 "${_VCSDIR}"
 		${CHOWN} pkgvcsconf:pkgvcsconf "${_VCSDIR}"
 	fi
-	if ${TEST} -d "$1"; then
-		if ${TEST} -n "$(${FIND} "$1" -perm -2000 -or -perm -4000 -print -quit 2>/dev/null)"; then
-			${ECHO} "SUID/SGID files under $1, refusing to run CHOWN -R"
+	if ${TEST} -d "${1}"; then
+		if ${TEST} -n "`${FIND} "${1}" -perm -2000 -or -perm -4000 -print -quit 2>/dev/null `"; then
+			${ECHO} 1>&2 "SUID/SGID files under ${1}, refusing to run CHOWN -R"
 		else
-			${CHMOD} 700 "$1"
-			${CHOWN} -R pkgvcsconf:pkgvcsconf "$1"
+			${CHMOD} 700 "${1}"
+			${CHOWN} -R pkgvcsconf:pkgvcsconf "${1}"
 		fi
-		if ${TEST} "$1" = "${_VCSDIR}"; then
+		if ${TEST} "${1}" = "${_VCSDIR}"; then
 			return 0
 		fi
 	fi
-	if ${TEST} -f "$1"; then
-		if ${TEST} -u "$1" -o -g "$1"; then
-			${ECHO} "SUID/SGID file at $1, refusing to chown it"
+	if ${TEST} -f "${1}"; then
+		if ${TEST} -u "${1}" || ${TEST} -g "${1}"; then
+			${ECHO} 1>&2 "SUID/SGID file at ${1}, refusing to chown it"
 		else
-			${CHMOD} 600 "$1"
-			${CHOWN} pkgvcsconf:pkgvcsconf "$1"
+			${CHMOD} 600 "${1}"
+			${CHOWN} pkgvcsconf:pkgvcsconf "${1}"
 		fi
-		_dirs=$(${DIRNAME} "$1")
+		_dirs="`${DIRNAME} "${1}"`"
 	else
-		_dirs="$1"
+		_dirs="${1}"
 	fi
-	_dirsplit=$(${ECHO} "${_dirs}" | ${AWK} -F "${_VCSDIR}" '{print $2}'| ${TR} "/" " " )
+	_dirsplit="`${ECHO} "${_dirs}" | ${AWK} -F "${_VCSDIR}" '{print $2}'| ${TR} "/" " "`" 
 	cd "${_VCSDIR}"
 	for dir in ${_dirsplit}
 		do
 			if ${TEST} -d "${dir}"; then
-					if ! execute "${TEST} -r \"${dir}\" -a -w \"${dir}\""; then
+					execute "${TEST} -r \"${dir}\""
+					_canR=$?
+					execute "${TEST} -w \"${dir}\""
+					_canW=$?
+					if ${TEST} "${_canR}" -ne 0 || ${TEST} "${_canW}" -ne 0; then
 						${CHMOD} 700 "${dir}"
 						${CHOWN} pkgvcsconf:pkgvcsconf "${dir}"
 					fi
@@ -239,6 +257,7 @@ pkgchown()
 		done
 	cd "${_restoreDir}"
 }
+
 if ${TEST} "${USER}" = "root"; then
 	drop=${TRUE}
 else
@@ -252,14 +271,14 @@ PREPARE)
 		"cvs")
 			execute "cvs -d \"${_CVSROOT}\" rlog defaults 1>/dev/null"
 			repostatus=$?
-			if ${TEST} ! ${repostatus} -eq 0; then
+			if ${TEST} ${repostatus} -ne 0; then
 				if ${TEST} "${_REMOTE}" = "no"; then	
 					execute "cvs -d \"${_CVSROOT}\" init"
 					exitcode=$?
 				fi
 				for module in "automerged" "defaults" "user"
 					do
-						if ${TEST} -d "${_VCSDIR}/${module}" -a -r "${_VCSDIR}/${module}"; then
+						if ${TEST} -d "${_VCSDIR}/${module}" && ${TEST} -r "${_VCSDIR}/${module}"; then
 							if ${drop}; then
 								pkgchown "${_VCSDIR}/${module}"
 							fi
@@ -288,7 +307,7 @@ PREPARE)
 				pkgchown "${_VCSDIR}/defaults"
 			fi
 			execute "svn info \"${_VCSDIR}/defaults\" > /dev/null"
-			if ${TEST} ! $? -eq 0; then
+			if ${TEST} $? -ne 0; then
 				if ${TEST} "$_REMOTE" = "no"; then
 					${RM} -fr "${_VCSDIR}/localsvn" 2>/dev/null
 					execute "svnadmin create \"${_VCSDIR}/localsvn\""
@@ -329,7 +348,7 @@ PREPARE)
 			gitstatus=$?
 			#this script won't clone a remote repository if a local git repo already exists in the VCSDIR.
 			#just setting $REMOTE won't suffice, manually move over data and clone the repo first or use git remote add
-			if ${TEST} ! ${gitstatus} -eq 0; then
+			if ${TEST} ${gitstatus} -ne 0; then
 				execute "git --git-dir=\"${_VCSDIR}/.git\" --work-tree=\"${_VCSDIR}\" init"
 				exitcode=$?
 				if ${TEST} "${_REMOTE}" != "no"\
@@ -339,7 +358,7 @@ PREPARE)
 				fi
 			else
 				if ${TEST} "$_REMOTE" != "no"; then
-					if execute "git --git-dir=\"${_VCSDIR}/.git\" --work-tree=\"${_VCSDIR}\" remote | ${GREP} -Fq \"origin\""; then
+					if execute "git --git-dir=\"${_VCSDIR}/.git\" --work-tree=\"${_VCSDIR}\" remote | ${GREP} -F \"origin\" >/dev/null"; then
 						execute "git --git-dir=\"${_VCSDIR}/.git\" --work-tree=\"${_VCSDIR}\" remote remove origin"
 						execute "git --git-dir=\"${_VCSDIR}/.git\" --work-tree=\"${_VCSDIR}\" remote add origin \"${_REMOTE}\""
 						#populate the remote repo if empty
@@ -353,7 +372,7 @@ PREPARE)
 				fi
 				 
 			fi
-			if ${TEST} $exitcode -eq 0 -a ! "${_REMOTE}" = "no"; then
+			if ${TEST} $exitcode -eq 0 && ${TEST} ! "${_REMOTE}" = "no"; then
 				execute "git --git-dir=\"${_VCSDIR}/.git\" --work-tree=\"${_VCSDIR}\" pull origin master"
 			fi 
 			;;
@@ -362,7 +381,7 @@ PREPARE)
 				pkgchown "${_VCSDIR}/.hg"
 			fi
 			execute "hg --repository \"${_VCSDIR}\" summary > /dev/null"
-			if ${TEST} ! $? -eq 0; then
+			if ${TEST} $? -ne 0; then
 				execute "hg init \"${_VCSDIR}\""
 				exitcode=$?
 				if ${TEST} "${_REMOTE}" != "no"; then
@@ -385,7 +404,7 @@ PREPARE)
 			fi
 			;;
 		*)
-			${ECHO} "${_VCS}: unsupported versioning system"
+			${ECHO} 1>&2 "${_VCS}: unsupported versioning system"
 			exitcode=2
 			;;
 		esac
@@ -401,15 +420,15 @@ REGISTER)
 		exitcode=$?
 		;;
 	"cvs")
-		_PATHSPLIT=$(${ECHO} "${CFILE}" | ${AWK} -F "//" '{print $2}')
-		cd $(${ECHO} "${CFILE}" | ${AWK} -F "//" '{print $1}')
+		_PATHSPLIT="`${ECHO} "${CFILE}" | ${AWK} -F "//" '{print $2}'`"
+		cd "`${ECHO} "${CFILE}" | ${AWK} -F "//" '{print $1}'`"
 		OLDIFS="${IFS}"
 		IFS="/"
 		_cvsstatus=0
 		for curdir in ${_PATHSPLIT}
 			do
 				execute "cvs -d \"${_CVSROOT}\" add \"${curdir}\"" 
-				if ${TEST} ! $? -eq 0; then
+				if ${TEST} $? -ne 0; then
 					exitcode=1
 				else
 					cd "$curdir" 2>/dev/null
@@ -428,15 +447,15 @@ REGISTER)
 		exitcode=$?
 		;;
 	"subversion")
-		_PATHSPLIT=$(${ECHO} "${CFILE}" | ${AWK} -F "//" '{print $2}')
-		cd $(${ECHO} "${CFILE}" | ${AWK} -F "//" '{print $1}')
+		_PATHSPLIT="`${ECHO} "${CFILE}" | ${AWK} -F "//" '{print $2}'`"
+		cd "`${ECHO} "${CFILE}" | ${AWK} -F "//" '{print $1}'`"
 		_svnstatus=0
 		OLDIFS="${IFS}"
 		IFS="/"
 		for curdir in ${_PATHSPLIT}
 		do
 			execute	"svn add --force --depth=empty \"${curdir}\""
-			if ${TEST} ! $? -eq 0; then
+			if ${TEST} $? -ne 0; then
 				exitcode=1
 			else
 				cd "${curdir}" 2>/dev/null
@@ -445,7 +464,7 @@ REGISTER)
 		IFS="${OLDIFS}"
 		;;
 	*)
-		${ECHO} "${_VCS}: unsupported versioning system. I shouldn't be there!"
+		${ECHO} 1>&2 "${_VCS}: unsupported versioning system. I shouldn't be there!"
 		exitcode=2
 		;;
 	esac
@@ -458,7 +477,7 @@ COMMIT)
 		if ${TEST} $? -eq 0; then
 			${ECHO} "Conf commit: pkgsrc: $2"
 		else
-			${ECHO} "Failed to commit conf: $2"
+			${ECHO} 1>&2 "Failed to commit conf: $2"
 			exitcode=3
 		fi
 		;;
@@ -468,14 +487,14 @@ COMMIT)
 		if ${TEST} ${gitcommitstatus} -eq 0; then
 			${ECHO} "Conf commit: pkgsrc: $2"
 		else
-			${ECHO} "Failed to commit conf: $2"
+			${ECHO} 1>&2 "Failed to commit conf: $2"
 			exitcode=3
 		fi
 		if ${TEST} "$_REMOTE" != "no"; then
 			execute "git --git-dir=\"${_VCSDIR}/.git\" --work-tree=\"${_VCSDIR}\" push origin master"
 			#even if it fails, a local copy exists
-			if ${TEST} ! $? -eq 0; then
-				${ECHO} "git: failed to push changes to the remote repository ${_REMOTE}"
+			if ${TEST} $? -ne 0; then
+				${ECHO} 1>&2 "git: failed to push changes to the remote repository ${_REMOTE}"
 			fi
 		fi
 		;;
@@ -485,13 +504,13 @@ COMMIT)
 		if ${TEST} ${hgcommitstatus} -eq 0; then
 			${ECHO} "Conf commit: pkgsrc: $2"
 		else
-			${ECHO} "Failed to commit conf: $2"
+			${ECHO} 1>&2 "Failed to commit conf: $2"
 			exitcode=3
 		fi
 		if ${TEST} "${_REMOTE}" != "no"; then
 			execute "hg --repository \"${_VCSDIR}\" push \"${_REMOTE}\""
-			if ${TEST} ! $? -eq 0; then
-				${ECHO} "hg: failed to push changes to the remote repository ${_REMOTE}"
+			if ${TEST} $? -ne 0; then
+				${ECHO} 1>&2 "hg: failed to push changes to the remote repository ${_REMOTE}"
 			fi
 		fi
 		;;
@@ -513,7 +532,7 @@ COMMIT)
 		if ${TEST} ${_svnexitstatus} -eq 0; then
 			${ECHO} "Conf commit: pkgsrc: $2"
 		else
-			${ECHO} "Failed to commit conf: $2"
+			${ECHO} 1>&2 "Failed to commit conf: $2"
 			exitcode=3
 		fi
 		;;
@@ -532,7 +551,7 @@ CHECKOUT)
 		;;
 	"cvs")
 		cd "${_VCSDIR}"
-		_PATHSPLIT=$(${ECHO} "${CFILE}" | ${AWK} -F "${_VCSDIR}" '{print $2}' | ${SED} 's@//@/@' | ${SED} 's@/@@')
+		_PATHSPLIT="`${ECHO} "${CFILE}" | ${AWK} -F "${_VCSDIR}" '{print $2}' | ${SED} 's@//@/@' | ${SED} 's@/@@'`"
 		execute "cvs -d \"${_CVSROOT}\" co \"${_PATHSPLIT}\""
 		;;
 	"git")
@@ -547,7 +566,7 @@ CHECKOUT)
 			pkgchown "${_VCSDIR}/localsvn"
 		fi
 		cd "${_VCSDIR}"
-		_PATHSPLIT=$(${ECHO} "${CFILE}" | ${AWK} -F "${_VCSDIR}" '{print $2}')
+		_PATHSPLIT="`${ECHO} "${CFILE}" | ${AWK} -F "${_VCSDIR}" '{print $2}'`"
 		if ${TEST} "${_REMOTE}" = "no"; then
 			execute "svn export --force file:\/\/\"${_VCSDIR}/localsvn/${_PATHSPLIT}\" \"${CFILE}\""
 		else
@@ -562,7 +581,7 @@ CHECKOUT)
 		execute "hg --repository \"${_VCSDIR}\" cat -r tip \"${CFILE}\" > \"${CFILE}\""
 		;;
 	*)
-		${ECHO} "${_VCS}: unsupported versioning system"
+		${ECHO} 1>&2 "${_VCS}: unsupported versioning system"
 		exitcode=2
 		;;
 	esac
@@ -579,7 +598,7 @@ CHECKOUT-FIRST)
 		;;
 	"cvs")
 		cd "${_VCSDIR}"
-		_PATHSPLIT=$(${ECHO} "${CFILE}" | ${AWK} -F "${_VCSDIR}" '{print $2}' | ${SED} 's@//@/@' | ${SED} 's@/@@')
+		_PATHSPLIT="`${ECHO} "${CFILE}" | ${AWK} -F "${_VCSDIR}" '{print $2}' | ${SED} 's@//@/@' | ${SED} 's@/@@'`"
 		execute "cvs -d \"${_CVSROOT}\" co -r1.1 \"${_PATHSPLIT}\""
 		;;
 	"git")
@@ -587,7 +606,7 @@ CHECKOUT-FIRST)
 			pkgchown "${_VCSDIR}/.git"
 		fi
 		cd "${_VCSDIR}"
- 		_firstRev=$(execute "git --git-dir=\"${_VCSDIR}/.git\" --work-tree=\"${_VCSDIR}\" rev-list HEAD \"${CFILE}\"" | ${TAIL} -n 1) 
+ 		_firstRev="`execute "git --git-dir=\"${_VCSDIR}/.git\" --work-tree=\"${_VCSDIR}\" rev-list HEAD \"${CFILE}\"" | ${TAIL} -n 1 `" 
 		execute "git --git-dir=\"${_VCSDIR}/.git\" --work-tree=\"${_VCSDIR}\" checkout ${_firstRev} -- \"${CFILE}\""
 		;;
 	"mercurial")
@@ -595,22 +614,22 @@ CHECKOUT-FIRST)
 			pkgchown "${_VCSDIR}/.hg"
 		fi
 		cd "${_VCSDIR}"
-		_PATHSPLIT=$(${ECHO} "${CFILE}" | ${AWK} -F "${_VCSDIR}" '{print $2}' | ${CUT} -c 2-)
+		_PATHSPLIT="`${ECHO} "${CFILE}" | ${AWK} -F "${_VCSDIR}" '{print $2}' | ${CUT} -c 2- `"
 		execute "hg --repository \"${_VCSDIR}\" cat -r \"first(file(\"${_PATHSPLIT}\"),1)\" \"${CFILE}\" > \"${CFILE}\""
 		;;
 	"subversion")
 		cd "${_VCSDIR}"
-		_PATHSPLIT=$(${ECHO} "${CFILE}" | ${AWK} -F "${_VCSDIR}" '{print $2}')
+		_PATHSPLIT="`${ECHO} "${CFILE}" | ${AWK} -F "${_VCSDIR}" '{print $2}'`"
 		if ${TEST} "${_REMOTE}" = "no"; then
-			_firstRev=$(execute "svn log --xml -r 1:HEAD --limit 1 file:\/\/\"${_VCSDIR}/localsvn/${_PATHSPLIT}\"" | ${AWK} -F\"  '/revision=/ {print $2}')
+			_firstRev="`execute "svn log --xml -r 1:HEAD --limit 1 file:\/\/\"${_VCSDIR}/localsvn/${_PATHSPLIT}\"" | ${AWK} -F'\042'  '/revision=/ {print $2}'`"
 			execute "svn export --force --revision ${_firstRev} file:\/\/\"${_VCSDIR}/localsvn/${_PATHSPLIT}\" \"${CFILE}\""
 		else
-			_firstRev=$(execute "svn log --xml -r 1:HEAD --limit 1 \"${_REMOTE}/${_PATHSPLIT}\"" | ${AWK} -F \" '/revision=/ {print $2}')
+			_firstRev="`execute "svn log --xml -r 1:HEAD --limit 1 \"${_REMOTE}/${_PATHSPLIT}\"" | ${AWK} -F '\042' '/revision=/ {print $2}'`"
 			execute "svn export --force --revision ${_firstRev} \"${_REMOTE}/${_PATHSPLIT}\" \"${CFILE}\""
 		fi
 		;;
 	*)
-		${ECHO} "${_VCS}: unsupported versioning system"
+		${ECHO} 1>&2 "${_VCS}: unsupported versioning system"
 		exitcode=2
 		;;
 	esac
@@ -628,13 +647,14 @@ PULL)
 	branchFound=no
 	compatibleBranches=""
 	branchName=""
-	category=$(${ECHO} "$2" | ${AWK} -F "/" '{print $1}')
-	name=$(${ECHO} "$2" | ${AWK} -F "/" '{print $2}')
-	exactVersion=$3
-	shortVersion=$(${ECHO} $4 | ${AWK} -F "${name}" '{print $2}' | ${TR} -dc '[0-9].')
+	category="`${ECHO} "${2}" | ${AWK} -F "/" '{print $1}'`"
+	name="`${ECHO} "${2}" | ${AWK} -F "/" '{print $2}'`"
+	exactVersion=${3}
+	shortVersion="`${ECHO} ${4} | ${AWK} -F "${name}" '{print $2}' | ${TR} -dc '[0-9].'`"
 	branchesOutput=""
+	_RANDINT="`${CAT} /dev/urandom | ${TR} -dc '[0-9]' | ${FOLD} -w 4 | ${HEAD} -n 1  `"
 	_TEMPDIR="/tmp/pkgsrcdeploy-${RANDOM}"
-	while ${TEST} -d ${_TEMPDIR}; do
+	while ${TEST} -d "${_TEMPDIR}"; do
 		#this should never happen!
 		${RM} -fr "${_TEMPDIR}"
 		_TEMPDIR="/tmp/pkgsrcdeploy-${RANDOM}"
@@ -644,17 +664,17 @@ PULL)
 	cd "${_TEMPDIR}"
 	case "${_VCS}" in
 		"git")
-			_output=$(execute "git ls-remote --refs \"${_REMOTE}\" \"${category}\"_\"${name}\"\"_*\"")
+			_output="`execute "git ls-remote --refs \"${_REMOTE}\" \"${category}\"_\"${name}\"\"_*\""`"
 			exitcode=$?
-			_output=$(${ECHO} "${_output}" | ${AWK} -F "refs/heads/" '{print $2}')
+			_output="`${ECHO} "${_output}" | ${AWK} -F "refs/heads/" '{print $2}'`"
 			;;
 		"subversion")
-			if ! ${ECHO} "${_REMOTE}" | ${GREP} -Fq "/branches"; then
+			if ${ECHO} "${_REMOTE}" | ${GREP} -Fv "/branches" > /dev/null; then
 				_REMOTE="${_REMOTE}/branches/"
 			fi
-			_output=$(execute "svn ls \"${_REMOTE}\"")
+			_output="`execute "svn ls \"${_REMOTE}\""`"
 			exitcode=$?
-			_output=$(${ECHO} "${_output}" | ${SED} 's@/@@g' | ${GREP} "${category}_${name}_")
+			_output="`${ECHO} "${_output}" | ${SED} 's@/@@g' | ${GREP} "${category}_${name}_"`"
 			#it would be more accurate to iterate over single branch names, split them and check for category_name
 			;;
 		#Mercurial, CVS require to checkout the remote repository locally before listing branches...
@@ -662,145 +682,145 @@ PULL)
 			execute "hg clone \"${_REMOTE}\" \"${_TEMPDIR}/work\""
 			exitcode=$?
 			if ${TEST} ${exitcode} -eq 0; then
-				_output=$(execute "hg branches -R \"${_TEMPDIR}/work\"" | ${AWK} -v search="${category}_${name}_" '$0 ~search {print $1}')
+				_output="`execute "hg branches -R \"${_TEMPDIR}/work\"" | ${AWK} -v search="${category}_${name}_" '$0 ~search {print $1}'`"
 				exitcode=$?
 			fi	
 			;;
 		"rcs"|*)
-			${ECHO} "Configuration deploy: ${_VCS} is not supported"
+			${ECHO} 1>&2 "Configuration deploy: ${_VCS} is not supported"
 			if ${TEST} -z "${VCS}"; then
-				${ECHO} "Set VCS to use configuration deploy in pkgsrc! Supported solutions are git, svn and hg"
+				${ECHO} 1>&2 "Set VCS to use configuration deploy in pkgsrc! Supported solutions are git, svn and hg"
 			fi
 			exitcode=2
 			;;
 	esac
-	if ${TEST} ${exitcode} -eq 0 -a -n "${_output}"; then 
+	if ${TEST} ${exitcode} -eq 0 && ${TEST} -n "${_output}"; then 
 		#sanitize the output first
 		for branch in ${_output}
 			do
-				if ${TEST} $(${ECHO} "${branch}" | ${GREP} -o "_" | ${WC} -l) -gt 4 && \
-					${TEST} "$(${ECHO} ${branch} | ${AWK} -F "_" '{print $1}')" = ${category} && \
+				if ${TEST} "`${ECHO} "${branch}" | ${AWK} '{while (match($0, /_/)) {++c; $0=substr($0, RSTART+RLENGTH)}} END {print c}'`" -gt 4 && \
+					${TEST} "`${ECHO} "${branch}" | ${AWK} -F "_" '{print $1}'`" = "${category}" && \
 
-					${TEST} "$(${ECHO} ${branch} | ${AWK} -F "_" '{print $2}')" = ${name} && \
-					${TEST} -n "$(${ECHO} ${branch} | ${AWK} -F "_" '{print $3}' | ${TR} -dc '[0-9]')" && \
-					${TEST} -n "$(${ECHO} ${branch} | ${AWK} -F "_" '{print $4}' | ${TR} -dc '[0-9]')" && \
-					${TEST} -n "$(${ECHO} ${branch} | ${AWK} -F "_" '{print $5}' | ${TR} -dc '[0-9]')"; then
-						compatibleBranches="${branch} ${compatibleBranches}"
+					${TEST} "`${ECHO} "${branch}" | ${AWK} -F "_" '{print $2}'`" = "${name}" && \
+					${TEST} -n "`${ECHO} "${branch}" | ${AWK} -F "_" '{print $3}' | ${TR} -dc '[0-9]'`" && \
+					${TEST} -n "`${ECHO} "${branch}" | ${AWK} -F "_" '{print $4}' | ${TR} -dc '[0-9]'`" && \
+					${TEST} -n "`${ECHO} "${branch}" | ${AWK} -F "_" '{print $5}' | ${TR} -dc '[0-9]'`"; then
+						compatibleBranches=""${branch}" "${compatibleBranches}""
 				else
-					${ECHO} "Warning: ignoring branch with invalid naming: ${branch}"
+					${ECHO} "Warning: ignoring branch with invalid naming: "${branch}""
 					${ECHO} "category_packageName_packageVersion_compatRangeStart_compatRangeEnd_systemRole_optionalHostname"
 				fi
 			done
-		_output=${compatibleBranches}
+		_output="${compatibleBranches}"
 		compatibleBranches=""
 		for branch in ${_output}
 			do
-				_rangeStart=$(${ECHO} ${branch} | ${AWK} -F "_" '{print $4}')
-				_rangeEnd=$(${ECHO} ${branch} | ${AWK} -F "_" '{print $5}')
-				_branchRole=$(${ECHO} ${branch} | ${AWK} -F "_" '{print $6}')
-				if ${ECHO} ${branch} | ${GREP} -Fq '.'; then
-					if ! ${ECHO} ${shortVersion} | ${GREP} -Fq '.'; then
-						${ECHO} "${branch}: branch naming incompatible with package version naming!"
+				_rangeStart="`${ECHO} "${branch}" | ${AWK} -F "_" '{print $4}'`"
+				_rangeEnd="`${ECHO} "${branch}" | ${AWK} -F "_" '{print $5}'`"
+				_branchRole="`${ECHO} "${branch}" | ${AWK} -F "_" '{print $6}'`"
+				if ${ECHO} "${branch}" | ${GREP} -F '.' > /dev/null; then
+					if ${ECHO} "${shortVersion}" | ${GREP} -Fv '.' > /dev/null; then
+						${ECHO} ""${branch}": branch naming incompatible with package version naming!"
 						continue
 					fi
 					#compare versions
 					_rangeStartLTshortVersion=true
 					_rangeEndGTshortVersion=false
 					_groupCounter=1
-					for intGroup in $(${ECHO} ${shortVersion} | ${SED} 's/\./ /g')
+					for intGroup in `${ECHO} "${shortVersion}" | ${SED} 's/\./ /g'`
 						do
-							_rangeStartGroup=$(${ECHO} ${_rangeStart} \
-							| ${AWK} -F "." -v fieldnum="${_groupCounter}" '{print $fieldnum}')
-							_rangeEndGroup=$(${ECHO} ${_rangeEnd} \
-							| ${AWK} -F "." -v fieldnum="$_groupCounter" '{print $fieldnum}')
-							if ${TEST} -n "${_rangeStartGroup}" && ${TEST} ${_rangeStartGroup} -gt ${intGroup}; then
+							_rangeStartGroup="`${ECHO} "${_rangeStart}" \
+							| ${AWK} -F "." -v fieldnum="${_groupCounter}" '{print $fieldnum}'`"
+							_rangeEndGroup="`${ECHO} "${_rangeEnd}" \
+							| ${AWK} -F "." -v fieldnum="$_groupCounter" '{print $fieldnum}'`"
+							if ${TEST} -n "${_rangeStartGroup}" && ${TEST} "${_rangeStartGroup}" -gt "${intGroup}"; then
 								_rangeStartLTshortVersion=false
 								break
 							fi
 							if ${TEST} -n "${_rangeEndGroup}" \
 							&& ${TEST} ! "${_rangeEndGTshortVersion}" = "true" \
-							&& ${TEST} ${_rangeEndGroup} -gt ${intGroup}; then
+							&& ${TEST} "${_rangeEndGroup}" -gt "${intGroup}"; then
 								_rangeEndGTshortVersion=true
 							else
 								break
 							fi
-							_groupCounter=$((_groupCounter + 1))
+							_groupCounter="`${EXPR} "${_groupCounter}" + 1 `"
 						done
 					if ${TEST} "${_rangeStartLTshortVersion}" = "true" \
-					-a "${_rangeEndGTshortVersion}" = "true"; then
-						if ${TEST} "${_branchRole}" = "any" -o "${_branchRole}" = "ANY"\
-						-o "${_branchRole}" = "${_ROLE}"\
-						-o "${_ROLE}" = "any"; then 
+					&& ${TEST} "${_rangeEndGTshortVersion}" = "true"; then
+						if ${TEST} "${_branchRole}" = "any" || ${TEST} "${_branchRole}" = "ANY"\
+						|| ${TEST} "${_branchRole}" = "${_ROLE}"\
+						|| ${TEST} "${_ROLE}" = "any"; then 
 							compatibleBranches="${branch} ${compatibleBranches}"
 						fi
 					fi
 				else
-					if ${ECHO} ${shortVersion} | ${GREP} -Fq '.'; then
-						${ECHO} "${branch}: branch naming incompatible with package version naming!"
+					if ${ECHO} "${shortVersion}" | ${GREP} -F '.' > /dev/null; then
+						${ECHO} 1>&2 ""${branch}": branch naming incompatible with package version naming!"
 						continue
 					fi
 					#numerically compare versions
-					if ${TEST} ${_rangeStart} -lt ${shortVersion}\
-					-o ${_rangeStart} -eq ${shortVersion}\
-					&& ${TEST} ${_rangeEnd} -gt ${shortVersion}\
-					-o ${_rangeEnd} -eq ${shortVersion}; then
+					if ( ${TEST} "${_rangeStart}" -lt "${shortVersion}"\
+					|| ${TEST} "${_rangeStart}" -eq "${shortVersion}" ) \
+					&& ( ${TEST} "${_rangeEnd}" -gt "${shortVersion}" \
+					|| ${TEST} "${_rangeEnd}" -eq "${shortVersion}" ) ; then
 
-						if ${TEST} "${_branchRole}" = "any"\
-						-o "${_branchRole}" = "ANY"\
-						-o "${_branchRole}" = "$_ROLE"\
-						-o "${_ROLE}" = "any"; then
-							compatibleBranches="${compatibleBranches} ${branch}"
+						if ${TEST} "${_branchRole}" = "any" \
+						|| ${TEST} "${_branchRole}" = "ANY" \
+						|| ${TEST} "${_branchRole}" = "$_ROLE"\
+						|| ${TEST} "${_ROLE}" = "any"; then
+							compatibleBranches=""${compatibleBranches}" "${branch}""
 						fi
 					fi
 				fi
 			done
 		if ${TEST} -z "${compatibleBranches}"; then
-			${ECHO} "Error: no compatible branches found for ${category}/${name}-${shortVersion}! Using package defaults"
+			${ECHO} 1>&2 "Error: no compatible branches found for "${category}"/"${name}"-"${shortVersion}"! Using package defaults"
 			${RM} -fr "${_TEMPDIR}"
 			exit 6
 		fi
 		#check for hostnames, best effort
 		if ${TEST} -n "${HOSTNAME}"\
-		-a ! "${HOSTNAME}" = "localhost"; then
+		&& ${TEST} ! "${HOSTNAME}" = "localhost"; then
 			bestHostnameMatchChars=1
 			bestHostnameMatch=""
 			compatibleHostnames=""
 			_charCounter=1
 			for branch in ${compatibleBranches}
 				do
-					if ${TEST} $(${ECHO} "${branch}" | ${GREP} -o "_" | ${WC} -l) -gt 5; then
+					if ${TEST} "`${ECHO} "${branch}" | ${AWK} '{while (match($0, /_/)) {++c; $0=substr($0, RSTART+RLENGTH)}} END {print c}'`" -gt 5; then
 						#optional hostname exists in branch name
-						_branchHostname=$(${ECHO} "${branch}" | ${AWK} -F "_" '{for(i=7;i<=NF;++i)print $i}')
+						_branchHostname="`${ECHO} "${branch}" | ${AWK} -F "_" '{for(i=7;i<=NF;++i)print $i}'`"
 						_charCounter=1
-						for character in $(${ECHO} "${_branchHostname}" | ${GREP} -o ".") 
+						for character in `${ECHO} "${_branchHostname}" | ${FOLD} -w 1 `
 							do
-								if ${TEST} ! "${character}" = $(${ECHO} "${HOSTNAME}" | ${CUT} -c ${_charCounter}); then
+								if ${TEST} ! "${character}" = "`${ECHO} "${HOSTNAME}" | ${CUT} -c "${_charCounter}"`"; then
 									break
 								else
-									_charCounter=$((_charCounter+1))
+									_charCounter="`${EXPR} "${_charCounter}" + 1 `"
 								fi
 							done
 					fi
-					if ${TEST} ${_charCounter} -gt ${bestHostnameMatchChars}; then
-						bestHostnameMatchChars=${_charCounter}
-						bestHostnameMatch=${_branchHostname}
+					if ${TEST} "${_charCounter}" -gt "${bestHostnameMatchChars}"; then
+						bestHostnameMatchChars="${_charCounter}"
+						bestHostnameMatch="${_branchHostname}"
 					fi
 				done
 			compatibleBranchesWithHostnames=""
 			if ${TEST} -n "${bestHostnameMatch}"; then
 				for branch in ${compatibleBranches}
 					do
-						if ${TEST} $(${ECHO} "${branch}"\
-						| ${GREP} -o "_" | ${WC} -l) -gt 5 \
+						if ${TEST} "`${ECHO} "${branch}"\
+						| ${AWK} '{while (match($0, /set/)) {++c; $0=substr($0, RSTART+RLENGTH)}} END {print c}'`" -gt 5 \
 						&& ${TEST} \
-						$(${ECHO} "${branch}" | ${AWK} -F "_" '{for(i=7;i<=NF;++i)print $i}') = "${bestHostnameMatch}"; then
-							compatibleBranchesWithHostnames="${branch} ${compatibleBranchesWithHostnames}"
+						"`${ECHO} "${branch}" | ${AWK} -F "_" '{for(i=7;i<=NF;++i)print $i}'`" = "${bestHostnameMatch}"; then
+							compatibleBranchesWithHostnames=""${branch}" "${compatibleBranchesWithHostnames}""
 						fi
 					done
-				compatibleBranches=${compatibleBranchesWithHostnames}
-				if ${TEST} $(${ECHO} "${compatibleBranches}" | ${GREP} -o "${bestHostnameMatch}" | ${WC} -l) -eq 1; then
+				compatibleBranches="${compatibleBranchesWithHostnames}"
+				if ${TEST} "`${ECHO} "${compatibleBranches}" | ${AWK} -v pattern="${bestHostnameMatch}" '{while (match($0, pattern)) {++c; $0=substr($0, RSTART+RLENGTH)}} END {print c}'`" -eq 1; then
 					branchFound=yes
-					branchName=${compatibleBranches}
+					branchName="${compatibleBranches}"
 				fi
 					
 			fi
@@ -810,76 +830,80 @@ PULL)
 			for branch in ${compatibleBranches}
 				do
 					
-					if ${TEST} "$(${ECHO} ${branch} | ${AWK} -F "_" '{print $3}')" = "${exactVersion}"; then
+					if ${TEST} "`${ECHO} "${branch}" | ${AWK} -F "_" '{print $3}'`" = "${exactVersion}"; then
 						branchFound=yes
-						branchName=${branch}
+						branchName="${branch}"
 						break
-					elif ${TEST} "$(${ECHO} ${branch} | ${AWK} -F "_" '{print $3}')" = "${shortVersion}"; then
+					elif ${TEST} "`${ECHO} "${branch}" | ${AWK} -F "_" '{print $3}'`" = "${shortVersion}"; then
 						branchFound=yes
-						branchName=${branch}
+						branchName="${branch}"
 						break
 					fi
 				done
 			#if the branch is still not found, select the best compatible branch in range.
-			branch=$(${ECHO} "${compatibleBranches}" | ${AWK} -F " " '{print $1}')
-			branchVersion=$(${ECHO} "${branch}" | ${AWK} -F "_" '{print $3}'| ${TR} -dc '[0-9].') 
-			if ! ${ECHO} "${shortVersion}" | ${GREP} -Fq '.'; then
+			branch="`${ECHO} "${compatibleBranches}" | ${AWK} -F " " '{print $1}'`"
+			branchVersion="`${ECHO} "${branch}" | ${AWK} -F "_" '{print $3}'| ${TR} -dc '[0-9].' `"
+			if ${ECHO} "${shortVersion}" | ${GREP} -Fv '.' > /dev/null; then
 				#compare integers
-				versionDistance=$(($shortVersion - $branchVersion))
-				versionDistance=${versionDistance#-}
-				minimumDistance=${versionDistance}
-				bestBranch=${branch}
+				versionDistance="`${EXPR} "${shortVersion}" - "${branchVersion}"`"
+				versionDistance="${versionDistance#-}"
+				minimumDistance="${versionDistance}"
+				bestBranch="${branch}"
 				for branch in ${compatibleBranches}
 					do
-						branchVersion=$(${ECHO} "${branch}" | ${AWK} -F "_" '{print $3}' | ${TR} -dc '[0-9].')
-						versionDistance=$(($shortVersion - $branchVersion))
+						branchVersion="`${ECHO} "${branch}" | ${AWK} -F "_" '{print $3}' | ${TR} -dc '[0-9].' `"
+						versionDistance="`${EXPR} "${shortVersion}" - "${branchVersion}"`"
 						versionDistance=${versionDistance#-}
-						if ${TEST} ${versionDistance} -lt ${minimumDistance}; then
+						if ${TEST} "${versionDistance}" -lt "${minimumDistance}"; then
 							minimumDistance=${versionDistance}
-							bestBranch=${branch}
+							bestBranch="${branch}"
 						fi
 							
 					done
 				branchFound=yes
-				branchName=${bestBranch}
+				branchName="${bestBranch}"
 			else
 				#dots in version numbers!
-				bestBranch=${branch}
-				_branches=${compatibleBranches}
+				bestBranch="${branch}"
+				_branches="${compatibleBranches}"
 				groupCounter=1
-				for intGroup in $(${ECHO} "${shortVersion}" | ${AWK} -F "." '{print $0}')
+				for intGroup in `${ECHO} "${shortVersion}" | ${AWK} -F "." '{print $0}'`
 					do
 						bestBranchGroup="${_branches}"
-						minimumDistance=$(( $(${ECHO} "${shortVersion}" | ${AWK} -F "." -v fieldnum="${groupCounter}" '{print $fieldnum}') - $(${ECHO} "${_branches}" | ${AWK} -F " " '{print $1}' | ${AWK} -F "_" '{print $3}' | ${TR} -dc '[0-9].' | ${AWK} -F "." -v fieldnum="${groupCounter}" '{print $fieldnum}') ))
-						miniumDistance=${minimumDistance#-}
+						_pkgVer="`${ECHO} "${shortVersion}" | ${AWK} -F "." -v fieldnum="${groupCounter}" '{print $fieldnum}'`"
+						_braVer="`${ECHO} "${_branches}" | ${AWK} -F " " '{print $1}' | ${AWK} -F "_" '{print $3}' | ${TR} -dc '[0-9].' | ${AWK} -F "." -v fieldnum="${groupCounter}" '{print $fieldnum}'`"
+						minimumDistance="`${EXPR} "${_pkgVer}" - "${_braVer}"`" 
+						miniumDistance="${minimumDistance#-}"
 						branchCounter=1
 						for branch in ${_branches}
 							do
-								groupDistance=$(( $(${ECHO} "${shortVersion}" | ${AWK} -F "." -v fieldnum="${groupCounter}" '{print $fieldnum}') - $(${ECHO} "${_branches}" | ${AWK} -F " " -v fieldnum="${branchCounter}" '{print $fieldnum}' | ${AWK} -F "_" '{print $3}' | ${TR} -dc '[0-9].' | ${AWK} -F "." -v fieldnum="${groupCounter}" '{print $fieldnum}') ))
-								groupDistance=${groupDistance#-}
-								if ${TEST} ${groupDistance} -lt ${minimumDistance}; then
-									minimumDistance=${groupDistance}
-									bestBranchGroup=${branch}
-								elif ${TEST} ${groupDistance} -eq ${minimumDistance}; then
-									bestBranchGroup="${bestBranchGroup} ${branch}"
+								_pkgVer="`${ECHO} "${shortVersion}" | ${AWK} -F "." -v fieldnum="${groupCounter}" '{print $fieldnum}'`"
+								_braVer="`${ECHO} "${_branches}" | ${AWK} -F " " -v fieldnum="${branchCounter}" '{print $fieldnum}' | ${AWK} -F "_" '{print $3}' | ${TR} -dc '[0-9].' | ${AWK} -F "." -v fieldnum="${groupCounter}" '{print $fieldnum}'`"
+								groupDistance="`${EXPR} "${_pkgVer}" - "${_braVer}"`"
+								groupDistance="${groupDistance#-}"
+								if ${TEST} "${groupDistance}" -lt "${minimumDistance}"; then
+									minimumDistance="${groupDistance}"
+									bestBranchGroup="${branch}"
+								elif ${TEST} "${groupDistance}" -eq "${minimumDistance}"; then
+									bestBranchGroup=""${bestBranchGroup}" "${branch}""
 								fi
-								branchCounter=$((branchCounter + 1))
+								branchCounter="`${EXPR} "${branchCounter}" + 1 `"
 							done
-						_branches=${bestBranchGroup}
-						groupCounter=$((groupCounter + 1))
+						_branches="${bestBranchGroup}"
+						groupCounter="` ${EXPR} "${groupCounter}" + 1 `"
 					done
 					if ${TEST} -n "${_branches}"; then
 					#I should always have one and only one branch in _branches at the end...
-						bestBranch=$(${ECHO} "${_branches}" | ${AWK} -F " " '{print $1}')
+						bestBranch="`${ECHO} "${_branches}" | ${AWK} -F " " '{print $1}'`"
 						branchFound=yes
 					fi
-				branchName=${bestBranch}	
+				branchName="${bestBranch}"
 			fi		
 		fi
 	fi
-	if ${TEST} ${branchFound} = "yes" -a ${exitcode} -eq 0; then
-		branchName=$(${ECHO} ${branchName} | ${SED} 's/ //g')
-		${ECHO} "About to use remote branch ${branchName}"
+	if ${TEST} "${branchFound}" = "yes" && ${TEST} "${exitcode}" -eq 0; then
+		branchName="`${ECHO} "${branchName}" | ${SED} 's/ //g'`"
+		${ECHO} "About to use remote branch "${branchName}""
 		case "${_VCS}" in
 			"git")
 				execute "git --git-dir=\"${_TEMPDIR}/.git\" --work-tree=\"${_TEMPDIR}/work\" clone -b \"${branchName}\" \"${_REMOTE}\""
@@ -888,7 +912,7 @@ PULL)
 			"subversion")
 				execute "svn co \"${_REMOTE}/${branchName}\" \"${_TEMPDIR}/work\""
 				exitcode=$?
-				if ${TEST} ${exitcode} -eq 0; then
+				if ${TEST} "${exitcode}" -eq 0; then
 					${RM} -fr "${_TEMPDIR}/work/.svn"
 					exitcode=$?
 				fi
@@ -896,40 +920,41 @@ PULL)
 			"mercurial")
 					execute "hg -R \"${_TEMPDIR}/work\" update -C \"${branchName}\""
 					exitcode=$?
-					if ${TEST} ${exitcode} -eq 0; then
+					if ${TEST} "${exitcode}" -eq 0; then
 						${RM} -fr "${_TEMPDIR}/work/.hg"
 						exitcode=$?
 					fi
 				;;
 		esac
-		if ${TEST} ${exitcode} -eq 0; then
+		set -x
+		if ${TEST} "${exitcode}" -eq 0; then
 			${FIND} "${_TEMPDIR}/work" -type f -print \
 			| while read line
-				do relativePath=\
-					$(${ECHO} "${line}" \
-					| ${AWK} -F "${_TEMPDIR}/work" '{print $2}')
+				do
+					relativePath="`${ECHO} "${line}" \
+					| ${AWK} -F "${_TEMPDIR}/work" '{print $2}'`"
 					${MKDIR} -p "${relativePath}" 2>/dev/null
 					${RMDIR} "${relativePath}" 2>/dev/null
 					${CP} -v -f "${line}" "${relativePath}"
 					cpexitcode=$?
 					${CHMOD} 0600 "${relativePath}"
-					if ${TEST} ! ${cpexitcode} -eq 0; then
+					if ${TEST} "${cpexitcode}" -ne 0; then
 						exitcode=5;
 					fi
 				done  
 		fi
 	fi
 	${RM} -fr "${_TEMPDIR}"
-	if ${TEST} ! ${exitcode} -eq 0; then
-		${ECHO} "Error deploying configuration for ${category}/${name}: using package defaults"
+	if ${TEST} ${exitcode} -ne 0; then
+		${ECHO} 1>&2 "Error deploying configuration for "${category}"/"${name}": using package defaults"
 	fi
 	;;
 *)
-	${ECHO} "Usage: ./+VERSIONING REGISTER|CHECKOUT|CHECKOUT-FIRST [examplefile]"
-	${ECHO} "Usage: ./+VERSIONING MERGE [examplefile] [firstrevision]"
-	${ECHO} "Usage: ./+VERSIONING COMMIT [message]"
-	${ECHO} "Usage: ./+VERSIONING PREPARE"
-	${ECHO} "Usage: ./+VERSIONING PULL PKGPATH PKGVERSION PKGNAME"
+	${ECHO} 1>&2 "Usage: ./+VERSIONING REGISTER|CHECKOUT|CHECKOUT-FIRST [examplefile]"
+	${ECHO} 1>&2 "Usage: ./+VERSIONING MERGE [examplefile] [firstrevision]"
+	${ECHO} 1>&2 "Usage: ./+VERSIONING COMMIT [message]"
+	${ECHO} 1>&2 "Usage: ./+VERSIONING PREPARE"
+	${ECHO} 1>&2 "Usage: ./+VERSIONING PULL PKGPATH PKGVERSION PKGNAME"
 	exitcode=3
 	;;
 esac

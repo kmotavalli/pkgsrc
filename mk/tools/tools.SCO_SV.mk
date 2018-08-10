@@ -27,6 +27,7 @@ TOOLS_PLATFORM.false?=		/bin/false
 TOOLS_PLATFORM.fgrep?=		/bin/fgrep
 TOOLS_PLATFORM.file?=		/bin/file
 TOOLS_PLATFORM.find?=		/bin/find
+TOOLS_PLATFORM.fold?=		/bin/fold
 TOOLS_PLATFORM.grep?=		/bin/grep
 TOOLS_PLATFORM.gunzip?=		/bin/gunzip -f
 TOOLS_PLATFORM.gzcat?=		/bin/gzcat

@@ -149,6 +149,45 @@ DDEESSCCRRIIPPTTIIOONN
              supported are uncompressed files and files compressed by bzip2(1)
              (_._b_z_2) or gzip(1) (_._g_z).
 
+     VCSTRACK_CONF
+             Enable configuration files version tracking by setting
+             VCSTRACK_CONF to "yes".  It defaults to being disabled ("no").
+             This option needs to be enabled even if attempting to deploy
+             remote configuration to the system via VCSCONFPULL
+
+     VCSDIR  Path where the working directory for configuration files handling
+             should be.  It also double as a vcs repository, if REMOTEVCS is
+             unset.
+
+     REMOTEVCS
+             URI describing how to access a remote repository, according to
+             the format required by the chosen VCS.  Remote repositories are
+             disabled if this variable is unset, or if it is set to "no".
+
+     VCSAUTOMERGE
+             Set to "yes" in order to automatically merge and install
+             configuration changes.
+
+     ROLE    The role of this system, used when deploying configuration from a
+             remote repository via VCSCONFPULL.
+
+     VCSCONFPULL
+             Set to "yes" to have pkgsrc attempt to deploy configuration files
+             from a remote repository.  It works with git, svn and mercurial.
+             The remote repository should have branches named
+             "category_packageName_packageVersion_compatibilityRangeStart_compatibilityRangeEnd_systemRole"
+             with an optional, additional field "_hostname" that gets best-
+             matched with the system hostname.  See
+             pkgsrc/mk/pkginstall/versioning for a more detailed description.
+             Configuration files in each branch are prepended "/" and copied
+             to the system unconditionally.
+
+     VCS     The Version Control solution to be used. PKGSRC defaults to using
+             rcs if this is unset.  Other software, such as git, svn, cvs and
+             hg, if desired, must be manually installed by the user in the
+             system PATH.
+
+
      VERBOSE_NETIO
              Log details of network IO to stderr.
 
@@ -175,4 +214,4 @@ FFIILLEESS
 SSEEEE AALLSSOO
      pkg_add(1), pkg_admin(1), pkg_create(1), pkg_delete(1), pkg_info(1)
 
-pkgsrc                         October 28, 2014                         pkgsrc
+NetBSD 8.0                     October 28, 2014                     NetBSD 8.0

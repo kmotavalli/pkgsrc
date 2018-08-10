@@ -12,7 +12,7 @@ UNPACK,|UNPACK,+USERGROUP)
 #
 # Usage: ./+USERGROUP ADD|REMOVE [metadatadir]
 #        ./+USERGROUP CHECK-ADD|CHECK-REMOVE [metadatadir]
-#	 ./+USERGROUP ADDUSER username group [userid]
+#        ./+USERGROUP ADDUSER username group [userid]
 #
 # This script supports two actions, ADD and REMOVE, that will add or
 # remove the users and groups needed by the package associated with
@@ -132,7 +132,7 @@ ADDUSER)
 		;;
 	2)
 		#user exists, userid doesn't match it
-		${ECHO} "The user $user exists, but it does not match userid $userid. Fix this manually!"
+		${ECHO} 1>&2 "The user $user exists, but it does not match userid $userid. Fix this manually!"
 		;;
 	*)
 		case $userid in
@@ -406,8 +406,8 @@ CHECK-REMOVE)
 
 *)
 	${ECHO} "Usage: ./+USERGROUP ADD|REMOVE [metadatadir]"
-	${ECHO} "       ./+USERGROUP HECK-ADD|CHECK-REMOVE [metadatadir]"
-	${ECHO} "	./+USERGROUP ADDUSER username grouP [USErid]"
+	${ECHO} "       ./+USERGROUP CHECK-ADD|CHECK-REMOVE [metadatadir]"
+	${ECHO} "	./+USERGROUP ADDUSER USERNAME GROUP [USERID]"
 	;;
 esac
 exit $exitcode

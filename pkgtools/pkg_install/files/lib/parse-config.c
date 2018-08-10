@@ -123,7 +123,7 @@ static struct config_variable {
 	{ "PKGVULNURL", &pkg_vulnerabilities_url },
 	{ "VERBOSE_NETIO", &verbose_netio },
 	{ "VERIFIED_INSTALLATION", &verified_installation },
-	{ "VCS_CONF_FILES", &vcs_enabled },
+	{ "VCSTRACK_CONF", &vcs_enabled },
 	{ "VCS", &vcs_vcs },
 	{ "VCSDIR", &vcs_vcsdir },
 	{ "VCSAUTOMERGE", &vcs_vcsautomerge },

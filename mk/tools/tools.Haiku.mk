@@ -24,9 +24,13 @@ TOOLS_PLATFORM.cat?=		/bin/cat
 TOOLS_PLATFORM.chgrp?=		/bin/chgrp
 TOOLS_PLATFORM.chmod?=		/bin/chmod
 TOOLS_PLATFORM.chown?=		/bin/chown
+.if exists(/bin/ci)
 TOOLS_PLATFORM.ci?=		/bin/ci
+.endif
 TOOLS_PLATFORM.cmp?=		/bin/cmp
+.if exists(/bin/co)
 TOOLS_PLATFORM.co?=		/bin/co
+.endif
 TOOLS_PLATFORM.cp?=		/bin/cp
 TOOLS_PLATFORM.cut?=		/bin/cut
 .if exists(/bin/curl)
@@ -45,6 +49,7 @@ TOOLS_PLATFORM.expr?=		/bin/expr
 TOOLS_PLATFORM.false?=		false			# shell builtin
 TOOLS_PLATFORM.fgrep?=		/bin/fgrep
 TOOLS_PLATFORM.find?=		/bin/find
+TOOLS_PLATFORM.fold?=		/bin/fold
 TOOLS_PLATFORM.ftp?=		/bin/ftp
 TOOLS_PLATFORM.gawk?=		/bin/gawk
 .if exists(/bin/m4)
@@ -125,7 +130,9 @@ TOOLS_PLATFORM.openssl?=	/boot/common/bin/openssl
 #TOOLS_PLATFORM.patch?=		/bin/patch
 TOOLS_PLATFORM.printf?=		/bin/printf
 TOOLS_PLATFORM.pwd?=		/bin/pwd
+.if exists(/bin/rcs)
 TOOLS_PLATFORM.rcs?=		/bin/rcs
+.endif
 TOOLS_PLATFORM.readlink?=	/bin/readlink
 TOOLS_PLATFORM.rm?=		/bin/rm
 TOOLS_PLATFORM.rmdir?=		/bin/rmdir

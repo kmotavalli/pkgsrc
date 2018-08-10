@@ -100,6 +100,7 @@ TOOLS_PLATFORM.fgrep?=		/usr/bin/fgrep
 .endif
 TOOLS_PLATFORM.file?=		/usr/bin/file
 TOOLS_PLATFORM.find?=		/usr/bin/find
+TOOLS_PLATFORM.fold?=		/usr/bin/fold
 .if exists(/etc/debian_version)
 .  if exists(/usr/bin/gawk)
 TOOLS_PLATFORM.gawk?=		/usr/bin/gawk

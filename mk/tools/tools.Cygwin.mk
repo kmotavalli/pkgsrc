@@ -52,6 +52,7 @@ TOOLS_PLATFORM.false?=		false			# shell builtin
 TOOLS_PLATFORM.fgrep?=		/bin/fgrep
 TOOLS_PLATFORM.file?=		/bin/file
 TOOLS_PLATFORM.find?=		/bin/find
+TOOLS_PLATFORM.fold?=		/bin/fold
 .if exists(/bin/flex)
 TOOLS_PLATFORM.flex?=		/bin/flex
 .endif

@@ -1,18 +1,21 @@
 PKGNAME=	pkgconftrack-1.0
 CATEGORIES=	pkgtools
 
-MAINTAINER=	keivan@motavalli.me		
-HOMEPAGE=	ftp://ftp.NetBSD.org/pub/NetBSD/packages/pkgsrc/doc/pkgsrc.html
-COMMENT=	Script that easily registers in pkgsrc manual configuration changes for a package
-LICENSE=	2-clause-bsd	
+MAINTAINER=	keivan@motavalli.me
+HOMEPAGE=	https://pkgsrc.org/
+COMMENT=	Script that aids in managing manual configuration changes
+LICENSE=	2-clause-bsd
 
 .include "../../mk/bsd.prefs.mk"
 
 INSTALLATION_DIRS=	bin ${PKGMANDIR}/man1
-NO_BUILD=	yes
+NO_BUILD=		yes
+
+USE_TOOLS+=		sh
+REPLACE_SH=		pkgconftrack
 
 do-extract:
-	@${CP} -R ${FILESDIR} ${WRKSRC}
+	${RUN} ${CP:Q} -R ${FILESDIR} ${WRKSRC}
 
 do-install:
 	${INSTALL_SCRIPT} ${WRKSRC}/pkgconftrack ${DESTDIR}${PREFIX}/bin/pkgconftrack

@@ -393,7 +393,7 @@ su-create-usergroup: ${_INSTALL_USERGROUP_UNPACKER}
 #
 # GAMEDATA_PERMS and GAMEDIR_PERMS are convenience definitions for files
 # that are meant to be accessed by things that are setgid games. Because
-# such files should normally be under ${VARBASE}, generally these 
+# such files should normally be under ${VARBASE}, generally these
 # definitions should be used roughly as follows:
 #
 #	REQD_DIRS_PERMS+=  /path/to/scoredir ${GAMEDIR_PERMS}
@@ -610,7 +610,7 @@ ${_INSTALL_VERSIONING_FILE}: ../../mk/pkginstall/versioning
 	${RUN}${MKDIR} ${.TARGET:H}
 	${RUN}	\
 	${SED} ${FILES_SUBST_SED} ../../mk/pkginstall/versioning > ${.TARGET}
-	
+
 # OWN_DIRS contains a list of directories for this package that should be
 #       created and should attempt to be destroyed by the INSTALL/DEINSTALL
 #	scripts.  MAKE_DIRS is used the same way, but the package admin
@@ -1086,6 +1086,9 @@ FILES_SUBST+=		FONTS_VERBOSE=${FONTS_VERBOSE:Q}
 FILES_SUBST+=		INFO_FILES_VERBOSE=${INFO_FILES_VERBOSE:Q}
 FILES_SUBST+=		OCAML_FINDLIB_REGISTER_VERBOSE=${OCAML_FINDLIB_REGISTER_VERBOSE:Q}
 
+#workaround systems without $RANDOM by using urandom
+USE_TOOLS+=		fold	
+
 # Substitute for various programs used in the DEINSTALL/INSTALL scripts and
 # in the rc.d scripts.
 #
@@ -1106,6 +1109,7 @@ FILES_SUBST+=		EGREP=${EGREP:Q}
 FILES_SUBST+=		EXPR=${EXPR:Q}
 FILES_SUBST+=		FALSE=${FALSE:Q}
 FILES_SUBST+=		FIND=${FIND:Q}
+FILES_SUBST+=		FOLD=${FOLD:Q}
 FILES_SUBST+=		GREP=${GREP:Q}
 FILES_SUBST+=		GROUPADD=${GROUPADD:Q}
 FILES_SUBST+=		GTAR=${GTAR:Q}
@@ -1153,7 +1157,7 @@ CI=${TOOLS_PLATFORM.ci}
 USE_TOOLS+=		ci
 TOOLS_CREATE+=		ci
 CI=${TOOLS_PATH.ci}
-.endif 
+.endif
 FILES_SUBST+=		CI=${CI:Q}
 .if defined(TOOLS_PLATFORM.co)
 CO=${TOOLS_PLATFORM.co}
