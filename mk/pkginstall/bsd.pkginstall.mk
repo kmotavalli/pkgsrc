@@ -305,6 +305,8 @@ ${_INSTALL_USERGROUP_FILE}:						\
 #		${RM} -f ${.TARGET};					\
 #		${TOUCH} ${TOUCH_ARGS} ${.TARGET};			\
 #	fi
+# PKGSRC now creates its own user, pkgvcsconf, when running as root with conf
+# tracking enabled. The functions it uses are part of the usergroup scripts
 
 _INSTALL_USERGROUP_UNPACKER=	${_PKGINSTALL_DIR}/usergroup-unpack
 
