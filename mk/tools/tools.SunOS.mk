@@ -81,6 +81,7 @@ TOOLS_PLATFORM.find?=		/usr/gnu/bin/find
 .else
 TOOLS_PLATFORM.find?=		/usr/bin/find
 .endif
+TOOLS_PLATFORM.fold?=   /usr/bin/fold
 .if exists(/usr/bin/flex)
 TOOLS_PLATFORM.flex?=		/usr/bin/flex
 TOOLS_PLATFORM.lex?=		/usr/bin/flex
