@@ -1087,7 +1087,7 @@ FILES_SUBST+=		INFO_FILES_VERBOSE=${INFO_FILES_VERBOSE:Q}
 FILES_SUBST+=		OCAML_FINDLIB_REGISTER_VERBOSE=${OCAML_FINDLIB_REGISTER_VERBOSE:Q}
 
 #workaround systems without $RANDOM by using urandom
-USE_TOOLS+=		fold	
+USE_TOOLS+=		fold
 
 # Substitute for various programs used in the DEINSTALL/INSTALL scripts and
 # in the rc.d scripts.

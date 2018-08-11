@@ -232,7 +232,7 @@ TOOLS_PLATFORM.printf?=		/usr/bin/printf
 .endif
 TOOLS_PLATFORM.pwd?=		/bin/pwd
 .if exists(/usr/bin/rcs)
-TOOLS_PLATFORM.rcs?=		/usr/bin/rcs 
+TOOLS_PLATFORM.rcs?=		/usr/bin/rcs
 .endif
 TOOLS_PLATFORM.readlink?=	/bin/readlink
 TOOLS_PLATFORM.rm?=		/bin/rm

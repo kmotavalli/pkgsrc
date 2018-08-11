@@ -893,7 +893,7 @@ _TOOLS_VERSION.perl!=							\
 	eval $$(${TOOLS_PLATFORM.perl} -V:version) && echo $$version
 _TOOLS_PKG.perl=		perl-${_TOOLS_VERSION.perl}
 .  if !empty(_TOOLS_USE_PKGSRC.perl:M[nN][oO])
-.    for _dep_ in perl>=${PERL5_REQD} 
+.    for _dep_ in perl>=${PERL5_REQD}
 .      if !empty(_TOOLS_USE_PKGSRC.perl:M[nN][oO])
 _TOOLS_USE_PKGSRC.perl!=						\
 	if ${PKG_ADMIN} pmatch ${_dep_:Q} ${_TOOLS_PKG.perl:Q}; then \
