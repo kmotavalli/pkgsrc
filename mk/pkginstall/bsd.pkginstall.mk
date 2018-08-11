@@ -234,9 +234,10 @@ PKG_FAIL_REASON+=	"User and group '${user}' cannot have the same name on Interix
 .  endfor
 .endif
 
-.if !empty(PKG_USERS) || !empty(PKG_GROUPS)
+# needs usergroup* for pkgvcsconf
+#.if !empty(PKG_USERS) || !empty(PKG_GROUPS)
 DEPENDS+=		${_USER_DEPENDS}
-.endif
+#.endif
 
 _INSTALL_USERGROUP_FILE=	${_PKGINSTALL_DIR}/usergroup
 .if exists(../../mk/pkginstall/usergroupfuncs.${OPSYS})
