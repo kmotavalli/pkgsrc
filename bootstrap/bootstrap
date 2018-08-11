@@ -448,7 +448,7 @@ while [ $# -gt 0 ]; do
 	--mk-fragment)
 			mk_fragment="$2"; shift ;;
 	--no-rcs)
-			need_rcs=no; shift ;;
+			need_rcs=no ;;
 	--binary-kit=*)
 			binary_kit=`get_optarg "$1"` ;;
 	--binary-kit)
