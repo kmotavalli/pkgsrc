@@ -1145,45 +1145,47 @@ FILES_SUBST+=		USERADD=${USERADD:Q}
 FILES_SUBST+=		WC=${WC:Q}
 FILES_SUBST+=		XARGS=${XARGS:Q}
 
-.if defined(TOOLS_PLATFORM.rcs)
-RCS=${TOOLS_PLATFORM.rcs}
-.else
-.	if !defined(IGNORE_VCS) && !DEFINED(BOOTSTRAP)
-USE_TOOLS+=	rcs
+DISABLE_RCSDEP=no
+.for _test in ${USE_TOOLS}
+.	if "${_test}" == "${PKGBASE}" || "${_test}" == "${PKGBASE}:bootstrap" || "${_test}" == "${PKGBASE}:build" || "${PKGBASE}:pkgsrc"
+DISABLE_RCSDEP=yes
 .	endif
+.endfor
+
+.if "${DISABLE_RCSDEP}" == "no" && !defined(IGNORE_VCS)
+.	if defined(TOOLS_PLATFORM.rcs)
+RCS=${TOOLS_PLATFORM.rcs}
+.	else
+USE_TOOLS+=	rcs
 RCS=${TOOLS_PATH.rcs}
-.endif
+.	endif
 FILES_SUBST+=		RCS=${RCS:Q}
 
-.if defined(TOOLS_PLATFORM.ci)
+.	if defined(TOOLS_PLATFORM.ci)
 	CI=${TOOLS_PLATFORM.ci}
-.else
-.	if !defined(IGNORE_VCS) && !defined(BOOTSTRAP)
+.	else
 USE_TOOLS+=	ci
-.	endif
 CI=${TOOLS_PATH.ci}
-.endif
+.	endif
 FILES_SUBST+=		CI=${CI:Q}
 
-.if defined(TOOLS_PLATFORM.co)
+.	if defined(TOOLS_PLATFORM.co)
 CO=${TOOLS_PLATFORM.co}
-.else
-.	if !defined(IGNORE_VCS) && !defined(BOOTSTRAP)
+.	else
 USE_TOOLS+=	co
-.	endif
 CO=${TOOLS_PATH.co}
-.endif
+.	endif
 FILES_SUBST+=		CO=${CO:Q}
 
-.if defined(TOOLS_PLATFORM.merge)
+.	if defined(TOOLS_PLATFORM.merge)
 MERGE=${TOOLS_PLATFORM.merge}
-.else
-.	if !defined(IGNORE_VCS) && !defined(BOOTSTRAP)
+.	else
 USE_TOOLS+=	merge
-.	endif
 MERGE=${TOOLS_PATH.merge}
-.endif
+.	endif
 FILES_SUBST+=		MERGE=${MERGE:Q}
+
+.endif
 
 FILES_SUBST_SED=	${FILES_SUBST:S/=/@!/:S/$/!g/:S/^/ -e s!@/}
 
