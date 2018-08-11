@@ -234,10 +234,10 @@ PKG_FAIL_REASON+=	"User and group '${user}' cannot have the same name on Interix
 .  endfor
 .endif
 
-# needs usergroup* for pkgvcsconf
-#.if !empty(PKG_USERS) || !empty(PKG_GROUPS)
+ needs usergroup* for pkgvcsconf
+.if !empty(PKG_USERS) || !empty(PKG_GROUPS)
 DEPENDS+=		${_USER_DEPENDS}
-#.endif
+.endif
 
 _INSTALL_USERGROUP_FILE=	${_PKGINSTALL_DIR}/usergroup
 .if exists(../../mk/pkginstall/usergroupfuncs.${OPSYS})
@@ -301,10 +301,10 @@ ${_INSTALL_USERGROUP_FILE}:						\
 	${SED}	-e "/^# platform-specific adduser\/addgroup functions/r${_INSTALL_USERGROUPFUNCS_FILE}" ../../mk/pkginstall/usergroup |			\
 	${SED} ${FILES_SUBST_SED} > ${.TARGET}
 	${RUN}								\
-	if ${_ZERO_FILESIZE_P} ${_INSTALL_USERGROUP_DATAFILE}; then	\
-		${RM} -f ${.TARGET};					\
-		${TOUCH} ${TOUCH_ARGS} ${.TARGET};			\
-	fi
+#	if ${_ZERO_FILESIZE_P} ${_INSTALL_USERGROUP_DATAFILE}; then	\
+#		${RM} -f ${.TARGET};					\
+#		${TOUCH} ${TOUCH_ARGS} ${.TARGET};			\
+#	fi
 
 _INSTALL_USERGROUP_UNPACKER=	${_PKGINSTALL_DIR}/usergroup-unpack
 
