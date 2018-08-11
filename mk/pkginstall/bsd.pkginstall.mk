@@ -1147,9 +1147,14 @@ FILES_SUBST+=		XARGS=${XARGS:Q}
 
 DISABLE_RCSDEP=no
 .for _test in ${USE_TOOLS}
-.	if "${_test}" == "${PKGBASE}" || "${_test}" == "${PKGBASE}:bootstrap" || "${_test}" == "${PKGBASE}:build" || "${PKGBASE}:pkgsrc"
+.	if "${_test}" == "${PKGBASE}"
 DISABLE_RCSDEP=yes
 .	endif
+.	for _ttype_ in "bootstrap" "run" "pkgsrc" "build"
+.		if "${_test}" == "{PKBGASE}:${_ttype_}"
+DISABLE_RCSDEP=yes
+.		endif
+.	endfor
 .endfor
 
 .if "${DISABLE_RCSDEP}" == "no" && !defined(IGNORE_VCS)
@@ -1162,7 +1167,7 @@ RCS=${TOOLS_PATH.rcs}
 FILES_SUBST+=		RCS=${RCS:Q}
 
 .	if defined(TOOLS_PLATFORM.ci)
-	CI=${TOOLS_PLATFORM.ci}
+CI=${TOOLS_PLATFORM.ci}
 .	else
 USE_TOOLS+=	ci
 CI=${TOOLS_PATH.ci}
