@@ -1143,46 +1143,51 @@ FILES_SUBST+=		TRUE=${TRUE:Q}
 FILES_SUBST+=		USERADD=${USERADD:Q}
 FILES_SUBST+=		WC=${WC:Q}
 FILES_SUBST+=		XARGS=${XARGS:Q}
+
 .if defined(TOOLS_PLATFORM.rcs)
 RCS=${TOOLS_PLATFORM.rcs}
 .else
-	.if !defined(BOOTSTRAP_PKG)
-		USE_TOOLS+=	rcs
-		TOOLS_CREATE+=	rcs
-		RCS=${TOOLS_PATH.rcs}
-	.endif
+.	if !defined(IGNORE_VCS)
+USE_TOOLS+=	rcs
+TOOLS_CREATE+=	rcs
+.	endif
+RCS=${TOOLS_PATH.rcs}
 .endif
 FILES_SUBST+=		RCS=${RCS:Q}
-. if defined(TOOLS_PLATFORM.ci)
-CI=${TOOLS_PLATFORM.ci}
-. else
-	.if !defined(BOOTSTRAP_PKG)
-		USE_TOOLS+=	ci
-		TOOLS_CREATE+=	ci
-		CI=${TOOLS_PATH.ci}
-	.endif
+
+.if defined(TOOLS_PLATFORM.ci)
+	CI=${TOOLS_PLATFORM.ci}
+.else
+.	if !defined(IGNORE_VCS)
+USE_TOOLS+=	ci
+TOOLS_CREATE+=	ci
+.	endif
+CI=${TOOLS_PATH.ci}
 .endif
 FILES_SUBST+=		CI=${CI:Q}
+
 .if defined(TOOLS_PLATFORM.co)
 CO=${TOOLS_PLATFORM.co}
 .else
-	.if !defined(BOOTSTRAP_PKG)
-		USE_TOOLS+=	co
-		TOOLS_CREATE+=	co
-		CO=${TOOLS_PATH.co}
-	.endif
+.	if !defined(IGNORE_VCS)
+USE_TOOLS+=	co
+TOOLS_CREATE+=	co
+.	endif
+CO=${TOOLS_PATH.co}
 .endif
 FILES_SUBST+=		CO=${CO:Q}
+
 .if defined(TOOLS_PLATFORM.merge)
 MERGE=${TOOLS_PLATFORM.merge}
 .else
-	.if !defined(BOOTSTRAP_PKG)
-		USE_TOOLS+=	merge
-		TOOLS_CREATE+=	merge
-		MERGE=${TOOLS_PATH.merge}
-	.endif
+.	if !defined(IGNORE_VCS)
+USE_TOOLS+=	merge
+TOOLS_CREATE+=	merge
+.	endif
+MERGE=${TOOLS_PATH.merge}
 .endif
 FILES_SUBST+=		MERGE=${MERGE:Q}
+
 FILES_SUBST_SED=	${FILES_SUBST:S/=/@!/:S/$/!g/:S/^/ -e s!@/}
 
 PKG_REFCOUNT_DBDIR?=	${PKG_DBDIR}.refcount
