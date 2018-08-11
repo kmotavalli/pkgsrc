@@ -32,7 +32,7 @@
 # tools: CP, GREP, ID, MKDIR, SH, TEST, TOUCH, XARGS
 
 
-BOOTSTRAP_VERSION=20060721
+BOOTSTRAP_VERSION=20180811
 
 # Don't let the bootstrap program get confused by a pre-existing mk.conf
 # file.
@@ -64,6 +64,7 @@ usage="Usage: $0 "'
     [ --help ]
     [ --make-jobs <num> ]
     [ --mk-fragment <mk.conf> ]
+    [ --no-rcs ]
     [ --pkgdbdir <pkgdbdir> ]
     [ --pkginfodir <pkginfodir> ]
     [ --pkgmandir <pkgmandir> ]
@@ -411,6 +412,7 @@ cwrappers=auto
 full=no
 make_jobs=1
 mk_fragment=
+need_rcs=yes
 quiet=no
 
 while [ $# -gt 0 ]; do
@@ -445,6 +447,8 @@ while [ $# -gt 0 ]; do
 			mk_fragment=`get_optarg "$1"` ;;
 	--mk-fragment)
 			mk_fragment="$2"; shift ;;
+	--no-rcs)
+			need_rcs=no
 	--binary-kit=*)
 			binary_kit=`get_optarg "$1"` ;;
 	--binary-kit)
@@ -523,6 +527,7 @@ Bitrig)
 	root_group=wheel
 	need_bsd_install=no
 	need_awk=no
+	need_rcs=no
 	need_sed=no
 	set_opsys=no
 	machine_arch=`arch -s`
@@ -592,6 +597,7 @@ FreeBSD)
 	need_bsd_install=no
 	need_awk=no
 	need_sed=no
+	need_rcs=no
 	set_opsys=no
 	machine_arch=`uname -p`
 	check_compiler=yes
@@ -766,6 +772,7 @@ NetBSD)
 	root_group=wheel
 	need_bsd_install=no
 	need_awk=no
+	need_rcs=no
 	need_sed=no
 	set_opsys=no
 	machine_arch=`uname -p`
@@ -774,6 +781,7 @@ OpenBSD)
 	root_group=wheel
 	need_bsd_install=no
 	need_awk=no
+	need_rcs=no
 	need_sed=no
 	set_opsys=no
 	machine_arch=`arch -s`
@@ -892,6 +900,7 @@ case "$full" in
 yes)
 	need_bsd_install=yes
 	need_awk=yes
+	need_rcs=yes
 	need_sed=yes
 	need_ksh=yes
 	;;
@@ -1350,7 +1359,12 @@ esac
 case "$need_extras" in
 yes)	build_package "pkgtools/bootstrap-extras";;
 esac
+
 build_package "pkgtools/pkg_install"
+
+case "$need_rcs" in
+yes)	build_package "devel/rcs";;
+esac
 
 etc_mk_conf="$sysconfdir/mk.conf"
 
