@@ -234,7 +234,6 @@ PKG_FAIL_REASON+=	"User and group '${user}' cannot have the same name on Interix
 .  endfor
 .endif
 
- needs usergroup* for pkgvcsconf
 .if !empty(PKG_USERS) || !empty(PKG_GROUPS)
 DEPENDS+=		${_USER_DEPENDS}
 .endif
