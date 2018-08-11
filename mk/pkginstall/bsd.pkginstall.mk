@@ -1146,32 +1146,24 @@ FILES_SUBST+=		XARGS=${XARGS:Q}
 .if defined(TOOLS_PLATFORM.rcs)
 RCS=${TOOLS_PLATFORM.rcs}
 .else
-USE_TOOLS+=		rcs
-TOOLS_CREATE+=		rcs
 RCS=${TOOLS_PATH.rcs}
 .endif
 FILES_SUBST+=		RCS=${RCS:Q}
 . if defined(TOOLS_PLATFORM.ci)
 CI=${TOOLS_PLATFORM.ci}
 . else
-USE_TOOLS+=		ci
-TOOLS_CREATE+=		ci
 CI=${TOOLS_PATH.ci}
 .endif
 FILES_SUBST+=		CI=${CI:Q}
 .if defined(TOOLS_PLATFORM.co)
 CO=${TOOLS_PLATFORM.co}
 .else
-USE_TOOLS+=		co
-TOOLS_CREATE+=		co
 CO=${TOOLS_PATH.co}
 .endif
 FILES_SUBST+=		CO=${CO:Q}
 .if defined(TOOLS_PLATFORM.merge)
 MERGE=${TOOLS_PLATFORM.merge}
 .else
-USE_TOOLS+=		merge
-TOOLS_CREATE+=		merge
 MERGE=${TOOLS_PATH.merge}
 .endif
 FILES_SUBST+=		MERGE=${MERGE:Q}
