@@ -1147,8 +1147,7 @@ FILES_SUBST+=		XARGS=${XARGS:Q}
 .if defined(TOOLS_PLATFORM.rcs)
 RCS=${TOOLS_PLATFORM.rcs}
 .else
-.	if !defined(IGNORE_VCS)
-USE_TOOLS+=	rcs
+.	if !defined(IGNORE_VCS) && !DEFINED(BOOTSTRAP)
 TOOLS_CREATE+=	rcs
 .	endif
 RCS=${TOOLS_PATH.rcs}
@@ -1158,8 +1157,7 @@ FILES_SUBST+=		RCS=${RCS:Q}
 .if defined(TOOLS_PLATFORM.ci)
 	CI=${TOOLS_PLATFORM.ci}
 .else
-.	if !defined(IGNORE_VCS)
-USE_TOOLS+=	ci
+.	if !defined(IGNORE_VCS) && !defined(BOOTSTRAP)
 TOOLS_CREATE+=	ci
 .	endif
 CI=${TOOLS_PATH.ci}
@@ -1169,8 +1167,7 @@ FILES_SUBST+=		CI=${CI:Q}
 .if defined(TOOLS_PLATFORM.co)
 CO=${TOOLS_PLATFORM.co}
 .else
-.	if !defined(IGNORE_VCS)
-USE_TOOLS+=	co
+.	if !defined(IGNORE_VCS) && !defined(BOOTSTRAP)
 TOOLS_CREATE+=	co
 .	endif
 CO=${TOOLS_PATH.co}
@@ -1180,8 +1177,7 @@ FILES_SUBST+=		CO=${CO:Q}
 .if defined(TOOLS_PLATFORM.merge)
 MERGE=${TOOLS_PLATFORM.merge}
 .else
-.	if !defined(IGNORE_VCS)
-USE_TOOLS+=	merge
+.	if !defined(IGNORE_VCS) && !defined(BOOTSTRAP)
 TOOLS_CREATE+=	merge
 .	endif
 MERGE=${TOOLS_PATH.merge}
