@@ -79,7 +79,7 @@ TOOLS_PLATFORM.file?=		/usr/bin/file
 .if exists(/usr/gnu/bin/find)
 TOOLS_PLATFORM.find?=		/usr/gnu/bin/find
 .else
-TOOLS_PLATFORM.find?=		/usr/bin/find
+TOOLS_PLATFORM.find?=   /usr/bin/find
 .endif
 TOOLS_PLATFORM.fold?=   /usr/bin/fold
 .if exists(/usr/bin/flex)
