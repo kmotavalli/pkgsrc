@@ -1152,7 +1152,7 @@ DISABLE_RCSDEP=no
 DISABLE_RCSDEP=yes
 .	endif
 .	for _ttype_ in "bootstrap" "run" "pkgsrc" "build"
-.		if "${_test}" == "{PKBGASE}:${_ttype_}"
+.		if "${_test}" == "${PKBGASE}:${_ttype_}"
 DISABLE_RCSDEP=yes
 .		endif
 .	endfor
