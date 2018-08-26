@@ -299,7 +299,7 @@ ${_INSTALL_USERGROUP_FILE}:						\
 	${RUN}								\
 	${SED}	-e "/^# platform-specific adduser\/addgroup functions/r${_INSTALL_USERGROUPFUNCS_FILE}" ../../mk/pkginstall/usergroup |			\
 	${SED} ${FILES_SUBST_SED} > ${.TARGET}
-	${RUN}								\
+#	${RUN}								\
 #	if ${_ZERO_FILESIZE_P} ${_INSTALL_USERGROUP_DATAFILE}; then	\
 #		${RM} -f ${.TARGET};					\
 #		${TOUCH} ${TOUCH_ARGS} ${.TARGET};			\
