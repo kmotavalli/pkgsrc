@@ -1146,19 +1146,7 @@ FILES_SUBST+=		USERADD=${USERADD:Q}
 FILES_SUBST+=		WC=${WC:Q}
 FILES_SUBST+=		XARGS=${XARGS:Q}
 
-DISABLE_RCSDEP=no
-.for _test in ${USE_TOOLS}
-.	if "${_test}" == "${PKGBASE}"
-DISABLE_RCSDEP=yes
-.	endif
-.	for _ttype_ in "bootstrap" "run" "pkgsrc" "build"
-.		if "${_test}" == "${PKBGASE}:${_ttype_}"
-DISABLE_RCSDEP=yes
-.		endif
-.	endfor
-.endfor
-
-.if "${DISABLE_RCSDEP}" == "no" && !defined(IGNORE_VCS)
+.if empty(USE_TOOLS:M${PKGBASE}*) && empty(_PKGSRC_DEPS:M${PKGBASE}*) && !defined(IGNORE_VCS)
 .	if defined(TOOLS_PLATFORM.rcs)
 RCS=${TOOLS_PLATFORM.rcs}
 .	else
